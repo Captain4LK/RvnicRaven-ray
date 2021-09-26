@@ -16,3 +16,14 @@ Rvnic Raven incorporates code from multiple different sources. Here is a list of
    * cute_path (RvR_pak.c), unlicense/zlib
 * [Miloslav Číž](https://gitlab.com/drummyfish), for
    * raycastlib (RvR_raycast.c, RvR_raycast_draw.c), CC0
+
+# License
+
+All code in this repository (unless clearly marked otherwise, see above for potential exceptions) is released into the public domain (CC0), see COPYING for more info.
+
+# Gallery
+
+![Preview](preview/0.png)
+
+# Links
+<a href="https://discord.gg/Nch8hjdZ2V"><img alt="Discord" src="https://img.shields.io/badge/chat-HLH-738bd7.svg?logo=discord"/></a>
