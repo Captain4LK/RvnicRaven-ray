@@ -97,6 +97,13 @@ static int sort(const void *a, const void *b);
 
 //Function implementations
 
+//raycastlib by drummyfish: https://gitlab.com/drummyfish/raycastlib
+//Heavily modified: more efficient wall rendering, added floor/ceiling rendering
+//Original header:
+//raycastlib (RCL) - Small C header-only raycasting library for embedded and
+//low performance computers, such as Arduino. Only uses integer math and stdint
+//standard library.
+
 void RvR_raycast_draw_sprite(RvR_vec3 pos, uint16_t tex)
 {
    Sprite s = {0};

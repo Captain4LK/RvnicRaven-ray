@@ -14,3 +14,5 @@ Rvnic Raven incorporates code from multiple different sources. Here is a list of
    * crush.c (RvR_compress.c), public domain
 * [RandyGaul](https://github.com/RandyGaul), for
    * cute_path (RvR_pak.c), unlicense/zlib
+* [Miloslav Číž](https://gitlab.com/drummyfish), for
+   * raycastlib (RvR_raycast.c, RvR_raycast_draw.c), CC0

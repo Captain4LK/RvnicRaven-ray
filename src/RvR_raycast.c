@@ -41,6 +41,12 @@ static RvR_fix22 fov_correction_factor(RvR_fix22 fov);
 
 //Function implementations
 
+//raycastlib by drummyfish: https://gitlab.com/drummyfish/raycastlib
+//Original header:
+//raycastlib (RCL) - Small C header-only raycasting library for embedded and
+//low performance computers, such as Arduino. Only uses integer math and stdint
+//standard library.
+
 void RvR_cast_ray_multi_hit(RvR_ray ray, RvR_hit_result *hit_results, uint16_t *hit_results_len)
 {
    RvR_vec2 current_pos = ray.start;
