@@ -60,7 +60,7 @@ void game_map_load()
    ai_ent_free(ai_ents);
    ai_ents = NULL;
 
-   RvR_map_load("map.rvr");
+   RvR_map_load("data/map.rvr");
 
    for(int i = 0;i<RvR_map_sprite_count();i++)
    {
