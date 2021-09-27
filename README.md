@@ -1,5 +1,22 @@
 # Rvnic Raven
 
+# Building from source
+
+1. Get a compiler: I recommend gcc but clang works too.
+2. Compile and install SoftLK-lib: https://github.com/Captain4LK/SoftLK-lib
+3. Clone this repository: ``https://github.com/Captain4LK/RvnicRaven-ray``
+4. Compile, the binary can be found in the bin/ directory: 
+```
+cd bin/[OS]
+make -j 4
+```
+5. Get the assets, download data.zip from here: https://github.com/Captain4LK/RvnicRaven-ray/releases/ and unpack it.
+6. Place the data directory in bin/ so that the path to main.json is: ``bin/data/main.json``
+
+* First, clone this repository: ``https://github.com/Captain4LK/RvnicRaven-ray``
+
+* Rvnic Raven requires SoftLK-lib, instructions for compilling it can be found in its repository: https://github.com/Captain4LK/SoftLK-lib
+
 # Credits (code)
 
 Rvnic Raven incorporates code from multiple different sources. Here is a list of them, with license and file specified. The files itself contain additional notes about the source.
