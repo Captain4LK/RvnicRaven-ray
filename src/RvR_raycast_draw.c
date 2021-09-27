@@ -47,8 +47,8 @@ typedef struct
    int max;
    RvR_fix22 height;
    uint16_t tex;
-   uint16_t bottom[XRES+2];
-   uint16_t top[XRES+2];
+   uint16_t start[XRES+2];
+   uint16_t end[XRES+2];
 }Plane;
 
 typedef struct
@@ -185,11 +185,11 @@ void RvR_raycast_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
          for(int x = pl->min;x<pl->max+1;x++)
          {
             //Sky is rendered fullbright, no lut needed
-            RvR_fix22 texture_coord = pl->top[x]*SKY_TEX_STEP;
-            uint8_t * restrict pix = &target->data[(pl->top[x])*XRES+x-1];
+            RvR_fix22 texture_coord = pl->start[x]*SKY_TEX_STEP;
+            uint8_t * restrict pix = &target->data[(pl->start[x])*XRES+x-1];
             const uint8_t * restrict tex = &texture->data[((angle>>10)&255)*texture->height];
 
-            for(int y = pl->top[x];y<pl->bottom[x]+1;y++)
+            for(int y = pl->start[x];y<pl->end[x]+1;y++)
             {
                *pix = tex[texture_coord>>10];
                texture_coord+=SKY_TEX_STEP;
@@ -204,26 +204,26 @@ void RvR_raycast_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
       //Convert plane to horizontal spans
       for(int x = pl->min;x<pl->max+2;x++)
       {
-         RvR_fix22 t0 = pl->top[x-1];
-         RvR_fix22 t1 = pl->top[x];
-         RvR_fix22 b0 = pl->bottom[x-1];
-         RvR_fix22 b1 = pl->bottom[x];
+         RvR_fix22 s0 = pl->start[x-1];
+         RvR_fix22 s1 = pl->start[x];
+         RvR_fix22 e0 = pl->end[x-1];
+         RvR_fix22 e1 = pl->end[x];
 
          //End spans top
-         for(;t0<t1&&t0<=b0;t0++)
-            span_horizontal_draw(span_start[t0],x-1,t0,pl->height,pl->tex);
+         for(;s0<s1&&s0<=e0;s0++)
+            span_horizontal_draw(span_start[s0],x-1,s0,pl->height,pl->tex);
 
          //End spans bottom
-         for(;b0>b1&&b0>=t0;b0--)
-            span_horizontal_draw(span_start[b0],x-1,b0,pl->height,pl->tex);
+         for(;e0>e1&&e0>=s0;e0--)
+            span_horizontal_draw(span_start[e0],x-1,e0,pl->height,pl->tex);
 
          //Start spans top
-         for(;t1<t0&&t1<=b1;t1++)
-            span_start[t1] = x-1;
+         for(;s1<s0&&s1<=e1;s1++)
+            span_start[s1] = x-1;
 
          //Start spans bottom
-         for(;b1>b0&&b1>=t1;b1--)
-            span_start[b1] = x-1;
+         for(;e1>e0&&e1>=s1;e1--)
+            span_start[e1] = x-1;
       }
    }
    //-------------------------------------
@@ -609,9 +609,7 @@ static pixel_info map_to_screen(RvR_vec3 world_position)
    result.depth = to_point.x;
 
    result.position.x = middle_column-(RvR_raycast_perspective_scale_horizontal(to_point.y,result.depth)*middle_column)/RvR_fix22_one;
-
    result.position.y = (RvR_raycast_perspective_scale_vertical(world_position.z-RvR_raycast_get_position().z,result.depth)*YRES)/RvR_fix22_one;
-
    result.position.y = YRES/2-result.position.y+RvR_raycast_get_shear();
 
    return result;
@@ -626,22 +624,26 @@ static void plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
    //TODO: hash + linked list?
    for(i = 0;i<planes_used;i++)
    {
+      //Planes need to have the same height...
       if(height!=planes[i].height)
          continue;
+      //... and the same texture to be valid for concatination
       if(tex!=planes[i].tex)
          continue;
 
-      if(planes[i].top[x]!=UINT16_MAX)
+      //Additionally the spans collumn needs to be either empty...
+      if(planes[i].start[x]!=UINT16_MAX)
       {
+         //... or directly adjacent to each other vertically
          //Concat planes vertically, only works if the spans are directly adjacent
-         if(planes[i].top[x]-1==y1)
+         if(planes[i].start[x]-1==y1)
          {
-            planes[i].top[x] = y0;
+            planes[i].start[x] = y0;
             return;
          }
-         if(planes[i].bottom[x]+1==y0)
+         if(planes[i].end[x]+1==y0)
          {
-            planes[i].bottom[x] = y1;
+            planes[i].end[x] = y1;
             return;
          }
 
@@ -651,12 +653,12 @@ static void plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
       break;
    }
 
-
-   //Add new plane
    if(i==planes_used)
    {
       if(planes_used==256)
-         puts("Well... shit");
+      {
+         //TODO
+      }
 
       cur = &planes[planes_used++];
       cur->min = XRES;
@@ -665,7 +667,7 @@ static void plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
       cur->tex = tex;
 
       //Since this is an unsigned int, we can use memset to set all values to 65535 (0xffff)
-      memset(cur->top,255,sizeof(cur->top));
+      memset(cur->start,255,sizeof(cur->start));
    }
    else
    {
@@ -677,8 +679,8 @@ static void plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
    if(x>cur->max)
       cur->max = x;
 
-   cur->bottom[x] = y1;
-   cur->top[x] = y0;
+   cur->end[x] = y1;
+   cur->start[x] = y0;
 }
 
 static void span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, uint16_t texture)
@@ -699,7 +701,7 @@ static void span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, uint16
    tx+=x0*step_x;
    ty+=x0*step_y;
 
-   //const and restrict don't influence the generated assembly
+   //const and restrict don't seem to influence the generated assembly in this case
    uint8_t * restrict pix = &target->data[y*XRES+x0];
    const uint8_t * restrict col = RvR_shade_table[RvR_min(63,22+(depth>>8))];
    const uint8_t * restrict tex = RvR_texture_get(texture)->data;
