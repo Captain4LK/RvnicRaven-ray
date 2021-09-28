@@ -36,8 +36,8 @@ SLK_key RvR_config_strafe_right = SLK_KEY_D;
 SLK_key RvR_config_enable_freelook = SLK_KEY_F;
 SLK_key RvR_config_jump = SLK_KEY_SPACE;
 unsigned RvR_config_texture_timeout = 1;
-int RvR_config_camera_max_shear = 1024;
-int RvR_config_camera_shear_step = 16;
+int RvR_config_camera_max_shear = 192;
+int RvR_config_camera_shear_step = 8;
 //-------------------------------------
 
 //Function prototypes
@@ -55,10 +55,15 @@ int RvR_ini_parse(const char *path)
    char *iter = NULL;
    int32_t size = 0;
    uint64_t hash_key = 0;
-   FILE *in = fopen(path,"rb");
+   FILE *in = NULL;
 
    RVR_ERROR_CHECK(path!=NULL,0x101);
-   RVR_ERROR_CHECK(in!=NULL,0x006);
+   in = fopen(path,"rb");
+   if(in==NULL)
+   {
+      RvR_ini_write(path);
+      RVR_ERROR_CHECK(0,0x006);
+   }
 
    RVR_ERROR_CHECK(fseek(in,0,SEEK_END)==0,0x004);
    size = ftell(in);
@@ -123,9 +128,10 @@ RvR_err:
 
 int RvR_ini_write(const char *path)
 {
-   FILE *f = fopen(path,"w");
+   FILE *f = NULL;
 
    RVR_ERROR_CHECK(path!=NULL,0x101);
+   f = fopen(path,"w");
    RVR_ERROR_CHECK(f!=NULL,0x006);
 
    RVR_ERROR_CHECK(fprintf(f,";Mouse input\n")>=0,0x008);
@@ -146,7 +152,6 @@ int RvR_ini_write(const char *path)
    RVR_ERROR_CHECK(fprintf(f,"camera_shear_step=%d\n",RvR_config_camera_shear_step)>=0,0x008);
 
    RVR_ERROR_CHECK(fclose(f)!=EOF,0x007);
-   f = NULL;
 
    return 0;
 

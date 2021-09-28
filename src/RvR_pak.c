@@ -418,6 +418,7 @@ static RvR_lump string_to_lump(const char *t)
    case  3806790633606677507U: return RVR_LUMP_JSON;
    case  7818530539252466654U: return RVR_LUMP_TEX;
    case  8440912394771940537U: return RVR_LUMP_WAV;
+   case  2199261959994660209U: return RVR_LUMP_MAP;
    default:                    return RVR_LUMP_ERROR;
    }
 }

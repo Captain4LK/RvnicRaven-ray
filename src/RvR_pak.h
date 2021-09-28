@@ -12,9 +12,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _RVR_LUMP_H_
 
+//TODO: rename, lowercase v
 typedef enum
 {
-   RVR_LUMP_ERROR, RVR_LUMP_PAL, RVR_LUMP_MUS, RVR_LUMP_JSON, RVR_LUMP_PAK, RVR_LUMP_TEX, RVR_LUMP_WAV,
+   RVR_LUMP_ERROR, RVR_LUMP_PAL, RVR_LUMP_MUS, RVR_LUMP_JSON, RVR_LUMP_PAK, RVR_LUMP_TEX, RVR_LUMP_WAV, RVR_LUMP_MAP,
 }RvR_lump;
 
 void RvR_pak_add(const char *path);

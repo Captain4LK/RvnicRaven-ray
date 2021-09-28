@@ -21,7 +21,9 @@ typedef struct
 void RvR_map_create(uint16_t width, uint16_t height);
 void RvR_map_reset();
 void RvR_map_reset_full();
-void RvR_map_load(const char *path);
+void RvR_map_load_path(const char *path);
+void RvR_map_load(uint16_t id);
+void RvR_map_load_mem(uint8_t *mem, int len);
 void RvR_map_save(const char *path);
 int RvR_map_sprite_count();
 RvR_map_sprite *RvR_map_sprite_get(unsigned index);

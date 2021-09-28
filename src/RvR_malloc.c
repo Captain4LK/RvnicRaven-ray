@@ -42,7 +42,7 @@ typedef struct
 static int bmanage_total = 0;
 static int m_instance = 0;
 static int mem_break = -1;
-static Block_manager bmanage[5] = {0};
+static Block_manager bmanage = {0};
 //-------------------------------------
 
 //Function prototypes
@@ -57,24 +57,25 @@ static void block_manager_report(Block_manager *b);
 
 void RvR_malloc_init(int min, int max)
 {
+   void *mem = NULL;
+   int32_t size = max;
+
    if(bmanage_total)
    {
       RvR_log("RvR_malloc: already initialized\n");
       return;
    }
 
-   void *mem;
-   int32_t size = max;
    for(mem = NULL;!mem&&size>=min;)
    {
       mem = SLK_system_malloc(size);
-      if(!mem) 
+      if(mem==NULL) 
          size-=0x100;        
    }
 
-   if(mem)
+   if(mem!=NULL)
    {
-      block_manager_init(&bmanage[bmanage_total],mem,size);
+      block_manager_init(&bmanage,mem,size);
       bmanage_total++; 
       RvR_log("RvR_malloc: allocated %d bytes for allocator\n",size);
    }  
@@ -89,23 +90,20 @@ void *RvR_malloc(size_t size)
    if(size==0)
       RvR_log("RvR_malloc: tried to malloc 0 bytes\n");
 
-   m_instance++;
-   if(m_instance==mem_break)
-      RvR_log("RvR_malloc: mem break\n");
-
    if(!bmanage_total) 
    {
       return SLK_system_malloc(size);
    }
 
+   m_instance++;
+   if(m_instance==mem_break)
+      RvR_log("RvR_malloc: mem break\n");
+
    size = (size+3)&(0xffffffff-3);
 
-   for(int i = 0;i<bmanage_total;i++)
-   {
-      void *a = block_manager_alloc(&bmanage[i],size);
-      if(a) 
-         return a;
-   }
+   void *mem = block_manager_alloc(&bmanage,size);
+   if(mem!=NULL) 
+      return mem;
 
    //TODO: try to free some unnecessary allocations in this case
    //      free currently unused textures?
@@ -123,16 +121,13 @@ void RvR_free(void *ptr)
       return ; 
    }
 
-   for(int i = 0;i<bmanage_total;i++)
+   if(ptr>=(void *)bmanage.sfirst)  //is the pointer in this block?
    {
-      if(ptr>=(void *)bmanage[i].sfirst)  //is the pointer in this block?
+      if(ptr<=(void *)bmanage.slast)  //is it in static space?
       {
-         if(ptr<=(void *)bmanage[i].slast)  //is it in static space?
-         {
-            block_manager_free(&bmanage[i],ptr);
-            return ;
-         } 
-      }
+         block_manager_free(&bmanage,ptr);
+         return ;
+      } 
    }
 
    RvR_log("RvR_malloc: free() bad pointer\n");
@@ -140,7 +135,7 @@ void RvR_free(void *ptr)
 
 void *RvR_realloc(void *ptr, size_t size)
 {
-   if(!ptr) 
+   if(ptr==NULL) 
       return RvR_malloc(size);
 
    if(!bmanage_total) 
@@ -156,25 +151,22 @@ void *RvR_realloc(void *ptr, size_t size)
    }
 
    int32_t old_size = 0;
-   for(int i = 0;i<bmanage_total;i++)
+   if(ptr>=(void *)bmanage.sfirst && 
+      ptr<=(void *)(((char *)bmanage.sfirst)+bmanage.block_size))
    {
-      if(ptr>=(void *)bmanage[i].sfirst && 
-         ptr<=(void *)(((char *)bmanage[i].sfirst)+bmanage[i].block_size))
+      old_size = block_manager_pointer_size(ptr);  
+
+      if(ptr<=(void *)bmanage.slast)
       {
-         old_size = block_manager_pointer_size(ptr);  
+         void *nptr = RvR_malloc(size);
+         if((int32_t)size>old_size)
+            memcpy(nptr,ptr,old_size);
+         else
+            memcpy(nptr,ptr,size);
 
-         if(ptr<=(void *)bmanage[i].slast)
-         {
-            void *nptr = RvR_malloc(size);
-            if((int32_t)size>old_size)
-               memcpy(nptr,ptr,old_size);
-            else
-               memcpy(nptr,ptr,size);
+         block_manager_free(&bmanage,ptr);
 
-            block_manager_free(&bmanage[i],ptr);
-
-            return nptr;
-         }
+         return nptr;
       }
    }
 
@@ -185,12 +177,12 @@ void *RvR_realloc(void *ptr, size_t size)
 void RvR_malloc_report()
 {
    if(!bmanage_total)
-      return;
-
-   for(int i = 0;i<bmanage_total;i++)
    {
-      block_manager_report(&bmanage[i]);
+      RvR_log("RvR_malloc: using system allocator, memory report not possible\n");
+      return;
    }
+
+   block_manager_report(&bmanage);
 }
 
 static void block_manager_init(Block_manager *b, void *block, long block_size)
@@ -198,19 +190,19 @@ static void block_manager_init(Block_manager *b, void *block, long block_size)
    b->block_size = block_size;
    b->addr = block;
 
-   b->sfirst=(Memory_node *)(((char *)block));   
+   b->sfirst = (Memory_node *)(((char *)block));   
    b->slast = b->sfirst;
-   b->sfirst->size=-(block_size-(int32_t)sizeof(Memory_node));
-   b->sfirst->next=NULL;
+   b->sfirst->size = -(block_size-(int32_t)sizeof(Memory_node));
+   b->sfirst->next = NULL;
 }
 
 static void *block_manager_alloc(Block_manager *b, int32_t size)
 {
    Memory_node *s = b->sfirst;
-   if(!s) 
+   if(s==NULL) 
       return NULL;
    for(;s&&-s->size<size;s = s->next);
-   if(!s)
+   if(s==NULL)
       return NULL;
    s->size = -s->size;
 
@@ -230,11 +222,11 @@ static void *block_manager_alloc(Block_manager *b, int32_t size)
 
 static void block_manager_free(Block_manager *b, void *ptr)
 {
-   Memory_node *o=(Memory_node *)(((char *)ptr)-sizeof(Memory_node)),*last = NULL;
+   Memory_node *o = (Memory_node *)(((char *)ptr)-sizeof(Memory_node)),*last = NULL;
 
    if(o->next&&o->next->size<0)   //see if we can add into next block
    {
-      if (o->next==b->slast)
+      if(o->next==b->slast)
          b->slast = o;
       o->size+=-o->next->size+sizeof(Memory_node);
       o->next = o->next->next;
@@ -252,7 +244,9 @@ static void block_manager_free(Block_manager *b, void *ptr)
       last->size-=o->size+sizeof(Memory_node);	
    }
    else
+   {
       o->size=-o->size;            
+   }
 }
 
 static long block_manager_pointer_size(void *ptr)

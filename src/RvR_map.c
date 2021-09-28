@@ -203,11 +203,34 @@ void RvR_map_reset_full()
    RvR_map_reset();
 }
 
-void RvR_map_load(const char *path)
+void RvR_map_load_path(const char *path)
 {
    int size = 0;
-   int pos = 0;
    uint8_t *mem = RvR_decompress_path(path,&size);
+
+   RvR_map_load_mem(mem,size);
+   RvR_free(mem);
+}
+
+void RvR_map_load(uint16_t id)
+{
+   char tmp[64];
+   sprintf(tmp,"MAP%05d",id);
+
+   unsigned size_in;
+   int32_t size_out;
+   uint8_t *mem_pak, *mem_decomp;
+   mem_pak = RvR_lump_get(tmp,RVR_LUMP_MAP,&size_in);
+   mem_decomp = RvR_mem_decompress(mem_pak,size_in,&size_out);
+
+   RvR_free(mem_pak);
+   RvR_map_load_mem(mem_decomp,size_out);
+   RvR_free(mem_decomp);
+}
+
+void RvR_map_load_mem(uint8_t *mem, int len)
+{
+   int pos = 0;
 
    //Read level width and height
    map_cache.level_width = *(uint16_t *)(mem+pos); pos+=2;
@@ -240,8 +263,6 @@ void RvR_map_load(const char *path)
       map_cache.level_sprites[i].pos.y = *(uint32_t *)(mem+pos); pos+=4;
       map_cache.level_sprites[i].pos.z = *(uint32_t *)(mem+pos); pos+=4;
    }
-
-   RvR_free(mem);
 
    //Update actual map
    RvR_map_reset_full();
