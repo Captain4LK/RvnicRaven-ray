@@ -22,7 +22,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR_pak.h"
 #include "RvR_texture.h"
 #include "RvR_compress.h"
-#include "RvR_map.h"
+#include "RvR_ray_map.h"
 //-------------------------------------
 
 //#defines
@@ -52,7 +52,7 @@ static struct
    uint16_t level_height;
    uint8_t level_floor_color;
 
-   RvR_map_sprite *level_sprites;
+   RvR_ray_map_sprite *level_sprites;
    uint32_t level_sprite_count;
 }map_cache = {0};
 //-------------------------------------
@@ -64,7 +64,7 @@ static void map_free_level();
 
 //Function implementations
 
-void RvR_map_create(uint16_t width, uint16_t height)
+void RvR_ray_map_create(uint16_t width, uint16_t height)
 {
    map_free_editor();
    map_free_level();
@@ -95,7 +95,7 @@ void RvR_map_create(uint16_t width, uint16_t height)
 
    //TODO: don't call this here, make user call this
    //If I don't reset the map myself, it is possible to cache a map by loading it, but not reseting
-   RvR_map_reset_full();
+   RvR_ray_map_reset_full();
 }
 
 static void map_free_editor()
@@ -139,7 +139,7 @@ static void map_free_level()
    level_height = 0;
 }
 
-void RvR_map_reset()
+void RvR_ray_map_reset()
 {
    if(level_width!=map_cache.level_width||level_height!=map_cache.level_height|| //Wrong dimensions
       level_floor==NULL||level_ceiling==NULL||level_wall_tex==NULL //Not allocated yet
@@ -186,33 +186,33 @@ void RvR_map_reset()
    RvR_pak_flush();
 }
 
-int RvR_map_sprite_count()
+int RvR_ray_map_sprite_count()
 {
    return map_cache.level_sprite_count;
 }
 
-RvR_map_sprite *RvR_map_sprite_get(unsigned index)
+RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index)
 {
    if(index>=map_cache.level_sprite_count)
       return NULL;
    return &map_cache.level_sprites[index];
 }
 
-void RvR_map_reset_full()
+void RvR_ray_map_reset_full()
 {
-   RvR_map_reset();
+   RvR_ray_map_reset();
 }
 
-void RvR_map_load_path(const char *path)
+void RvR_ray_map_load_path(const char *path)
 {
    int size = 0;
    uint8_t *mem = RvR_decompress_path(path,&size);
 
-   RvR_map_load_mem(mem,size);
+   RvR_ray_map_load_mem(mem,size);
    RvR_free(mem);
 }
 
-void RvR_map_load(uint16_t id)
+void RvR_ray_map_load(uint16_t id)
 {
    char tmp[64];
    sprintf(tmp,"MAP%05d",id);
@@ -224,11 +224,11 @@ void RvR_map_load(uint16_t id)
    mem_decomp = RvR_mem_decompress(mem_pak,size_in,&size_out);
 
    RvR_free(mem_pak);
-   RvR_map_load_mem(mem_decomp,size_out);
+   RvR_ray_map_load_mem(mem_decomp,size_out);
    RvR_free(mem_decomp);
 }
 
-void RvR_map_load_mem(uint8_t *mem, int len)
+void RvR_ray_map_load_mem(uint8_t *mem, int len)
 {
    int pos = 0;
 
@@ -265,10 +265,10 @@ void RvR_map_load_mem(uint8_t *mem, int len)
    }
 
    //Update actual map
-   RvR_map_reset_full();
+   RvR_ray_map_reset_full();
 }
 
-void RvR_map_save(const char *path)
+void RvR_ray_map_save(const char *path)
 {
    //Calculate needed memory
    int size = 0;
@@ -319,7 +319,7 @@ void RvR_map_save(const char *path)
    RvR_free(mem);
 }
 
-uint16_t RvR_map_wall_tex_at(int16_t x, int16_t y)
+uint16_t RvR_ray_map_wall_tex_at(int16_t x, int16_t y)
 {
    if(x>=0&&x<level_width&&y>=0&&y<level_height)
       return level_wall_tex[y*level_width+x]; 
@@ -327,7 +327,7 @@ uint16_t RvR_map_wall_tex_at(int16_t x, int16_t y)
    return 0;
 }
 
-uint16_t RvR_map_floor_tex_at(int16_t x, int16_t y)
+uint16_t RvR_ray_map_floor_tex_at(int16_t x, int16_t y)
 {
    if(x>=0&&x<level_width&&y>=0&&y<level_height)
       return level_floor_tex[y*level_width+x]; 
@@ -335,7 +335,7 @@ uint16_t RvR_map_floor_tex_at(int16_t x, int16_t y)
    return 0;
 }
 
-uint16_t RvR_map_ceil_tex_at(int16_t x, int16_t y)
+uint16_t RvR_ray_map_ceil_tex_at(int16_t x, int16_t y)
 {
    if(x>=0&&x<level_width&&y>=0&&y<level_height)
       return level_ceil_tex[y*level_width+x]; 
@@ -343,7 +343,7 @@ uint16_t RvR_map_ceil_tex_at(int16_t x, int16_t y)
    return 0x43;
 }
 
-RvR_fix22 RvR_map_floor_height_at(int16_t x, int16_t y)
+RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y)
 {
    if(x>=0&&x<level_width&&y>=0&&y<level_height)
       return (level_floor[y*level_width+x]*RvR_fix22_one)/8;
@@ -351,7 +351,7 @@ RvR_fix22 RvR_map_floor_height_at(int16_t x, int16_t y)
    return 0;
 }
 
-RvR_fix22 RvR_map_ceiling_height_at(int16_t x, int16_t y)
+RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y)
 {
    int v = 127;
 

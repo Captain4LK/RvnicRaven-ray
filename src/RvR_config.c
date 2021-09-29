@@ -57,27 +57,27 @@ int RvR_ini_parse(const char *path)
    uint64_t hash_key = 0;
    FILE *in = NULL;
 
-   RVR_ERROR_CHECK(path!=NULL,0x101);
+   RvR_error_check(path!=NULL,0x101);
    in = fopen(path,"rb");
    if(in==NULL)
    {
       RvR_ini_write(path);
-      RVR_ERROR_CHECK(0,0x006);
+      RvR_error_check(0,0x006);
    }
 
-   RVR_ERROR_CHECK(fseek(in,0,SEEK_END)==0,0x004);
+   RvR_error_check(fseek(in,0,SEEK_END)==0,0x004);
    size = ftell(in);
-   RVR_ERROR_CHECK(size!=EOF,0x005);
-   RVR_ERROR_CHECK(fseek(in,0,SEEK_SET)==0,0x004);
+   RvR_error_check(size!=EOF,0x005);
+   RvR_error_check(fseek(in,0,SEEK_SET)==0,0x004);
    buffer_in = RvR_malloc(size+1);
-   RVR_ERROR_CHECK(buffer_in!=NULL,0x001);
-   RVR_ERROR_CHECK(fread(buffer_in,size,1,in)==1,0x003);
+   RvR_error_check(buffer_in!=NULL,0x001);
+   RvR_error_check(fread(buffer_in,size,1,in)==1,0x003);
    buffer_in[size] = '\0';
-   RVR_ERROR_CHECK(fclose(in)!=EOF,0x007);
+   RvR_error_check(fclose(in)!=EOF,0x007);
    in = NULL;
 
    kv = ini(buffer_in);
-   RVR_ERROR_CHECK(kv!=NULL,0x000);
+   RvR_error_check(kv!=NULL,0x000);
    for(iter = kv;iter[0];)
    {
       //Read key
@@ -130,28 +130,28 @@ int RvR_ini_write(const char *path)
 {
    FILE *f = NULL;
 
-   RVR_ERROR_CHECK(path!=NULL,0x101);
+   RvR_error_check(path!=NULL,0x101);
    f = fopen(path,"w");
-   RVR_ERROR_CHECK(f!=NULL,0x006);
+   RvR_error_check(f!=NULL,0x006);
 
-   RVR_ERROR_CHECK(fprintf(f,";Mouse input\n")>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"mouse_sensitivity=%d\n",RvR_config_mouse_sensitivity)>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"mouse_sensitivity_vertical=%d\n",RvR_config_mouse_sensitivity_vertical)>=0,0x008);
+   RvR_error_check(fprintf(f,";Mouse input\n")>=0,0x008);
+   RvR_error_check(fprintf(f,"mouse_sensitivity=%d\n",RvR_config_mouse_sensitivity)>=0,0x008);
+   RvR_error_check(fprintf(f,"mouse_sensitivity_vertical=%d\n",RvR_config_mouse_sensitivity_vertical)>=0,0x008);
 
-   RVR_ERROR_CHECK(fprintf(f,"\n;Keyboard input\n")>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"move_forward=%s\n",keytostr(RvR_config_move_forward))>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"move_backward=%s\n",keytostr(RvR_config_move_backward))>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"strafe_left=%s\n",keytostr(RvR_config_strafe_left))>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"strafe_right=%s\n",keytostr(RvR_config_strafe_right))>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"enable_freelook=%s\n",keytostr(RvR_config_enable_freelook))>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"jump=%s\n",keytostr(RvR_config_jump))>=0,0x008);
+   RvR_error_check(fprintf(f,"\n;Keyboard input\n")>=0,0x008);
+   RvR_error_check(fprintf(f,"move_forward=%s\n",keytostr(RvR_config_move_forward))>=0,0x008);
+   RvR_error_check(fprintf(f,"move_backward=%s\n",keytostr(RvR_config_move_backward))>=0,0x008);
+   RvR_error_check(fprintf(f,"strafe_left=%s\n",keytostr(RvR_config_strafe_left))>=0,0x008);
+   RvR_error_check(fprintf(f,"strafe_right=%s\n",keytostr(RvR_config_strafe_right))>=0,0x008);
+   RvR_error_check(fprintf(f,"enable_freelook=%s\n",keytostr(RvR_config_enable_freelook))>=0,0x008);
+   RvR_error_check(fprintf(f,"jump=%s\n",keytostr(RvR_config_jump))>=0,0x008);
 
-   RVR_ERROR_CHECK(fprintf(f,"\n;Engine settings\n")>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"texture_timeout=%d\n",RvR_config_texture_timeout)>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"camera_max_shear=%d\n",RvR_config_camera_max_shear)>=0,0x008);
-   RVR_ERROR_CHECK(fprintf(f,"camera_shear_step=%d\n",RvR_config_camera_shear_step)>=0,0x008);
+   RvR_error_check(fprintf(f,"\n;Engine settings\n")>=0,0x008);
+   RvR_error_check(fprintf(f,"texture_timeout=%d\n",RvR_config_texture_timeout)>=0,0x008);
+   RvR_error_check(fprintf(f,"camera_max_shear=%d\n",RvR_config_camera_max_shear)>=0,0x008);
+   RvR_error_check(fprintf(f,"camera_shear_step=%d\n",RvR_config_camera_shear_step)>=0,0x008);
 
-   RVR_ERROR_CHECK(fclose(f)!=EOF,0x007);
+   RvR_error_check(fclose(f)!=EOF,0x007);
 
    return 0;
 
@@ -227,7 +227,7 @@ static char *ini(const char *s)
          if(end[KEY]-cut[KEY]) key+=sprintf(key,"%.*s", (int)(end[KEY]-cut[KEY]),cut[KEY]);
          if(end[SUB]-cut[SUB]) key+=sprintf(key,".%.*s", (int)(end[SUB]-cut[SUB]),cut[SUB]);
          reqlen = (key-buf)+1+(end[VAL]-cut[VAL])+1+1;
-         if((reqlen+maplen)>=mapcap) { map = RvR_realloc(map,(mapcap+=reqlen+512)); RVR_ERROR_CHECK(map!=NULL,0x002); }
+         if((reqlen+maplen)>=mapcap) { map = RvR_realloc(map,(mapcap+=reqlen+512)); RvR_error_check(map!=NULL,0x002); }
          sprintf(map+maplen,"%.*s%c%.*s%c%c",(int)(key-buf),buf,0,(int)(end[VAL]-cut[VAL]),cut[VAL],0,0);
          maplen+=reqlen-1;
       }

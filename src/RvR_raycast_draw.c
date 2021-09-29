@@ -21,10 +21,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR_math.h"
 #include "RvR_malloc.h"
 #include "RvR_pal.h"
-#include "RvR_map.h"
+#include "RvR_ray_map.h"
 #include "RvR_texture.h"
-#include "RvR_raycast.h"
-#include "RvR_raycast_draw.h"
+#include "RvR_ray.h"
+#include "RvR_ray_draw.h"
 //-------------------------------------
 
 //#defines
@@ -38,7 +38,7 @@ typedef struct
                                 texture coordinates. */
    RvR_fix22      depth;     ///< Corrected depth.
    int8_t         is_horizon; ///< If the pixel belongs to horizon segment.
-   RvR_hit_result hit;       ///< Corresponding ray hit.
+   RvR_ray_hit_result hit;       ///< Corresponding ray hit.
 }pixel_info;
 
 typedef struct
@@ -88,7 +88,7 @@ static void plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1);
 static void span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, uint16_t texture);
 static int16_t draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, pixel_info *pixel_info);
 static int16_t draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, int16_t increment, pixel_info *pixel_info);
-static void draw_column(RvR_hit_result *hits, uint16_t hit_count, uint16_t x, RvR_ray ray);
+static void draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16_t x, RvR_ray ray);
 static pixel_info map_to_screen(RvR_vec3 world_position);
 
 static void sprite_stack_push(Sprite s);
@@ -104,7 +104,7 @@ static int sort(const void *a, const void *b);
 //low performance computers, such as Arduino. Only uses integer math and stdint
 //standard library.
 
-void RvR_raycast_draw_sprite(RvR_vec3 pos, uint16_t tex)
+void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex)
 {
    Sprite s = {0};
    pixel_info p = map_to_screen(pos);
@@ -127,7 +127,7 @@ void RvR_raycast_draw_sprite(RvR_vec3 pos, uint16_t tex)
    sprite_stack_push(s);
 }
 
-void RvR_raycast_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
+void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
 {
    //Update drawing target pointer
    //in case its location has changed (e.g. resize)
@@ -148,20 +148,20 @@ void RvR_raycast_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
    planes_used = 0;
 
    //Render walls and fill plane data
-   RvR_raycast_set_position(cpos);
-   RvR_raycast_set_angle(cangle);
-   RvR_raycast_set_shear(cshear);
+   RvR_ray_set_position(cpos);
+   RvR_ray_set_angle(cangle);
+   RvR_ray_set_shear(cshear);
 
    middle_row = (YRES/2)+cshear;
-   start_floor_height = RvR_map_floor_height_at(RvR_div_round_down(cpos.x,RvR_fix22_one),RvR_div_round_down(cpos.y,RvR_fix22_one))-1*cpos.z;
-   start_ceil_height = RvR_map_ceiling_height_at(RvR_div_round_down(cpos.x,RvR_fix22_one),RvR_div_round_down(cpos.y,RvR_fix22_one))-1*cpos.z;
+   start_floor_height = RvR_ray_map_floor_height_at(RvR_div_round_down(cpos.x,RvR_fix22_one),RvR_div_round_down(cpos.y,RvR_fix22_one))-1*cpos.z;
+   start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_div_round_down(cpos.x,RvR_fix22_one),RvR_div_round_down(cpos.y,RvR_fix22_one))-1*cpos.z;
 
-   RvR_cast_rays_multi_hit(draw_column);
+   RvR_rays_cast_multi_hit(draw_column);
    //-------------------------------------
    
    //Render floor planes
-   cam_dir0 = RvR_vec2_rot(RvR_raycast_get_angle()-(HORIZONTAL_FOV/2));
-   cam_dir1 = RvR_vec2_rot(RvR_raycast_get_angle()+(HORIZONTAL_FOV/2));
+   cam_dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(HORIZONTAL_FOV/2));
+   cam_dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(HORIZONTAL_FOV/2));
    RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(HORIZONTAL_FOV/2));
    cam_dir0.x = (cam_dir0.x*RvR_fix22_one)/cos;
    cam_dir0.y = (cam_dir0.y*RvR_fix22_one)/cos;
@@ -179,7 +179,7 @@ void RvR_raycast_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
       if(pl->tex==0x43)
       {
          SLK_Pal_sprite *texture = RvR_texture_get(0x43);
-         RvR_fix22 angle = (RvR_raycast_get_angle())*RvR_fix22_one;
+         RvR_fix22 angle = (RvR_ray_get_angle())*RvR_fix22_one;
          angle+=(pl->min-1)*ANGLE_STEP;
 
          for(int x = pl->min;x<pl->max+1;x++)
@@ -238,8 +238,8 @@ void RvR_raycast_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
       Sprite sp = sprite_stack.data[i];
       RvR_fix22 depth = sp.s_depth;
       SLK_Pal_sprite *texture = RvR_texture_get(sp.tex);
-      int size_vertical = RvR_raycast_perspective_scale_vertical(texture->height*3,depth);
-      int size_horizontal = RvR_raycast_perspective_scale_horizontal(texture->width*2,depth);
+      int size_vertical = RvR_ray_perspective_scale_vertical(texture->height*3,depth);
+      int size_horizontal = RvR_ray_perspective_scale_horizontal(texture->width*2,depth);
       int sx = 0;
       int sy = 0;
       int ex = size_horizontal;
@@ -425,7 +425,7 @@ static int16_t draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_f
    return limit;
 }
 
-static void draw_column(RvR_hit_result *hits, uint16_t hit_count, uint16_t x, RvR_ray ray)
+static void draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16_t x, RvR_ray ray)
 {
    //last written Y position, can never go backwards
    RvR_fix22 f_pos_y = YRES;
@@ -448,7 +448,7 @@ static void draw_column(RvR_hit_result *hits, uint16_t hit_count, uint16_t x, Rv
    {                    //^ = add extra iteration for horizon plane
       int8_t drawing_horizon = j==hit_count;
 
-      RvR_hit_result hit;
+      RvR_ray_hit_result hit;
       RvR_fix22 distance = 1;
 
       RvR_fix22 f_wall_height = 0, c_wall_height = 0;
@@ -462,15 +462,15 @@ static void draw_column(RvR_hit_result *hits, uint16_t hit_count, uint16_t x, Rv
          distance = RvR_non_zero(hit.distance); 
          p.hit = hit;
 
-         f_wall_height = RvR_map_floor_height_at(hit.square.x,hit.square.y);
-         f_z2_world = f_wall_height-RvR_raycast_get_position().z;
-         f_z1_screen = middle_row-RvR_raycast_perspective_scale_vertical((f_z1_world*YRES)/RvR_fix22_one,distance);
-         f_z2_screen = middle_row-RvR_raycast_perspective_scale_vertical((f_z2_world*YRES)/RvR_fix22_one,distance);
+         f_wall_height = RvR_ray_map_floor_height_at(hit.square.x,hit.square.y);
+         f_z2_world = f_wall_height-RvR_ray_get_position().z;
+         f_z1_screen = middle_row-RvR_ray_perspective_scale_vertical((f_z1_world*YRES)/RvR_fix22_one,distance);
+         f_z2_screen = middle_row-RvR_ray_perspective_scale_vertical((f_z2_world*YRES)/RvR_fix22_one,distance);
 
-         c_wall_height = RvR_map_ceiling_height_at(hit.square.x,hit.square.y);
-         c_z2_world = c_wall_height-RvR_raycast_get_position().z;
-         c_z1_screen = middle_row-RvR_raycast_perspective_scale_vertical((c_z1_world*YRES)/RvR_fix22_one,distance);
-         c_z2_screen = middle_row-RvR_raycast_perspective_scale_vertical((c_z2_world*YRES)/RvR_fix22_one,distance);
+         c_wall_height = RvR_ray_map_ceiling_height_at(hit.square.x,hit.square.y);
+         c_z2_world = c_wall_height-RvR_ray_get_position().z;
+         c_z1_screen = middle_row-RvR_ray_perspective_scale_vertical((c_z1_world*YRES)/RvR_fix22_one,distance);
+         c_z2_screen = middle_row-RvR_ray_perspective_scale_vertical((c_z2_world*YRES)/RvR_fix22_one,distance);
       }
       else
       {
@@ -590,16 +590,16 @@ static pixel_info map_to_screen(RvR_vec3 world_position)
 
    RvR_vec2 to_point;
 
-   to_point.x = world_position.x-RvR_raycast_get_position().x;
-   to_point.y = world_position.y-RvR_raycast_get_position().y;
+   to_point.x = world_position.x-RvR_ray_get_position().x;
+   to_point.y = world_position.y-RvR_ray_get_position().y;
 
    RvR_fix22 middle_column = XRES/2;
 
    //rotate the point to camera space (y left/right, x forw/backw)
    //TODO: cache cosine, sinus values
 
-   RvR_fix22 cos = RvR_fix22_cos(RvR_raycast_get_angle());
-   RvR_fix22 sin = RvR_fix22_sin(RvR_raycast_get_angle());
+   RvR_fix22 cos = RvR_fix22_cos(RvR_ray_get_angle());
+   RvR_fix22 sin = RvR_fix22_sin(RvR_ray_get_angle());
 
    RvR_fix22 tmp = to_point.x;
 
@@ -608,9 +608,9 @@ static pixel_info map_to_screen(RvR_vec3 world_position)
 
    result.depth = to_point.x;
 
-   result.position.x = middle_column-(RvR_raycast_perspective_scale_horizontal(to_point.y,result.depth)*middle_column)/RvR_fix22_one;
-   result.position.y = (RvR_raycast_perspective_scale_vertical(world_position.z-RvR_raycast_get_position().z,result.depth)*YRES)/RvR_fix22_one;
-   result.position.y = YRES/2-result.position.y+RvR_raycast_get_shear();
+   result.position.x = middle_column-(RvR_ray_perspective_scale_horizontal(to_point.y,result.depth)*middle_column)/RvR_fix22_one;
+   result.position.y = (RvR_ray_perspective_scale_vertical(world_position.z-RvR_ray_get_position().z,result.depth)*YRES)/RvR_fix22_one;
+   result.position.y = YRES/2-result.position.y+RvR_ray_get_shear();
 
    return result;
 }
@@ -690,14 +690,14 @@ static void span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, uint16
       return;
 
    //Calculate the depth of the row to be rendered
-   RvR_fix22 cam_height_screen_size = RvR_abs((RvR_raycast_get_position().z-height)*YRES)/1024;
-   RvR_fix22 depth = RvR_raycast_perspective_scale_vertical_inverse(cam_height_screen_size,RvR_abs(y-middle_row));
+   RvR_fix22 cam_height_screen_size = RvR_abs((RvR_ray_get_position().z-height)*YRES)/1024;
+   RvR_fix22 depth = RvR_ray_perspective_scale_vertical_inverse(cam_height_screen_size,RvR_abs(y-middle_row));
 
    //Calculate texture mapping step size and starting coordinates
    RvR_fix22 step_x = (depth*(cam_dir1.x-cam_dir0.x))/XRES;
    RvR_fix22 step_y = (depth*(cam_dir1.y-cam_dir0.y))/XRES;
-   RvR_fix22 tx = (RvR_raycast_get_position().x&1023)*1024+(depth*cam_dir0.x);
-   RvR_fix22 ty = (RvR_raycast_get_position().y&1023)*1024+(depth*cam_dir0.y);
+   RvR_fix22 tx = (RvR_ray_get_position().x&1023)*1024+(depth*cam_dir0.x);
+   RvR_fix22 ty = (RvR_ray_get_position().y&1023)*1024+(depth*cam_dir0.y);
    tx+=x0*step_x;
    ty+=x0*step_y;
 

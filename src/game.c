@@ -17,8 +17,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR_config.h"
 #include "RvR_math.h"
 #include "RvR_malloc.h"
-#include "RvR_map.h"
-#include "RvR_raycast_draw.h"
+#include "RvR_ray_map.h"
+#include "RvR_ray_draw.h"
 #include "RvR_texture.h"
 #include "game.h"
 #include "sprite.h"
@@ -60,11 +60,11 @@ void game_map_load()
    ai_ent_free(ai_ents);
    ai_ents = NULL;
 
-   RvR_map_load(0);
+   RvR_ray_map_load(0);
 
-   for(int i = 0;i<RvR_map_sprite_count();i++)
+   for(int i = 0;i<RvR_ray_map_sprite_count();i++)
    {
-      RvR_map_sprite *s = RvR_map_sprite_get(i);
+      RvR_ray_map_sprite *s = RvR_ray_map_sprite_get(i);
 
       AI_ent *e = ai_ent_new();
       e->next = ai_ents;
@@ -106,14 +106,14 @@ void game_update()
       else
       {
          //TODO: calculate rotation
-         RvR_raycast_draw_sprite(e->pos,sprite_rot(e->ai.state->sprite,0));
+         RvR_ray_draw_sprite(e->pos,sprite_rot(e->ai.state->sprite,0));
       }
       e = e->next;
    }
 
    //Graphics
    SLK_layer_set_current(0);
-   RvR_raycast_draw((RvR_vec3){player.entity->pos.x,player.entity->pos.y,player.entity->pos.z},player.entity->direction,player.shear);
+   RvR_ray_draw((RvR_vec3){player.entity->pos.x,player.entity->pos.y,player.entity->pos.z},player.entity->direction,player.shear);
    SLK_draw_pal_sprite(player_sprite,(XRES-player_sprite->width)/2,YRES-player_sprite->height);
 }
 

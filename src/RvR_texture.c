@@ -29,7 +29,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define READ(v,m,p,l,t) \
    do\
    {\
-      RVR_ERROR_CHECK((p)+sizeof(t)<=(l),0x200);\
+      RvR_error_check((p)+sizeof(t)<=(l),0x200);\
       (v) = (*((t *)((m)+(p))));\
       (p)+=sizeof(t);\
    }while(0)
@@ -136,8 +136,8 @@ static SLK_Pal_sprite *texture_load(const uint8_t *mem, unsigned len)
    READ(height,mem,pos,len,int32_t);
 
    p = SLK_pal_sprite_create(width,height);
-   RVR_ERROR_CHECK(p!=NULL,0x001);
-   RVR_ERROR_CHECK(p->data!=NULL,0x001);
+   RvR_error_check(p!=NULL,0x001);
+   RvR_error_check(p->data!=NULL,0x001);
 
    for(int i = 0;i<width*height;i++)
       READ(p->data[i],mem,pos,len,uint8_t);

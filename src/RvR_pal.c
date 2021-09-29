@@ -26,7 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define READ(v,m,p,l,t) \
    do\
    {\
-      RVR_ERROR_CHECK((p)+sizeof(t)<=(l),0x200);\
+      RvR_error_check((p)+sizeof(t)<=(l),0x200);\
       (v) = (*((t *)((m)+(p))));\
       (p)+=sizeof(t);\
    }while(0)
@@ -62,7 +62,7 @@ void RvR_palette_load(uint16_t id)
       pal = RvR_malloc(sizeof(*pal));
       pal->used = 255;
    }
-   RVR_ERROR_CHECK(pal!=NULL,0x001);
+   RvR_error_check(pal!=NULL,0x001);
 
    for(unsigned i = 0;i<256;i++)
    {

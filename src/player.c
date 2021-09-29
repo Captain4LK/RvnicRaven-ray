@@ -15,7 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "RvR_config.h"
 #include "RvR_math.h"
-#include "RvR_raycast.h"
+#include "RvR_ray.h"
 #include "sprite.h"
 #include "ai.h"
 #include "player.h"
@@ -107,10 +107,10 @@ void player_update()
    //-------------------------------------
 
    //Collision
-   RvR_raycast_set_position(player.entity->pos);
+   RvR_ray_set_position(player.entity->pos);
    RvR_fix22 last_z = player.entity->pos.z;
-   RvR_raycast_move_with_collision(move_offset,1,1);
-   player.entity->pos = RvR_raycast_get_position();
+   RvR_ray_move_with_collision(move_offset,1,1);
+   player.entity->pos = RvR_ray_get_position();
    on_ground = 0;
    if(last_z==player.entity->pos.z)
    {

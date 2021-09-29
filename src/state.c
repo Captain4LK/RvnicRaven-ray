@@ -15,8 +15,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "RvR_config.h"
 #include "RvR_math.h"
-#include "RvR_raycast.h"
-#include "RvR_raycast_draw.h"
+#include "RvR_ray.h"
+#include "RvR_ray_draw.h"
 #include "RvR_texture.h"
 #include "state.h"
 #include "game.h"

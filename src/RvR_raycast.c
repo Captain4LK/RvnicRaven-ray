@@ -18,9 +18,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR_config.h"
 #include "RvR_error.h"
 #include "RvR_math.h"
-#include "RvR_map.h"
-#include "RvR_raycast.h"
-#include "RvR_raycast_draw.h"
+#include "RvR_ray_map.h"
+#include "RvR_ray.h"
+#include "RvR_ray_draw.h"
 //-------------------------------------
 
 //#defines
@@ -47,7 +47,7 @@ static RvR_fix22 fov_correction_factor(RvR_fix22 fov);
 //low performance computers, such as Arduino. Only uses integer math and stdint
 //standard library.
 
-void RvR_cast_ray_multi_hit(RvR_ray ray, RvR_hit_result *hit_results, uint16_t *hit_results_len)
+void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16_t *hit_results_len)
 {
    RvR_vec2 current_pos = ray.start;
    RvR_vec2 current_square;
@@ -107,7 +107,7 @@ void RvR_cast_ray_multi_hit(RvR_ray ray, RvR_hit_result *hit_results, uint16_t *
       if(!first)//current_type!=square_type)
       {
          //collision
-         RvR_hit_result h;
+         RvR_ray_hit_result h;
 
          h.position = current_pos;
          h.square   = current_square;
@@ -163,37 +163,37 @@ void RvR_cast_ray_multi_hit(RvR_ray ray, RvR_hit_result *hit_results, uint16_t *
 #undef CORRECT
          }
 
-         h.wall_tex = RvR_map_wall_tex_at(current_square.x,current_square.y);
+         h.wall_tex = RvR_ray_map_wall_tex_at(current_square.x,current_square.y);
 
          switch(h.direction)
          {
          case 0:
             h.texture_coord = RvR_wrap(-1*h.position.x,RvR_fix22_one);
-            h.fheight = RvR_map_floor_height_at(current_square.x,current_square.y+1);
-            h.cheight = RvR_map_ceiling_height_at(current_square.x,current_square.y+1);
-            h.floor_tex = RvR_map_floor_tex_at(h.square.x,h.square.y+1);
-            h.ceil_tex = RvR_map_ceil_tex_at(h.square.x,h.square.y+1);
+            h.fheight = RvR_ray_map_floor_height_at(current_square.x,current_square.y+1);
+            h.cheight = RvR_ray_map_ceiling_height_at(current_square.x,current_square.y+1);
+            h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x,h.square.y+1);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x,h.square.y+1);
             break;
          case 1:
             h.texture_coord = RvR_wrap(h.position.y,RvR_fix22_one);
-            h.fheight = RvR_map_floor_height_at(current_square.x+1,current_square.y);
-            h.cheight = RvR_map_ceiling_height_at(current_square.x+1,current_square.y);
-            h.floor_tex = RvR_map_floor_tex_at(h.square.x+1,h.square.y);
-            h.ceil_tex = RvR_map_ceil_tex_at(h.square.x+1,h.square.y);
+            h.fheight = RvR_ray_map_floor_height_at(current_square.x+1,current_square.y);
+            h.cheight = RvR_ray_map_ceiling_height_at(current_square.x+1,current_square.y);
+            h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x+1,h.square.y);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x+1,h.square.y);
             break;
          case 2:
             h.texture_coord = RvR_wrap(h.position.x,RvR_fix22_one);
-            h.fheight = RvR_map_floor_height_at(current_square.x,current_square.y-1);
-            h.cheight = RvR_map_ceiling_height_at(current_square.x,current_square.y-1);
-            h.floor_tex = RvR_map_floor_tex_at(h.square.x,h.square.y-1);
-            h.ceil_tex = RvR_map_ceil_tex_at(h.square.x,h.square.y-1);
+            h.fheight = RvR_ray_map_floor_height_at(current_square.x,current_square.y-1);
+            h.cheight = RvR_ray_map_ceiling_height_at(current_square.x,current_square.y-1);
+            h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x,h.square.y-1);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x,h.square.y-1);
             break;
          case 3:
             h.texture_coord = RvR_wrap(-1*h.position.y,RvR_fix22_one);
-            h.fheight = RvR_map_floor_height_at(current_square.x-1,current_square.y);
-            h.cheight = RvR_map_ceiling_height_at(current_square.x-1,current_square.y);
-            h.floor_tex = RvR_map_floor_tex_at(h.square.x-1,h.square.y);
-            h.ceil_tex = RvR_map_ceil_tex_at(h.square.x-1,h.square.y);
+            h.fheight = RvR_ray_map_floor_height_at(current_square.x-1,current_square.y);
+            h.cheight = RvR_ray_map_ceiling_height_at(current_square.x-1,current_square.y);
+            h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x-1,h.square.y);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x-1,h.square.y);
             break;
          default:
             h.texture_coord = 0;
@@ -224,7 +224,7 @@ void RvR_cast_ray_multi_hit(RvR_ray ray, RvR_hit_result *hit_results, uint16_t *
    }
 }
 
-void RvR_cast_rays_multi_hit(RvR_column_function column)
+void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
 {
    RvR_vec2 dir0 = RvR_vec2_rot(cam_angle-(HORIZONTAL_FOV/2));
    RvR_vec2 dir1 = RvR_vec2_rot(cam_angle+(HORIZONTAL_FOV/2));
@@ -240,7 +240,7 @@ void RvR_cast_rays_multi_hit(RvR_column_function column)
    RvR_fix22 dx = dir1.x-dir0.x;
    RvR_fix22 dy = dir1.y-dir0.y;
 
-   RvR_hit_result hits[MAX_HITS] = {0};
+   RvR_ray_hit_result hits[MAX_HITS] = {0};
    uint16_t hit_count = 0;
 
    RvR_ray r;
@@ -258,7 +258,7 @@ void RvR_cast_rays_multi_hit(RvR_column_function column)
       r.direction.x = dir0.x+(current_dx/XRES);
       r.direction.y = dir0.y+(current_dy/XRES);
       
-      RvR_cast_ray_multi_hit(r,hits,&hit_count);
+      RvR_ray_cast_multi_hit(r,hits,&hit_count);
 
       column(hits,hit_count,i,r);
 
@@ -267,7 +267,7 @@ void RvR_cast_rays_multi_hit(RvR_column_function column)
    }
 }
 
-RvR_fix22 RvR_raycast_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 distance)
+RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 distance)
 {
    static RvR_fix22 correction_factor = 0;
    if(correction_factor==0)
@@ -276,7 +276,7 @@ RvR_fix22 RvR_raycast_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 d
    return distance!=0?((org_size*RvR_fix22_one)/RvR_non_zero((correction_factor*distance)/RvR_fix22_one)):0;
 }
 
-RvR_fix22 RvR_raycast_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix22 sc_size)
+RvR_fix22 RvR_ray_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix22 sc_size)
 {
    static RvR_fix22 correction_factor = 0;
    if(correction_factor==0)
@@ -285,7 +285,7 @@ RvR_fix22 RvR_raycast_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR
    return sc_size!=0?((org_size*RvR_fix22_one)/RvR_non_zero((correction_factor*sc_size)/RvR_fix22_one)):RvR_INFINITY;
 }
 
-RvR_fix22 RvR_raycast_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 distance)
+RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 distance)
 {
    static RvR_fix22 correction_factor = 0;
    if(correction_factor==0)
@@ -294,7 +294,7 @@ RvR_fix22 RvR_raycast_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22
    return distance!=0?((org_size*RvR_fix22_one)/RvR_non_zero((correction_factor*distance)/RvR_fix22_one)):0;
 }
 
-void RvR_raycast_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t force)
+void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t force)
 {
    int8_t moves_in_plane = offset.x!=0||offset.y!=0;
 
@@ -331,28 +331,28 @@ void RvR_raycast_move_with_collision(RvR_vec3 offset, int8_t compute_height, int
 
          top_limit = cam_position.z+CAMERA_COLL_HEIGHT_ABOVE;
 
-         curr_ceil_height = RvR_map_ceiling_height_at(x_square,y_square);
+         curr_ceil_height = RvR_ray_map_ceiling_height_at(x_square,y_square);
       }
 
       // checks a single square for collision against the camera
 #define collCheck(dir,s1,s2)\
       if(compute_height)\
       {\
-         RvR_fix22 height = RvR_map_floor_height_at(s1,s2);\
+         RvR_fix22 height = RvR_ray_map_floor_height_at(s1,s2);\
          if(height>bottom_limit||\
          curr_ceil_height-height<\
          CAMERA_COLL_HEIGHT_BELOW+CAMERA_COLL_HEIGHT_ABOVE)\
             dir##_collides = 1;\
          else\
          {\
-            RvR_fix22 height2 = RvR_map_ceiling_height_at(s1,s2);\
+            RvR_fix22 height2 = RvR_ray_map_ceiling_height_at(s1,s2);\
             if((height2<top_limit)||((height2-height)<\
             (CAMERA_COLL_HEIGHT_ABOVE+CAMERA_COLL_HEIGHT_BELOW)))\
                dir##_collides = 1;\
          }\
       }\
       else\
-         dir##_collides = RvR_map_floor_height_at(s1,s2)>CAMERA_COLL_STEP_HEIGHT;
+         dir##_collides = RvR_ray_map_floor_height_at(s1,s2)>CAMERA_COLL_STEP_HEIGHT;
 
       // check collision against non-diagonal square
 #define collCheckOrtho(dir,dir2,s1,s2,x)\
@@ -448,16 +448,16 @@ void RvR_raycast_move_with_collision(RvR_vec3 offset, int8_t compute_height, int
 
       int16_t y_square2 = RvR_div_round_down(cam_position.y+CAMERA_COLL_RADIUS,RvR_fix22_one);
 
-      RvR_fix22 bottom_limit = RvR_map_floor_height_at(x_square1,y_square1);
-      RvR_fix22 top_limit = RvR_map_ceiling_height_at(x_square1,y_square1);
+      RvR_fix22 bottom_limit = RvR_ray_map_floor_height_at(x_square1,y_square1);
+      RvR_fix22 top_limit = RvR_ray_map_ceiling_height_at(x_square1,y_square1);
 
       RvR_fix22 height;
 
 #define checkSquares(s1,s2)\
       {\
-         height = RvR_map_floor_height_at(x_square##s1,y_square##s2);\
+         height = RvR_ray_map_floor_height_at(x_square##s1,y_square##s2);\
          bottom_limit = RvR_max(bottom_limit,height);\
-         height = RvR_map_ceiling_height_at(x_square##s1,y_square##s2);\
+         height = RvR_ray_map_ceiling_height_at(x_square##s1,y_square##s2);\
          top_limit = RvR_min(top_limit,height);\
       }
 
@@ -476,32 +476,32 @@ void RvR_raycast_move_with_collision(RvR_vec3 offset, int8_t compute_height, int
    }
 }
 
-void RvR_raycast_set_angle(RvR_fix22 angle)
+void RvR_ray_set_angle(RvR_fix22 angle)
 {
    cam_angle = angle;
 }
 
-RvR_fix22 RvR_raycast_get_angle()
+RvR_fix22 RvR_ray_get_angle()
 {
    return cam_angle;
 }
 
-void RvR_raycast_set_shear(int16_t shear)
+void RvR_ray_set_shear(int16_t shear)
 {
    cam_shear = shear;
 }
 
-int16_t RvR_raycast_get_shear()
+int16_t RvR_ray_get_shear()
 {
    return cam_shear;
 }
 
-void RvR_raycast_set_position(RvR_vec3 position)
+void RvR_ray_set_position(RvR_vec3 position)
 {
    cam_position = position;
 }
 
-RvR_vec3 RvR_raycast_get_position()
+RvR_vec3 RvR_ray_get_position()
 {
    return cam_position;
 }

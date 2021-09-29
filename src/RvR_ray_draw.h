@@ -12,7 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _RVR_RAYCAST_DRAW_H_
 
-void RvR_raycast_draw_sprite(RvR_vec3 pos, uint16_t tex);
-void RvR_raycast_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear);
+void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex);
+void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear);
 
 #endif

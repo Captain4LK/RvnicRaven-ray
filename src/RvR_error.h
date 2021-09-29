@@ -52,8 +52,10 @@ const char *RvR_error_get_string();
 
 void RvR_log(const char *w, ...);
 
-#define RVR_ERROR_FAIL(X) do { RvR_error_set(__FILE__,__LINE__,(X)); goto RvR_err; } while(0)
+#define RvR_log_line(w,...) do { char RvR_log_line_tmp[512]; snprintf(RvR_log_line_tmp,512,__VA_ARGS__); RvR_log(w "(%s:%u): %s",__FILE__,__LINE__,RvR_log_line_tmp); } while(0)
 
-#define RVR_ERROR_CHECK(X,Y) do { if(!(X)) RVR_ERROR_FAIL(Y); } while(0)
+#define RvR_error_fail(X) do { RvR_error_set(__FILE__,__LINE__,(X)); goto RvR_err; } while(0)
+
+#define RvR_error_check(X,Y) do { if(!(X)) RvR_error_fail(Y); } while(0)
 
 #endif
