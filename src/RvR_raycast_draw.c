@@ -111,7 +111,7 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex)
 
    //Clip sprite
    //The more clipping we do here, the faster the sprite sorting will be
-   if(p.depth<0||p.depth>8*RvR_fix22_one)
+   if(p.depth<0||p.depth>8*1024)
       return;
    //TODO: find a better way to do this, which requires
    //less tolerance (needed here to handle really close sprites)
@@ -153,8 +153,8 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
    RvR_ray_set_shear(cshear);
 
    middle_row = (YRES/2)+cshear;
-   start_floor_height = RvR_ray_map_floor_height_at(RvR_div_round_down(cpos.x,RvR_fix22_one),RvR_div_round_down(cpos.y,RvR_fix22_one))-1*cpos.z;
-   start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_div_round_down(cpos.x,RvR_fix22_one),RvR_div_round_down(cpos.y,RvR_fix22_one))-1*cpos.z;
+   start_floor_height = RvR_ray_map_floor_height_at(RvR_div_round_down(cpos.x,1024),RvR_div_round_down(cpos.y,1024))-1*cpos.z;
+   start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_div_round_down(cpos.x,1024),RvR_div_round_down(cpos.y,1024))-1*cpos.z;
 
    RvR_rays_cast_multi_hit(draw_column);
    //-------------------------------------
@@ -163,10 +163,10 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
    cam_dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(HORIZONTAL_FOV/2));
    cam_dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(HORIZONTAL_FOV/2));
    RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(HORIZONTAL_FOV/2));
-   cam_dir0.x = (cam_dir0.x*RvR_fix22_one)/cos;
-   cam_dir0.y = (cam_dir0.y*RvR_fix22_one)/cos;
-   cam_dir1.x = (cam_dir1.x*RvR_fix22_one)/cos;
-   cam_dir1.y = (cam_dir1.y*RvR_fix22_one)/cos;
+   cam_dir0.x = (cam_dir0.x*1024)/cos;
+   cam_dir0.y = (cam_dir0.y*1024)/cos;
+   cam_dir1.x = (cam_dir1.x*1024)/cos;
+   cam_dir1.y = (cam_dir1.y*1024)/cos;
 
    for(int i = 0;i<planes_used;i++)
    {
@@ -179,7 +179,7 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
       if(pl->tex==0x43)
       {
          SLK_Pal_sprite *texture = RvR_texture_get(0x43);
-         RvR_fix22 angle = (RvR_ray_get_angle())*RvR_fix22_one;
+         RvR_fix22 angle = (RvR_ray_get_angle())*1024;
          angle+=(pl->min-1)*ANGLE_STEP;
 
          for(int x = pl->min;x<pl->max+1;x++)
@@ -247,9 +247,9 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
       int x = sp.s_pos.x-size_horizontal/2;
       int y = sp.s_pos.y-size_vertical;
       int clip_depth = (depth)/DEPTH_BUFFER_PRECISION;
-      RvR_fix22 u_step = (texture->width*RvR_fix22_one-1)/RvR_non_zero(size_horizontal);
+      RvR_fix22 u_step = (texture->width*1024-1)/RvR_non_zero(size_horizontal);
       RvR_fix22 u = 0;
-      RvR_fix22 v_step = (texture->height*RvR_fix22_one-1)/RvR_non_zero(size_vertical);
+      RvR_fix22 v_step = (texture->height*1024-1)/RvR_non_zero(size_vertical);
       RvR_fix22 v_start = 0;
 
       //Clip coordinates to screen
@@ -337,7 +337,7 @@ static int16_t draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, 
    height = RvR_abs(height);
    RvR_fix22 wall_length = RvR_non_zero(RvR_abs(y_to-y_from-1));
    RvR_fix22 wall_position = RvR_abs(y_from-y_current)-increment;
-   RvR_fix22 height_scaled = height*RvR_fix22_one;
+   RvR_fix22 height_scaled = height*1024;
    RvR_fix22 coord_step_scaled = (height_scaled/wall_length);
    RvR_fix22 texture_coord_scaled = 0;
 
@@ -464,13 +464,13 @@ static void draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16_t x
 
          f_wall_height = RvR_ray_map_floor_height_at(hit.square.x,hit.square.y);
          f_z2_world = f_wall_height-RvR_ray_get_position().z;
-         f_z1_screen = middle_row-RvR_ray_perspective_scale_vertical((f_z1_world*YRES)/RvR_fix22_one,distance);
-         f_z2_screen = middle_row-RvR_ray_perspective_scale_vertical((f_z2_world*YRES)/RvR_fix22_one,distance);
+         f_z1_screen = middle_row-RvR_ray_perspective_scale_vertical((f_z1_world*YRES)/1024,distance);
+         f_z2_screen = middle_row-RvR_ray_perspective_scale_vertical((f_z2_world*YRES)/1024,distance);
 
          c_wall_height = RvR_ray_map_ceiling_height_at(hit.square.x,hit.square.y);
          c_z2_world = c_wall_height-RvR_ray_get_position().z;
-         c_z1_screen = middle_row-RvR_ray_perspective_scale_vertical((c_z1_world*YRES)/RvR_fix22_one,distance);
-         c_z2_screen = middle_row-RvR_ray_perspective_scale_vertical((c_z2_world*YRES)/RvR_fix22_one,distance);
+         c_z1_screen = middle_row-RvR_ray_perspective_scale_vertical((c_z1_world*YRES)/1024,distance);
+         c_z2_screen = middle_row-RvR_ray_perspective_scale_vertical((c_z2_world*YRES)/1024,distance);
       }
       else
       {
@@ -478,11 +478,11 @@ static void draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16_t x
          c_z1_screen = middle_row+1;
 
          p.hit = hits[j-1];
-         p.hit.distance = RvR_fix22_one*RvR_fix22_one;
+         p.hit.distance = 1024*1024;
          /* ^ horizon is at infinity, but we can't use too big infinity
               because it would overflow in the following mult. */
-         p.hit.position.x = (ray.direction.x*p.hit.distance)/RvR_fix22_one;
-         p.hit.position.y = (ray.direction.y*p.hit.distance)/RvR_fix22_one;
+         p.hit.position.x = (ray.direction.x*p.hit.distance)/1024;
+         p.hit.position.y = (ray.direction.y*p.hit.distance)/1024;
 
          p.hit.direction = 0;
          p.hit.texture_coord = 0;
@@ -603,13 +603,13 @@ static pixel_info map_to_screen(RvR_vec3 world_position)
 
    RvR_fix22 tmp = to_point.x;
 
-   to_point.x = (to_point.x*cos-to_point.y*sin)/RvR_fix22_one; 
-   to_point.y = (tmp*sin+to_point.y*cos)/RvR_fix22_one; 
+   to_point.x = (to_point.x*cos-to_point.y*sin)/1024; 
+   to_point.y = (tmp*sin+to_point.y*cos)/1024; 
 
    result.depth = to_point.x;
 
-   result.position.x = middle_column-(RvR_ray_perspective_scale_horizontal(to_point.y,result.depth)*middle_column)/RvR_fix22_one;
-   result.position.y = (RvR_ray_perspective_scale_vertical(world_position.z-RvR_ray_get_position().z,result.depth)*YRES)/RvR_fix22_one;
+   result.position.x = middle_column-(RvR_ray_perspective_scale_horizontal(to_point.y,result.depth)*middle_column)/1024;
+   result.position.y = (RvR_ray_perspective_scale_vertical(world_position.z-RvR_ray_get_position().z,result.depth)*YRES)/1024;
    result.position.y = YRES/2-result.position.y+RvR_ray_get_shear();
 
    return result;

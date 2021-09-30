@@ -346,7 +346,7 @@ uint16_t RvR_ray_map_ceil_tex_at(int16_t x, int16_t y)
 RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y)
 {
    if(x>=0&&x<level_width&&y>=0&&y<level_height)
-      return (level_floor[y*level_width+x]*RvR_fix22_one)/8;
+      return (level_floor[y*level_width+x]*1024)/8;
 
    return 0;
 }
@@ -358,6 +358,6 @@ RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y)
    if(x>=0&&x<level_width&&y>=0&&y<level_height)
       v = level_ceiling[(y)*level_width+x]; 
 
-   return (v*RvR_fix22_one)/8;
+   return (v*1024)/8;
 }
 //-------------------------------------

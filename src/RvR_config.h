@@ -21,7 +21,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Math config
 
 //DO NOT CHANGE!
-#define RvR_fix22_one (1<<10)
 #define RvR_INFINITY 2000000000
 
 #define DITHERING 1
@@ -37,21 +36,24 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define HORIZONTAL_FOV 256
 #define VERTICAL_FOV 330
 #define VERTICAL_DEPTH_MULTIPLY 2
-#define HORIZON_DEPTH (11*RvR_fix22_one)
+#define HORIZON_DEPTH (11*1024)
 #define SCANLINE_BATCH_SIZE 256
-#define ANGLE_STEP (((RvR_fix22_one/4)*RvR_fix22_one)/XRES)
-#define SKY_TEX_STEP ((RvR_fix22_one*128-1)/YRES)
+#define ANGLE_STEP (((1024/4)*1024)/XRES)
+#define SKY_TEX_STEP ((1024*128-1)/YRES)
 
 //Collision
 //TODO: rename (remove CAMERA prefix)
 #define CAMERA_COLL_RADIUS 256
 #define CAMERA_COLL_HEIGHT_BELOW 800
-#define CAMERA_COLL_STEP_HEIGHT (RvR_fix22_one/4)
+#define CAMERA_COLL_STEP_HEIGHT (1024/4)
 #define CAMERA_COLL_HEIGHT_ABOVE 200
 
 //TODO: affect depth buffer size
 //currently needs to be changed manually in RvR_raycast_draw.c
 #define DEPTH_BUFFER_PRECISION 512
+
+//RvR_raycast
+
 
 extern int RvR_config_mouse_sensitivity;
 extern int RvR_config_mouse_sensitivity_vertical;

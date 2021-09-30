@@ -21,7 +21,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
-#define FIX22_ONE (1<<10)
 //-------------------------------------
 
 //Typedefs
@@ -105,24 +104,24 @@ static const RvR_fix22 cos_table[1024] =
 
 RvR_fix22 RvR_fix22_from_int(int a)
 {
-   return (RvR_fix22)a*FIX22_ONE;
+   return (RvR_fix22)a*1024;
 }
 
 int RvR_fix22_to_int(RvR_fix22 a)
 {
-   return (int)(a/FIX22_ONE);
+   return (int)(a/1024);
 }
 
 RvR_fix22 RvR_fix22_mul(RvR_fix22 a, RvR_fix22 b)
 {
    int64_t p = (int64_t)a*(int64_t)b;
 
-   return (RvR_fix22)(p/(int64_t)FIX22_ONE);
+   return (RvR_fix22)(p/1024);
 }
 
 RvR_fix22 RvR_fix22_div(RvR_fix22 a, RvR_fix22 b)
 {
-   int64_t p = (int64_t)a*(int64_t)FIX22_ONE;
+   int64_t p = (int64_t)a*1024;
 
    return (RvR_fix22)(p/(int64_t)b);
 }
@@ -139,12 +138,12 @@ RvR_fix22 RvR_fix22_sin(RvR_fix22 a)
 
 RvR_fix22 RvR_fix22_tan(RvR_fix22 a)
 {
-   return (RvR_fix22_sin(a)*RvR_fix22_one)/RvR_non_zero(RvR_fix22_cos(a));
+   return (RvR_fix22_sin(a)*1024)/RvR_non_zero(RvR_fix22_cos(a));
 }
 
 RvR_fix22 RvR_fix22_ctg(RvR_fix22 a)
 {
-   return (RvR_fix22_cos(a)*RvR_fix22_one)/RvR_fix22_sin(a);
+   return (RvR_fix22_cos(a)*1024)/RvR_fix22_sin(a);
 }
 
 RvR_fix22 RvR_fix22_sqrt(RvR_fix22 a)

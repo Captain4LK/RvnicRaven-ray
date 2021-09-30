@@ -52,8 +52,8 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
    RvR_vec2 current_pos = ray.start;
    RvR_vec2 current_square;
 
-   current_square.x = RvR_div_round_down(ray.start.x,RvR_fix22_one);
-   current_square.y = RvR_div_round_down(ray.start.y,RvR_fix22_one);
+   current_square.x = RvR_div_round_down(ray.start.x,1024);
+   current_square.y = RvR_div_round_down(ray.start.y,1024);
 
    *hit_results_len = 0;
 
@@ -66,7 +66,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
    next_side_dist.x = 0;
    next_side_dist.y = 0;
 
-   RvR_fix22 dir_vec_length_norm = RvR_len2(ray.direction)*RvR_fix22_one;
+   RvR_fix22 dir_vec_length_norm = RvR_len2(ray.direction)*1024;
 
    delta.x = RvR_abs(dir_vec_length_norm/RvR_non_zero(ray.direction.x));
    delta.y = RvR_abs(dir_vec_length_norm/RvR_non_zero(ray.direction.y));
@@ -75,23 +75,23 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
    if(ray.direction.x<0)
    {
       step.x = -1;
-      next_side_dist.x = (RvR_wrap(ray.start.x,RvR_fix22_one)*delta.x)/RvR_fix22_one;
+      next_side_dist.x = (RvR_wrap(ray.start.x,1024)*delta.x)/1024;
    }
    else
    {
       step.x = 1;
-      next_side_dist.x = (RvR_wrap(RvR_fix22_one-ray.start.x,RvR_fix22_one)*delta.x)/RvR_fix22_one;
+      next_side_dist.x = (RvR_wrap(1024-ray.start.x,1024)*delta.x)/1024;
    }
 
    if(ray.direction.y<0)
    {
       step.y = -1;
-      next_side_dist.y = (RvR_wrap(ray.start.y,RvR_fix22_one)*delta.y)/RvR_fix22_one;
+      next_side_dist.y = (RvR_wrap(ray.start.y,1024)*delta.y)/1024;
    }
    else
    {
       step.y = 1;
-      next_side_dist.y = (RvR_wrap(RvR_fix22_one-ray.start.y,RvR_fix22_one)*delta.y)/RvR_fix22_one;
+      next_side_dist.y = (RvR_wrap(1024-ray.start.y,1024)*delta.y)/1024;
    }
 
    //DDA loop
@@ -113,13 +113,13 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
          h.square   = current_square;
          if(step_horizontal)
          {
-            h.position.x = current_square.x*RvR_fix22_one;
+            h.position.x = current_square.x*1024;
             h.direction = 3;
 
             if(step.x==-1)
             {
                h.direction = 1;
-               h.position.x+=RvR_fix22_one;
+               h.position.x+=1024;
             }
 
             RvR_fix22 diff = h.position.x-ray.start.x;
@@ -138,20 +138,20 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
             #define CORRECT(dir1,dir2)\
             RvR_fix22 tmp = diff/4;        /* 4 to prevent overflow */ \
             /* prevent a bug with small dists */ \
-            h.distance = ((tmp/8)!=0)?((tmp*RvR_fix22_one*ray_dir_ ## dir1 ## _recip)/(RECIP_SCALE/4)):\
+            h.distance = ((tmp/8)!=0)?((tmp*1024*ray_dir_ ## dir1 ## _recip)/(RECIP_SCALE/4)):\
             RvR_abs(h.position.dir2-ray.start.dir2);
 
             CORRECT(x,y)
          }
          else
          {
-            h.position.y = current_square.y*RvR_fix22_one;
+            h.position.y = current_square.y*1024;
             h.direction = 2;
 
             if(step.y==-1)
             {
                h.direction = 0;
-               h.position.y+=RvR_fix22_one;
+               h.position.y+=1024;
             }
 
             RvR_fix22 diff = h.position.y-ray.start.y;
@@ -168,28 +168,28 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
          switch(h.direction)
          {
          case 0:
-            h.texture_coord = RvR_wrap(-1*h.position.x,RvR_fix22_one);
+            h.texture_coord = RvR_wrap(-1*h.position.x,1024);
             h.fheight = RvR_ray_map_floor_height_at(current_square.x,current_square.y+1);
             h.cheight = RvR_ray_map_ceiling_height_at(current_square.x,current_square.y+1);
             h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x,h.square.y+1);
             h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x,h.square.y+1);
             break;
          case 1:
-            h.texture_coord = RvR_wrap(h.position.y,RvR_fix22_one);
+            h.texture_coord = RvR_wrap(h.position.y,1024);
             h.fheight = RvR_ray_map_floor_height_at(current_square.x+1,current_square.y);
             h.cheight = RvR_ray_map_ceiling_height_at(current_square.x+1,current_square.y);
             h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x+1,h.square.y);
             h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x+1,h.square.y);
             break;
          case 2:
-            h.texture_coord = RvR_wrap(h.position.x,RvR_fix22_one);
+            h.texture_coord = RvR_wrap(h.position.x,1024);
             h.fheight = RvR_ray_map_floor_height_at(current_square.x,current_square.y-1);
             h.cheight = RvR_ray_map_ceiling_height_at(current_square.x,current_square.y-1);
             h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x,h.square.y-1);
             h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x,h.square.y-1);
             break;
          case 3:
-            h.texture_coord = RvR_wrap(-1*h.position.y,RvR_fix22_one);
+            h.texture_coord = RvR_wrap(-1*h.position.y,1024);
             h.fheight = RvR_ray_map_floor_height_at(current_square.x-1,current_square.y);
             h.cheight = RvR_ray_map_ceiling_height_at(current_square.x-1,current_square.y);
             h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x-1,h.square.y);
@@ -231,11 +231,11 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
 
    RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(HORIZONTAL_FOV/2));
 
-   dir0.x = (dir0.x*RvR_fix22_one)/cos;
-   dir0.y = (dir0.y*RvR_fix22_one)/cos;
+   dir0.x = (dir0.x*1024)/cos;
+   dir0.y = (dir0.y*1024)/cos;
 
-   dir1.x = (dir1.x*RvR_fix22_one)/cos;
-   dir1.y = (dir1.y*RvR_fix22_one)/cos;
+   dir1.x = (dir1.x*1024)/cos;
+   dir1.y = (dir1.y*1024)/cos;
 
    RvR_fix22 dx = dir1.x-dir0.x;
    RvR_fix22 dy = dir1.y-dir0.y;
@@ -273,7 +273,7 @@ RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 dista
    if(correction_factor==0)
       correction_factor = fov_correction_factor(VERTICAL_FOV);
 
-   return distance!=0?((org_size*RvR_fix22_one)/RvR_non_zero((correction_factor*distance)/RvR_fix22_one)):0;
+   return distance!=0?((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024)):0;
 }
 
 RvR_fix22 RvR_ray_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix22 sc_size)
@@ -282,7 +282,7 @@ RvR_fix22 RvR_ray_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix
    if(correction_factor==0)
       correction_factor = fov_correction_factor(VERTICAL_FOV);
 
-   return sc_size!=0?((org_size*RvR_fix22_one)/RvR_non_zero((correction_factor*sc_size)/RvR_fix22_one)):RvR_INFINITY;
+   return sc_size!=0?((org_size*1024)/RvR_non_zero((correction_factor*sc_size)/1024)):RvR_INFINITY;
 }
 
 RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 distance)
@@ -291,7 +291,7 @@ RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 dis
    if(correction_factor==0)
       correction_factor = fov_correction_factor(HORIZONTAL_FOV);
 
-   return distance!=0?((org_size*RvR_fix22_one)/RvR_non_zero((correction_factor*distance)/RvR_fix22_one)):0;
+   return distance!=0?((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024)):0;
 }
 
 void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t force)
@@ -311,14 +311,14 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
       corner.x = cam_position.x+x_dir*CAMERA_COLL_RADIUS;
       corner.y = cam_position.y+y_dir*CAMERA_COLL_RADIUS;
 
-      int16_t x_square = RvR_div_round_down(corner.x,RvR_fix22_one);
-      int16_t y_square = RvR_div_round_down(corner.y,RvR_fix22_one);
+      int16_t x_square = RvR_div_round_down(corner.x,1024);
+      int16_t y_square = RvR_div_round_down(corner.y,1024);
 
       corner_new.x = corner.x+offset.x;
       corner_new.y = corner.y+offset.y;
 
-      x_square_new = RvR_div_round_down(corner_new.x,RvR_fix22_one);
-      y_square_new = RvR_div_round_down(corner_new.y,RvR_fix22_one);
+      x_square_new = RvR_div_round_down(corner_new.x,1024);
+      y_square_new = RvR_div_round_down(corner_new.y,1024);
 
       RvR_fix22 bottom_limit = -RvR_INFINITY;
       RvR_fix22 top_limit = RvR_INFINITY;
@@ -363,7 +363,7 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
       if(!dir##_collides)\
       { /* now also check for coll on the neighbouring square */ \
          int16_t dir2##_square2 = RvR_div_round_down(corner.dir2-dir2##_dir *\
-         CAMERA_COLL_RADIUS*2,RvR_fix22_one);\
+         CAMERA_COLL_RADIUS*2,1024);\
          if(dir2##_square2!=dir2##_square)\
          {\
             if(x)\
@@ -385,8 +385,8 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
          {
             #define collHandle(dir)\
             if (dir##_collides)\
-               corner_new.dir = (dir##_square)*RvR_fix22_one+\
-               RvR_fix22_one/2+dir##_dir*(RvR_fix22_one/2)-\
+               corner_new.dir = (dir##_square)*1024+\
+               1024/2+dir##_dir*(1024/2)-\
                dir##_dir;\
 
             collHandle(x)
@@ -403,11 +403,11 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
             RvR_vec2 square_pos;
             RvR_vec2 new_pos;
 
-            square_pos.x = x_square*RvR_fix22_one;
-            square_pos.y = y_square*RvR_fix22_one;
+            square_pos.x = x_square*1024;
+            square_pos.y = y_square*1024;
 
-            new_pos.x = RvR_max(square_pos.x+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.x+RvR_fix22_one-CAMERA_COLL_RADIUS-1,cam_position.x));
-            new_pos.y = RvR_max(square_pos.y+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.y+RvR_fix22_one-CAMERA_COLL_RADIUS-1,cam_position.y));
+            new_pos.x = RvR_max(square_pos.x+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.x+1024-CAMERA_COLL_RADIUS-1,cam_position.x));
+            new_pos.y = RvR_max(square_pos.y+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.y+1024-CAMERA_COLL_RADIUS-1,cam_position.y));
 
             corner_new.x = corner.x+(new_pos.x-cam_position.x);
             corner_new.y = corner.y+(new_pos.y-cam_position.y);
@@ -440,13 +440,13 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
    {
       cam_position.z+=offset.z;
 
-      int16_t x_square1 = RvR_div_round_down(cam_position.x-CAMERA_COLL_RADIUS,RvR_fix22_one);
+      int16_t x_square1 = RvR_div_round_down(cam_position.x-CAMERA_COLL_RADIUS,1024);
 
-      int16_t x_square2 = RvR_div_round_down(cam_position.x+CAMERA_COLL_RADIUS,RvR_fix22_one);
+      int16_t x_square2 = RvR_div_round_down(cam_position.x+CAMERA_COLL_RADIUS,1024);
 
-      int16_t y_square1 = RvR_div_round_down(cam_position.y-CAMERA_COLL_RADIUS,RvR_fix22_one);
+      int16_t y_square1 = RvR_div_round_down(cam_position.y-CAMERA_COLL_RADIUS,1024);
 
-      int16_t y_square2 = RvR_div_round_down(cam_position.y+CAMERA_COLL_RADIUS,RvR_fix22_one);
+      int16_t y_square2 = RvR_div_round_down(cam_position.y+CAMERA_COLL_RADIUS,1024);
 
       RvR_fix22 bottom_limit = RvR_ray_map_floor_height_at(x_square1,y_square1);
       RvR_fix22 top_limit = RvR_ray_map_ceiling_height_at(x_square1,y_square1);
@@ -510,13 +510,13 @@ static RvR_fix22 fov_correction_factor(RvR_fix22 fov)
 {
    uint16_t table[9] = {1,208,408,692,1024,1540,2304,5376,30000};
 
-   fov = RvR_min(RvR_fix22_one/2-1,fov);
+   fov = RvR_min(1024/2-1,fov);
 
    uint8_t index = fov/64;
-   uint32_t t = ((fov-index*64)*RvR_fix22_one)/64; 
+   uint32_t t = ((fov-index*64)*1024)/64; 
    uint32_t v1 = table[index];
    uint32_t v2 = table[index+1];
 
-   return v1+((v2-v1)*t)/RvR_fix22_one;
+   return v1+((v2-v1)*t)/1024;
 }
 //-------------------------------------
