@@ -362,7 +362,7 @@ static int16_t draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, 
          for(RvR_fix22 i = y_current+increment;i>=limit;i--)
          {
             texture_coord_scaled+=coord_step_scaled;
-            *pix = col[tex[(texture_coord_scaled&2097151)>>14]];
+            *pix = col[tex[(texture_coord_scaled>>14)&127]];
             pix-=XRES;
          }
       }
@@ -371,7 +371,7 @@ static int16_t draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, 
          for(RvR_fix22 i = y_current+increment;i>=limit;i--)
          {
             texture_coord_scaled+=coord_step_scaled;
-            *pix = col[tex[(texture_coord_scaled&1048575)>>14]];
+            *pix = col[tex[(texture_coord_scaled>>14)&63]];
             pix-=XRES;
          }
       }
@@ -383,7 +383,7 @@ static int16_t draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, 
          for(RvR_fix22 i = y_current+increment;i<=limit;i++)
          {
             texture_coord_scaled+=coord_step_scaled;
-            *pix = col[tex[(texture_coord_scaled&2097151)>>14]];
+            *pix = col[tex[(texture_coord_scaled>>14)&127]];
             pix+=XRES;
          }
       }
@@ -392,7 +392,7 @@ static int16_t draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, 
          for(RvR_fix22 i = y_current+increment;i<=limit;i++)
          {
             texture_coord_scaled+=coord_step_scaled;
-            *pix = col[tex[(texture_coord_scaled&1048575)>>14]];
+            *pix = col[tex[(texture_coord_scaled>>14)&63]];
             pix+=XRES;
          }
       }
