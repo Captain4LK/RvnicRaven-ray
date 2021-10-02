@@ -12,7 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _RVR_TEXTURE_H_
 
-SLK_Pal_sprite *RvR_texture_get(uint16_t id);
+RvR_texture *RvR_texture_get(uint16_t id);
 void RvR_texture_load_begin();
 void RvR_texture_load_end();
 void RvR_texture_load(uint16_t id);

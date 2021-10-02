@@ -9,11 +9,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <stdio.h>
 #include <stdint.h>
-#include <SLK/SLK.h>
 //-------------------------------------
 
 //Internal includes
+#include "RvR_core.h"
 #include "RvR_config.h"
 #include "RvR_math.h"
 #include "RvR_malloc.h"
@@ -24,6 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "sprite.h"
 #include "ai.h"
 #include "player.h"
+#include "RvR_pal.h"
 //-------------------------------------
 
 //#defines
@@ -81,11 +83,11 @@ void game_map_load()
 
 void game_update()
 {
-   SLK_Pal_sprite *player_sprite = 0;
+   RvR_texture *player_sprite = 0;
    game_tick++;
 
    player_update();
-   if(SLK_key_pressed(SLK_KEY_M))
+   if(RvR_core_key_pressed(RVR_KEY_M))
       RvR_malloc_report();
 
    //AI
@@ -112,9 +114,9 @@ void game_update()
    }
 
    //Graphics
-   SLK_layer_set_current(0);
+   //SLK_layer_set_current(0);
    RvR_ray_draw((RvR_vec3){player.entity->pos.x,player.entity->pos.y,player.entity->pos.z},player.entity->direction,player.shear);
-   SLK_draw_pal_sprite(player_sprite,(XRES-player_sprite->width)/2,YRES-player_sprite->height);
+   //SLK_draw_pal_sprite(player_sprite,(XRES-player_sprite->width)/2,YRES-player_sprite->height);
 }
 
 static AI_type u16_to_type(uint16_t type)

@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _RVR_PAL_H_
 
 extern uint8_t RvR_shade_table[64][256];
+extern RvR_color *RvR_palette;
 
 void RvR_palette_load(uint16_t id);
 

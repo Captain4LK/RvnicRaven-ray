@@ -10,10 +10,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //External includes
 #include <stdlib.h>
-#include <SLK/SLK.h>
+#include <stdint.h>
 //-------------------------------------
 
 //Internal includes
+#include "RvR_core.h"
 #include "RvR_config.h"
 #include "RvR_error.h"
 #include "RvR_malloc.h"
@@ -46,7 +47,10 @@ int main()
 {
    //Init memory manager
    RvR_malloc_init(1<<25,1<<26);
-   SLK_set_malloc(RvR_malloc);
+
+   RvR_core_init(TITLE,0);
+   RvR_core_mouse_relative(1);
+   /*SLK_set_malloc(RvR_malloc);
    SLK_set_free(RvR_free);
    SLK_set_realloc(RvR_realloc);
 
@@ -59,7 +63,7 @@ int main()
    SLK_layer_set_current(0);
    SLK_layer_set_dynamic(0,0);
    SLK_draw_pal_set_clear_index(0);
-   SLK_draw_pal_clear();
+   SLK_draw_pal_clear();*/
 
    //Load ressources
    RvR_ini_parse("settings.ini");
@@ -70,13 +74,13 @@ int main()
 
    sound_init();
 
-   while(SLK_core_running())
+   while(RvR_core_running())
    {
-      SLK_update();
+      RvR_core_update();
 
       mode_update();
 
-      SLK_render_update();
+      RvR_core_render_present();
    }
 
    return 0;

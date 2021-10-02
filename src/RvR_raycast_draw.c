@@ -11,11 +11,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
-#include <SLK/SLK.h>
 //-------------------------------------
 
 //Internal includes
+#include "RvR_core.h"
 #include "RvR_config.h"
 #include "RvR_error.h"
 #include "RvR_math.h"
@@ -60,7 +61,8 @@ typedef struct
 //-------------------------------------
 
 //Variables
-static SLK_Pal_sprite *target;
+//static SLK_Pal_sprite *target;
+uint8_t *framebuffer = NULL;
 static RvR_fix22 depth_buffer[MAX_STEPS*2][XRES][4];
 
 static RvR_fix22 start_floor_height = 0;
@@ -131,7 +133,8 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
 {
    //Update drawing target pointer
    //in case its location has changed (e.g. resize)
-   target = SLK_draw_pal_get_target();
+   //target = SLK_draw_pal_get_target();
+   framebuffer = RvR_core_framebuffer();
 
    //Clear depth buffer
    //but only to the depth needed for
@@ -178,7 +181,7 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
       //Sky texture is rendered differently (vertical collumns instead of horizontal ones)
       if(pl->tex==0x43)
       {
-         SLK_Pal_sprite *texture = RvR_texture_get(0x43);
+         RvR_texture *texture = RvR_texture_get(0x43);
          RvR_fix22 angle = (RvR_ray_get_angle())*1024;
          angle+=(pl->min-1)*ANGLE_STEP;
 
@@ -186,7 +189,7 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
          {
             //Sky is rendered fullbright, no lut needed
             RvR_fix22 texture_coord = pl->start[x]*SKY_TEX_STEP;
-            uint8_t * restrict pix = &target->data[(pl->start[x])*XRES+x-1];
+            uint8_t * restrict pix = &framebuffer[(pl->start[x])*XRES+x-1];
             const uint8_t * restrict tex = &texture->data[((angle>>10)&255)*texture->height];
 
             for(int y = pl->start[x];y<pl->end[x]+1;y++)
@@ -237,7 +240,7 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
    {
       Sprite sp = sprite_stack.data[i];
       RvR_fix22 depth = sp.s_depth;
-      SLK_Pal_sprite *texture = RvR_texture_get(sp.tex);
+      RvR_texture *texture = RvR_texture_get(sp.tex);
       int size_vertical = RvR_ray_perspective_scale_vertical(texture->height*3,depth);
       int size_horizontal = RvR_ray_perspective_scale_horizontal(texture->width*2,depth);
       int sx = 0;
@@ -292,7 +295,7 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
          }
 
          tex = &texture->data[texture->height*(u>>10)];
-         dst = &target->data[ys*XRES+x];
+         dst = &framebuffer[ys*XRES+x];
          RvR_fix22 v = v_start+(ys-y)*v_step;
          for(int y1 = sy;y1<ey1;y1++,dst+=XRES)
          {
@@ -333,7 +336,7 @@ static int16_t draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, 
       return limit;
    }
 
-   SLK_Pal_sprite *texture = RvR_texture_get(pixel_info->hit.wall_tex);
+   RvR_texture *texture = RvR_texture_get(pixel_info->hit.wall_tex);
    height = RvR_abs(height);
    RvR_fix22 wall_length = RvR_non_zero(RvR_abs(y_to-y_from-1));
    RvR_fix22 wall_position = RvR_abs(y_from-y_current)-increment;
@@ -351,7 +354,7 @@ static int16_t draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, 
       texture_coord_scaled = RvR_zero_clamp(wall_position*coord_step_scaled);
    }
 
-   uint8_t * restrict pix = &target->data[(y_current+increment)*XRES+pixel_info->position.x];
+   uint8_t * restrict pix = &framebuffer[(y_current+increment)*XRES+pixel_info->position.x];
    const uint8_t * restrict col = RvR_shade_table[RvR_min(63,(pixel_info->hit.direction&1)*10+22+(pixel_info->depth>>8))];
    const uint8_t * restrict tex = &texture->data[(pixel_info->tex_coords.x>>4)*texture->height];
 
@@ -702,7 +705,7 @@ static void span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, uint16
    ty+=x0*step_y;
 
    //const and restrict don't seem to influence the generated assembly in this case
-   uint8_t * restrict pix = &target->data[y*XRES+x0];
+   uint8_t * restrict pix = &framebuffer[y*XRES+x0];
    const uint8_t * restrict col = RvR_shade_table[RvR_min(63,22+(depth>>8))];
    const uint8_t * restrict tex = RvR_texture_get(texture)->data;
 

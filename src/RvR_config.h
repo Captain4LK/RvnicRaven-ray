@@ -57,12 +57,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 extern int RvR_config_mouse_sensitivity;
 extern int RvR_config_mouse_sensitivity_vertical;
-extern SLK_key RvR_config_move_forward;
-extern SLK_key RvR_config_move_backward;
-extern SLK_key RvR_config_strafe_left;
-extern SLK_key RvR_config_strafe_right;
-extern SLK_key RvR_config_enable_freelook;
-extern SLK_key RvR_config_jump;
+extern RvR_key RvR_config_move_forward;
+extern RvR_key RvR_config_move_backward;
+extern RvR_key RvR_config_strafe_left;
+extern RvR_key RvR_config_strafe_right;
+extern RvR_key RvR_config_enable_freelook;
+extern RvR_key RvR_config_jump;
 extern unsigned RvR_config_texture_timeout;
 extern int RvR_config_camera_max_shear;
 extern int RvR_config_camera_shear_step;

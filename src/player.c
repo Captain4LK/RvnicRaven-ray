@@ -9,10 +9,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
-#include <SLK/SLK.h>
+#include <stdint.h>
 //-------------------------------------
 
 //Internal includes
+#include "RvR_core.h"
 #include "RvR_config.h"
 #include "RvR_math.h"
 #include "RvR_ray.h"
@@ -44,7 +45,7 @@ void player_update()
 {
    //Input
    int x,y;
-   SLK_mouse_get_relative_pos(&x,&y);
+   RvR_core_mouse_relative_pos(&x,&y);
    RvR_vec2 direction = RvR_vec2_rot(player.entity->direction);
    direction.x/=8;
    direction.y/=8;
@@ -52,24 +53,24 @@ void player_update()
    RvR_vec3 move_offset = {0};
 
    //Forward/Backward movement
-   if(SLK_key_down(RvR_config_move_forward))
+   if(RvR_core_key_down(RvR_config_move_forward))
    {
       move_offset.x+=step*direction.x;
       move_offset.y+=step*direction.y;
    }
-   else if(SLK_key_down(RvR_config_move_backward))
+   else if(RvR_core_key_down(RvR_config_move_backward))
    {
       move_offset.x-=step*direction.x;
       move_offset.y-=step*direction.y;
    }
 
    //Strafing
-   if(SLK_key_down(RvR_config_strafe_left))
+   if(RvR_core_key_down(RvR_config_strafe_left))
    {
       move_offset.x-=direction.y;
       move_offset.y+=direction.x;
    }
-   else if(SLK_key_down(RvR_config_strafe_right))
+   else if(RvR_core_key_down(RvR_config_strafe_right))
    {
       move_offset.x+=direction.y;
       move_offset.y-=direction.x;
@@ -84,7 +85,7 @@ void player_update()
    if(!shearing&&player.shear!=0)
       player.shear = (player.shear>0)?(RvR_max(0,player.shear-RvR_config_camera_shear_step)):(RvR_min(0,player.shear+RvR_config_camera_shear_step));
    //Enable freelook
-   if(SLK_key_pressed(RvR_config_enable_freelook))
+   if(RvR_core_key_pressed(RvR_config_enable_freelook))
       shearing = !shearing;
    //Mouse look: y-axis
    if(y!=0&&shearing)
@@ -92,13 +93,13 @@ void player_update()
 
    //Only for testing --> flying basically
    player.vertical_speed-=GRAVITY;
-   if(SLK_key_down(SLK_KEY_PGDN))
+   if(RvR_core_key_down(RVR_KEY_PGDN))
       player.vertical_speed = -step*100;
-   else if(SLK_key_down(SLK_KEY_PGUP))
+   else if(RvR_core_key_down(RVR_KEY_PGUP))
       player.vertical_speed = step*100;
 
    //Jumping (hacky but works)
-   if(SLK_key_down(RvR_config_jump)&&player.vertical_speed<=0&&last_vertical_speed==0&&on_ground)
+   if(RvR_core_key_down(RvR_config_jump)&&player.vertical_speed<=0&&last_vertical_speed==0&&on_ground)
       player.vertical_speed = JUMP_SPEED;
 
    //Cap player speed

@@ -14,6 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "RvR_core.h"
 #include "RvR_config.h"
 #include "RvR_error.h"
 #include "RvR_malloc.h"
@@ -29,12 +30,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Variables
 int RvR_config_mouse_sensitivity = 128;
 int RvR_config_mouse_sensitivity_vertical = 128;
-SLK_key RvR_config_move_forward = SLK_KEY_W;
-SLK_key RvR_config_move_backward = SLK_KEY_S;
-SLK_key RvR_config_strafe_left = SLK_KEY_A;
-SLK_key RvR_config_strafe_right = SLK_KEY_D;
-SLK_key RvR_config_enable_freelook = SLK_KEY_F;
-SLK_key RvR_config_jump = SLK_KEY_SPACE;
+RvR_key RvR_config_move_forward = RVR_KEY_W;
+RvR_key RvR_config_move_backward = RVR_KEY_S;
+RvR_key RvR_config_strafe_left = RVR_KEY_A;
+RvR_key RvR_config_strafe_right = RVR_KEY_D;
+RvR_key RvR_config_enable_freelook = RVR_KEY_F;
+RvR_key RvR_config_jump = RVR_KEY_SPACE;
 unsigned RvR_config_texture_timeout = 1;
 int RvR_config_camera_max_shear = 192;
 int RvR_config_camera_shear_step = 8;
@@ -42,8 +43,8 @@ int RvR_config_camera_shear_step = 8;
 
 //Function prototypes
 static char *ini(const char *s);
-static SLK_key strtokey(const char *s);
-static const char *keytostr(SLK_key k);
+static RvR_key strtokey(const char *s);
+static const char *keytostr(RvR_key k);
 //-------------------------------------
 
 //Function implementations
@@ -240,95 +241,95 @@ RvR_err:
    return NULL;
 }
 
-static SLK_key strtokey(const char *s)
+static RvR_key strtokey(const char *s)
 {
    uint64_t hash_key = RvR_fnv64a(s);
    //printf("ikey: %s;%luU\n",s,hash_key);
 
    switch(hash_key)
    {
-   case 12638187200555641996U: return SLK_KEY_A;
-   case 12638190499090526629U: return SLK_KEY_B;
-   case 12638189399578898418U: return SLK_KEY_C;
-   case 12638183902020757363U: return SLK_KEY_D;
-   case 12638182802509129152U: return SLK_KEY_E;
-   case 12638186101044013785U: return SLK_KEY_F;
-   case 12638185001532385574U: return SLK_KEY_G;
-   case 12638197096160295895U: return SLK_KEY_H;
-   case 12638195996648667684U: return SLK_KEY_I;
-   case 12638199295183552317U: return SLK_KEY_J;
-   case 12638198195671924106U: return SLK_KEY_K;
-   case 12638192698113783051U: return SLK_KEY_L;
-   case 12638191598602154840U: return SLK_KEY_M;
-   case 12638194897137039473U: return SLK_KEY_N;
-   case 12638193797625411262U: return SLK_KEY_O;
-   case 12638205892253321583U: return SLK_KEY_P;
-   case 12638204792741693372U: return SLK_KEY_Q;
-   case 12638208091276578005U: return SLK_KEY_R;
-   case 12638206991764949794U: return SLK_KEY_S;
-   case 12638201494206808739U: return SLK_KEY_T;
-   case 12638200394695180528U: return SLK_KEY_U;
-   case 12638203693230065161U: return SLK_KEY_V;
-   case 12638202593718436950U: return SLK_KEY_W;
-   case 12638214688346347271U: return SLK_KEY_X;
-   case 12638213588834719060U: return SLK_KEY_Y;
-   case 12638216887369603693U: return SLK_KEY_Z;
-   case 12638135523509116079U: return SLK_KEY_0;
-   case 12638134423997487868U: return SLK_KEY_1;
-   case 12638137722532372501U: return SLK_KEY_2;
-   case 12638136623020744290U: return SLK_KEY_3;
-   case 12638131125462603235U: return SLK_KEY_4;
-   case 12638130025950975024U: return SLK_KEY_5;
-   case 12638133324485859657U: return SLK_KEY_6;
-   case 12638132224974231446U: return SLK_KEY_7;
-   case 12638144319602141767U: return SLK_KEY_8;
-   case 12638143220090513556U: return SLK_KEY_9;
-   case  4858524775536387045U: return SLK_KEY_SPACE;
-   default: return SLK_KEY_NONE;
+   case 12638187200555641996U: return RVR_KEY_A;
+   case 12638190499090526629U: return RVR_KEY_B;
+   case 12638189399578898418U: return RVR_KEY_C;
+   case 12638183902020757363U: return RVR_KEY_D;
+   case 12638182802509129152U: return RVR_KEY_E;
+   case 12638186101044013785U: return RVR_KEY_F;
+   case 12638185001532385574U: return RVR_KEY_G;
+   case 12638197096160295895U: return RVR_KEY_H;
+   case 12638195996648667684U: return RVR_KEY_I;
+   case 12638199295183552317U: return RVR_KEY_J;
+   case 12638198195671924106U: return RVR_KEY_K;
+   case 12638192698113783051U: return RVR_KEY_L;
+   case 12638191598602154840U: return RVR_KEY_M;
+   case 12638194897137039473U: return RVR_KEY_N;
+   case 12638193797625411262U: return RVR_KEY_O;
+   case 12638205892253321583U: return RVR_KEY_P;
+   case 12638204792741693372U: return RVR_KEY_Q;
+   case 12638208091276578005U: return RVR_KEY_R;
+   case 12638206991764949794U: return RVR_KEY_S;
+   case 12638201494206808739U: return RVR_KEY_T;
+   case 12638200394695180528U: return RVR_KEY_U;
+   case 12638203693230065161U: return RVR_KEY_V;
+   case 12638202593718436950U: return RVR_KEY_W;
+   case 12638214688346347271U: return RVR_KEY_X;
+   case 12638213588834719060U: return RVR_KEY_Y;
+   case 12638216887369603693U: return RVR_KEY_Z;
+   case 12638135523509116079U: return RVR_KEY_0;
+   case 12638134423997487868U: return RVR_KEY_1;
+   case 12638137722532372501U: return RVR_KEY_2;
+   case 12638136623020744290U: return RVR_KEY_3;
+   case 12638131125462603235U: return RVR_KEY_4;
+   case 12638130025950975024U: return RVR_KEY_5;
+   case 12638133324485859657U: return RVR_KEY_6;
+   case 12638132224974231446U: return RVR_KEY_7;
+   case 12638144319602141767U: return RVR_KEY_8;
+   case 12638143220090513556U: return RVR_KEY_9;
+   case  4858524775536387045U: return RVR_KEY_SPACE;
+   default: return RVR_KEY_NONE;
    }
 }
 
-static const char *keytostr(SLK_key k)
+static const char *keytostr(RvR_key k)
 {
    switch(k)
    {
-      case SLK_KEY_A: return "a";
-      case SLK_KEY_B: return "b";
-      case SLK_KEY_C: return "c";
-      case SLK_KEY_D: return "d";
-      case SLK_KEY_E: return "e";
-      case SLK_KEY_F: return "f";
-      case SLK_KEY_G: return "g";
-      case SLK_KEY_H: return "h";
-      case SLK_KEY_I: return "i";
-      case SLK_KEY_J: return "j";
-      case SLK_KEY_K: return "k";
-      case SLK_KEY_L: return "l";
-      case SLK_KEY_M: return "m";
-      case SLK_KEY_N: return "n";
-      case SLK_KEY_O: return "o";
-      case SLK_KEY_P: return "p";
-      case SLK_KEY_Q: return "q";
-      case SLK_KEY_R: return "r";
-      case SLK_KEY_S: return "s";
-      case SLK_KEY_T: return "t";
-      case SLK_KEY_U: return "u";
-      case SLK_KEY_V: return "v";
-      case SLK_KEY_W: return "w";
-      case SLK_KEY_X: return "x";
-      case SLK_KEY_Y: return "y";
-      case SLK_KEY_Z: return "z";
-      case SLK_KEY_0: return "0";
-      case SLK_KEY_1: return "1";
-      case SLK_KEY_2: return "2";
-      case SLK_KEY_3: return "3";
-      case SLK_KEY_4: return "4";
-      case SLK_KEY_5: return "5";
-      case SLK_KEY_6: return "6";
-      case SLK_KEY_7: return "7";
-      case SLK_KEY_8: return "8";
-      case SLK_KEY_9: return "9";
-      case SLK_KEY_SPACE: return "space";
+      case RVR_KEY_A: return "a";
+      case RVR_KEY_B: return "b";
+      case RVR_KEY_C: return "c";
+      case RVR_KEY_D: return "d";
+      case RVR_KEY_E: return "e";
+      case RVR_KEY_F: return "f";
+      case RVR_KEY_G: return "g";
+      case RVR_KEY_H: return "h";
+      case RVR_KEY_I: return "i";
+      case RVR_KEY_J: return "j";
+      case RVR_KEY_K: return "k";
+      case RVR_KEY_L: return "l";
+      case RVR_KEY_M: return "m";
+      case RVR_KEY_N: return "n";
+      case RVR_KEY_O: return "o";
+      case RVR_KEY_P: return "p";
+      case RVR_KEY_Q: return "q";
+      case RVR_KEY_R: return "r";
+      case RVR_KEY_S: return "s";
+      case RVR_KEY_T: return "t";
+      case RVR_KEY_U: return "u";
+      case RVR_KEY_V: return "v";
+      case RVR_KEY_W: return "w";
+      case RVR_KEY_X: return "x";
+      case RVR_KEY_Y: return "y";
+      case RVR_KEY_Z: return "z";
+      case RVR_KEY_0: return "0";
+      case RVR_KEY_1: return "1";
+      case RVR_KEY_2: return "2";
+      case RVR_KEY_3: return "3";
+      case RVR_KEY_4: return "4";
+      case RVR_KEY_5: return "5";
+      case RVR_KEY_6: return "6";
+      case RVR_KEY_7: return "7";
+      case RVR_KEY_8: return "8";
+      case RVR_KEY_9: return "9";
+      case RVR_KEY_SPACE: return "space";
       default: return "NONE";
    }
 }

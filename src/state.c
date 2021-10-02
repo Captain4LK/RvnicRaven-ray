@@ -9,11 +9,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
-#include <SLK/SLK.h>
+#include <stddef.h>
+#include <stdint.h>
 //-------------------------------------
 
 //Internal includes
+#include "RvR_core.h"
 #include "RvR_config.h"
+#include "RvR_malloc.h"
 #include "RvR_math.h"
 #include "RvR_ray.h"
 #include "RvR_ray_draw.h"
@@ -67,7 +70,7 @@ static void mode_title()
    static int selected = 0;
 
    //Graphics
-   SLK_layer_set_current(0);
+   /*SLK_layer_set_current(0);
    SLK_draw_pal_sprite(RvR_texture_get(0x4100),0,0);
    SLK_draw_pal_string((XRES-200)/2,YRES/6,5,"Title",8);
    SLK_draw_pal_string((XRES-80)/2,140,2,"Start",8);
@@ -78,20 +81,20 @@ static void mode_title()
    case 0: SLK_draw_pal_string((XRES-112)/2,YRES/2,2,">     <",78); break;
    case 1: SLK_draw_pal_string((XRES-144)/2,YRES/2+YRES/12,2,">       <",78); break;
    case 2: SLK_draw_pal_string((XRES-96)/2,YRES/2+YRES/6,2,">    <",78); break;
-   }
+   }*/
 
    //Input
-   if(SLK_key_pressed(SLK_KEY_DOWN)&&selected<2)
+   if(RvR_core_key_pressed(RVR_KEY_DOWN)&&selected<2)
    {
       selected++;
       sound_play(SOUND_STOP,0);
    }
-   if(SLK_key_pressed(SLK_KEY_UP)&&selected>0)
+   if(RvR_core_key_pressed(RVR_KEY_UP)&&selected>0)
    {
       selected--;
       sound_play(SOUND_STOP,0);
    }
-   if(SLK_key_pressed(SLK_KEY_ENTER))
+   if(RvR_core_key_pressed(RVR_KEY_ENTER))
    {
       switch(selected)
       {
@@ -106,23 +109,25 @@ static void mode_title()
          sound_play(SOUND_SWITCH,0);
          break;
       case 2:
-         SLK_core_quit();
+         RvR_core_quit();
          //sound_play(SOUND_PISTOL);
          break;
       }
    }
+   if(RvR_core_key_pressed(RVR_KEY_M))
+      RvR_malloc_report();
 }
 
 static void mode_credits()
 {
    //Graphics
-   SLK_layer_set_current(0);
+   /*SLK_layer_set_current(0);
    SLK_draw_pal_sprite(RvR_texture_get(0x4100),0,0);
    SLK_draw_pal_string((XRES-280)/2,YRES/8,5,"Credits",78);
-   SLK_draw_pal_string((XRES-560)/2,YRES/3,1,"H. Lukas Holzbeierlein (Captain4LK)",78);
+   SLK_draw_pal_string((XRES-560)/2,YRES/3,1,"H. Lukas Holzbeierlein (Captain4LK)",78);*/
 
    //Input
-   if(SLK_key_pressed(SLK_KEY_ENTER)||SLK_key_pressed(SLK_KEY_ESCAPE))
+   if(RvR_core_key_pressed(RVR_KEY_ENTER)||RvR_core_key_pressed(RVR_KEY_ESCAPE))
    {
       mode = STATE_TITLE;
       sound_play(SOUND_SWITCH,0);
@@ -134,11 +139,11 @@ static void mode_epsel()
    static int selected = 0;
 
    //Graphics
-   SLK_layer_set_current(0);
-   SLK_draw_pal_clear();
+   //SLK_layer_set_current(0);
+   //SLK_draw_pal_clear();
 
    //Input
-   if(SLK_key_pressed(SLK_KEY_ENTER))
+   if(RvR_core_key_pressed(RVR_KEY_ENTER))
    {
       set_episode(selected);
       mode = STATE_DIFFSEL;
@@ -150,11 +155,11 @@ static void mode_diffsel()
    static int selected = 0;
 
    //Graphics
-   SLK_layer_set_current(0);
-   SLK_draw_pal_clear();
+   //SLK_layer_set_current(0);
+   //SLK_draw_pal_clear();
 
    //Input
-   if(SLK_key_pressed(SLK_KEY_ENTER))
+   if(RvR_core_key_pressed(RVR_KEY_ENTER))
    {
       set_difficulty(selected);
       game_map_load();

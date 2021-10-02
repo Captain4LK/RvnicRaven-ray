@@ -14,6 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "RvR_core.h"
 #include "RvR_config.h"
 #include "RvR_error.h"
 #include "RvR_malloc.h"
@@ -37,8 +38,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 uint8_t RvR_shade_table[64][256] = {0};
-
-static SLK_Palette *pal = NULL;
+RvR_color *RvR_palette = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -57,22 +57,21 @@ void RvR_palette_load(uint16_t id)
    sprintf(tmp,"PAL%05d",id);
    mem_pak = RvR_lump_get(tmp,RVR_LUMP_PAL,&size_in);
 
-   if(pal==NULL)
+   if(RvR_palette==NULL)
    {
-      pal = RvR_malloc(sizeof(*pal));
-      pal->used = 255;
+      RvR_palette = RvR_malloc(sizeof(*RvR_palette)*256);
    }
-   RvR_error_check(pal!=NULL,0x001);
+   RvR_error_check(RvR_palette!=NULL,0x001);
 
    for(unsigned i = 0;i<256;i++)
    {
-      READ(pal->colors[i].r,mem_pak,pos,size_in,uint8_t);
-      READ(pal->colors[i].g,mem_pak,pos,size_in,uint8_t);
-      READ(pal->colors[i].b,mem_pak,pos,size_in,uint8_t);
-      pal->colors[i].a = 255;
+      READ(RvR_palette[i].r,mem_pak,pos,size_in,uint8_t);
+      READ(RvR_palette[i].g,mem_pak,pos,size_in,uint8_t);
+      READ(RvR_palette[i].b,mem_pak,pos,size_in,uint8_t);
+      RvR_palette[i].a = 255;
    }
 
-   SLK_layer_set_palette(0,pal);
+   //SLK_layer_set_palette(0,pal);
    HLH_pal_calculate_colormap();
 
    RvR_free(mem_pak);
@@ -96,18 +95,18 @@ static void HLH_pal_calculate_colormap()
          if(x<256)
          {
             int r,g,b;
-            r = RvR_min(255,((int)pal->colors[x].r*(63-y)+16)>>5);
-            g = RvR_min(255,((int)pal->colors[x].g*(63-y)+16)>>5);
-            b = RvR_min(255,((int)pal->colors[x].b*(63-y)+16)>>5);
+            r = RvR_min(255,((int)RvR_palette[x].r*(63-y)+16)>>5);
+            g = RvR_min(255,((int)RvR_palette[x].g*(63-y)+16)>>5);
+            b = RvR_min(255,((int)RvR_palette[x].b*(63-y)+16)>>5);
 
             int best_index = -1;
             int best_dist = 0;
             for(int i = 0;i<256;i++)
             {
                int dist = 0;
-               dist+=abs(r-pal->colors[i].r)*abs(r-pal->colors[i].r);
-               dist+=abs(g-pal->colors[i].g)*abs(g-pal->colors[i].g);
-               dist+=abs(b-pal->colors[i].b)*abs(b-pal->colors[i].b);
+               dist+=abs(r-RvR_palette[i].r)*abs(r-RvR_palette[i].r);
+               dist+=abs(g-RvR_palette[i].g)*abs(g-RvR_palette[i].g);
+               dist+=abs(b-RvR_palette[i].b)*abs(b-RvR_palette[i].b);
 
                if(best_index==-1||dist<best_dist)
                {

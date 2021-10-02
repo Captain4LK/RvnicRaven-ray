@@ -15,6 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
+#include "RvR_core.h"
 #include "RvR_config.h"
 #include "RvR_error.h"
 #include "RvR_malloc.h"
@@ -39,17 +40,17 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static SLK_Pal_sprite **textures = NULL;
+static RvR_texture **textures = NULL;
 static int8_t *textures_timeout = NULL;
 //-------------------------------------
 
 //Function prototypes
-static SLK_Pal_sprite *texture_load(const uint8_t *mem, unsigned len);
+static RvR_texture *texture_load(const uint8_t *mem, unsigned len);
 //-------------------------------------
 
 //Function implementations
 
-SLK_Pal_sprite *RvR_texture_get(uint16_t id)
+RvR_texture *RvR_texture_get(uint16_t id)
 {
    return textures[id];
 }
@@ -73,7 +74,12 @@ void RvR_texture_load_end()
          if(textures_timeout[i]<=0)
          {
             textures_timeout[i] = 0;
-            SLK_pal_sprite_destroy(textures[i]);
+            if(textures[i]!=NULL)
+            {
+               RvR_free(textures[i]->data);
+               RvR_free(textures[i]);
+            }
+            //SLK_pal_sprite_destroy(textures[i]);
             textures[i] = NULL;
          }
       }
@@ -113,10 +119,10 @@ void RvR_font_load(uint16_t id)
    RvR_texture_load(id);
    textures_timeout[id] = PERMANENT;
 
-   if(RvR_texture_get(id))
-      SLK_draw_pal_set_font_sprite(RvR_texture_get(id));
-   else
-      SLK_draw_pal_set_font_sprite(RvR_texture_get(0));
+   //if(RvR_texture_get(id))
+      //SLK_draw_pal_set_font_sprite(RvR_texture_get(id));
+   //else
+      //SLK_draw_pal_set_font_sprite(RvR_texture_get(0));
 }
 
 void RvR_font_unload(uint16_t id)
@@ -125,9 +131,9 @@ void RvR_font_unload(uint16_t id)
       textures_timeout[id] = 0;
 }
 
-static SLK_Pal_sprite *texture_load(const uint8_t *mem, unsigned len)
+static RvR_texture *texture_load(const uint8_t *mem, unsigned len)
 {
-   SLK_Pal_sprite *p = NULL;
+   RvR_texture *p = NULL;
    int32_t width = 0;
    int32_t height = 0;
    unsigned pos = 0;
@@ -135,7 +141,11 @@ static SLK_Pal_sprite *texture_load(const uint8_t *mem, unsigned len)
    READ(width,mem,pos,len,int32_t);
    READ(height,mem,pos,len,int32_t);
 
-   p = SLK_pal_sprite_create(width,height);
+   p = RvR_malloc(sizeof(*p));
+   p->data = RvR_malloc(sizeof(*p->data)*width*height);
+   p->width = width;
+   p->height = height;
+   //p = SLK_pal_sprite_create(width,height);
    RvR_error_check(p!=NULL,0x001);
    RvR_error_check(p->data!=NULL,0x001);
 

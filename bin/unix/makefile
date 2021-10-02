@@ -1,8 +1,8 @@
 CC = gcc -O3 -flto=auto -s -std=c99 -pedantic -Wall -Wextra
 CFLAGS+=-lm -lSDL2 -lSLK -lSDL2_mixer
-HEADERS = ../../src/RvR_config.h ../../src/RvR_error.h
+HEADERS = ../../src/RvR_config.h ../../src/RvR_error.h ../../src/RvR_core.h
 
-game: main.o state.o game.o player.o ai.o sprite.o sound.o RvR_config.o RvR_error.o RvR_math.o RvR_rand.o RvR_hash.o RvR_compress.o RvR_malloc.o RvR_pal.o RvR_pak.o RvR_texture.o RvR_raycast.o RvR_raycast_draw.o RvR_raycast_map.o
+game: main.o state.o game.o player.o ai.o sprite.o sound.o RvR_config.o RvR_error.o RvR_math.o RvR_rand.o RvR_hash.o RvR_compress.o RvR_malloc.o RvR_pal.o RvR_pak.o RvR_texture.o RvR_raycast.o RvR_raycast_draw.o RvR_raycast_map.o RvR_core.o RvR_backend_sdl2.o
 	$(CC) -o RvnicRaven $^ $(CFLAGS)
 	chmod +x RvnicRaven
 	mv RvnicRaven ../
@@ -26,6 +26,9 @@ sprite.o: ../../src/sprite.c ../../src/sprite.h ../../src/ai.h ../../src/RvR_mat
 	$(CC) -c $<
 
 sound.o: ../../src/sound.c ../../src/sound.h $(HEADERS)
+	$(CC) -c $<
+
+RvR_core.o: ../../src/RvR_core.c ../../src/RvR_core.h ../../src/RvR_backend.h $(HEADERS)
 	$(CC) -c $<
 
 RvR_config.o: ../../src/RvR_config.c ../../src/RvR_malloc.h ../../src/RvR_hash.h $(HEADERS)
@@ -65,6 +68,9 @@ RvR_raycast_draw.o: ../../src/RvR_raycast_draw.c ../../src/RvR_ray_draw.h ../../
 	$(CC) -c $<
 
 RvR_raycast_map.o: ../../src/RvR_raycast_map.c ../../src/RvR_ray_map.h ../../src/RvR_math.h ../../src/RvR_texture.h ../../src/RvR_pak.h ../../src/RvR_compress.h ../../src/RvR_malloc.h $(HEADERS)
+	$(CC) -c $<
+
+RvR_backend_sdl2.o: ../../src/backend/RvR_backend_sdl2.c ../../src/RvR_pal.h ../../src/RvR_malloc.h $(HEADERS)
 	$(CC) -c $<
 
 clean:

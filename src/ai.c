@@ -10,11 +10,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //External includes
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
-#include <SLK/SLK.h>
 //-------------------------------------
 
 //Internal includes
+#include "RvR_core.h"
 #include "RvR_config.h"
 #include "RvR_error.h"
 #include "RvR_malloc.h"
@@ -348,12 +349,16 @@ static AI_statenum run_state(AI_ent *e)
 
 static AI_statenum mutant_idle(AI_ent *e)
 {
+   *e = *e;
+
    return AI_STATE_NULL;
 }
 
 static AI_statenum shotgun(AI_ent *e)
 {
-   if(SLK_mouse_down(SLK_BUTTON_LEFT))
+   *e = *e;
+
+   if(RvR_core_mouse_down(RVR_BUTTON_LEFT))
    {
       sound_play(SOUND_DSG,1);
       return AI_STATE_PLAYER_SHOTGUN_LOAD0;
@@ -363,6 +368,8 @@ static AI_statenum shotgun(AI_ent *e)
 
 static AI_statenum shotgun_open(AI_ent *e)
 {
+   *e = *e;
+
    sound_play(SOUND_DSG_OPEN,1);
 
    return AI_STATE_NULL;
@@ -370,6 +377,8 @@ static AI_statenum shotgun_open(AI_ent *e)
 
 static AI_statenum shotgun_load(AI_ent *e)
 {
+   *e = *e;
+
    sound_play(SOUND_DSG_LOAD,1);
 
    return AI_STATE_NULL;
@@ -377,6 +386,8 @@ static AI_statenum shotgun_load(AI_ent *e)
 
 static AI_statenum shotgun_close(AI_ent *e)
 {
+   *e = *e;
+
    sound_play(SOUND_DSG_CLOSE,1);
 
    return AI_STATE_NULL;
