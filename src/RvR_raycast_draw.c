@@ -17,8 +17,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "RvR_core.h"
-#include "RvR_config.h"
-#include "RvR_error.h"
 #include "RvR_math.h"
 #include "RvR_malloc.h"
 #include "RvR_pal.h"
@@ -61,7 +59,6 @@ typedef struct
 //-------------------------------------
 
 //Variables
-//static SLK_Pal_sprite *target;
 uint8_t *framebuffer = NULL;
 static RvR_fix22 depth_buffer[MAX_STEPS*2][XRES][4];
 
@@ -133,7 +130,6 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
 {
    //Update drawing target pointer
    //in case its location has changed (e.g. resize)
-   //target = SLK_draw_pal_get_target();
    framebuffer = RvR_core_framebuffer();
 
    //Clear depth buffer

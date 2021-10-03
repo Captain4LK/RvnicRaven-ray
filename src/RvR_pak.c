@@ -9,19 +9,18 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <ctype.h>
 #include <math.h>
 #include <assert.h>
 #include <inttypes.h>
 #include <string.h>
-#include <SLK/SLK.h>
 //-------------------------------------
 
 //Internal includes
 #include "RvR_core.h"
-#include "RvR_config.h"
-#include "RvR_error.h"
 #include "RvR_malloc.h"
 #include "RvR_hash.h"
 #include "RvR_pak.h"

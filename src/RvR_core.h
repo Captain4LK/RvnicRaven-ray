@@ -79,4 +79,7 @@ void RvR_core_mouse_relative_pos(int *x, int *y);
 
 uint8_t *RvR_core_framebuffer();
 
+#include "RvR_config.h"
+#include "RvR_error.h"
+
 #endif

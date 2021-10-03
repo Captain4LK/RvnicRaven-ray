@@ -9,14 +9,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <stdio.h>
 #include <stdlib.h>
-#include <SLK/SLK.h>
+#include <stdint.h>
 //-------------------------------------
 
 //Internal includes
 #include "RvR_core.h"
-#include "RvR_config.h"
-#include "RvR_error.h"
 #include "RvR_malloc.h"
 #include "RvR_pak.h"
 #include "RvR_math.h"
@@ -71,7 +70,6 @@ void RvR_palette_load(uint16_t id)
       RvR_palette[i].a = 255;
    }
 
-   //SLK_layer_set_palette(0,pal);
    HLH_pal_calculate_colormap();
 
    RvR_free(mem_pak);

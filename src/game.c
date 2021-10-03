@@ -15,12 +15,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "RvR_core.h"
-#include "RvR_config.h"
 #include "RvR_math.h"
 #include "RvR_malloc.h"
 #include "RvR_ray_map.h"
 #include "RvR_ray_draw.h"
 #include "RvR_texture.h"
+#include "RvR_draw.h"
 #include "game.h"
 #include "sprite.h"
 #include "ai.h"
@@ -114,9 +114,8 @@ void game_update()
    }
 
    //Graphics
-   //SLK_layer_set_current(0);
    RvR_ray_draw((RvR_vec3){player.entity->pos.x,player.entity->pos.y,player.entity->pos.z},player.entity->direction,player.shear);
-   //SLK_draw_pal_sprite(player_sprite,(XRES-player_sprite->width)/2,YRES-player_sprite->height);
+   RvR_draw_texture(player_sprite,(XRES-player_sprite->width)/2,YRES-player_sprite->height);
 }
 
 static AI_type u16_to_type(uint16_t type)

@@ -67,7 +67,7 @@ static int mouse_x_rel;
 static int mouse_y_rel;
 static char *text_input;
 static int text_input_active;
-static int text_input_max;
+static unsigned text_input_max;
 static int mouse_x;
 static int mouse_y;
 static int mouse_wheel;
@@ -85,10 +85,6 @@ static int get_gamepad_index(int which);
 void RvR_backend_init(const char *title, int scale)
 {
    pixel_scale = scale;
-   //screen_width = width;
-   //screen_height = height;
-   //layer_count = layer_num;
-   //layer_dynamic = resizable;
 
    Uint32 flags = 
 #ifndef __EMSCRIPTEN__
@@ -278,7 +274,6 @@ void RvR_backend_init(const char *title, int scale)
       fps = 1000;
    else
       fps = FPS;
-
    framedelay = 1000/fps;
 
    framebuffer = RvR_malloc(XRES*YRES);
@@ -405,52 +400,25 @@ void RvR_backend_render_present()
 {
    SDL_RenderClear(renderer);
 
-   /*for(int l = layer_count-1;l>=0;l--)
-   {
-      layers[l].resized = 0;
+   float width = (float)XRES*pixel_scale;
+   float height = (float)YRES*pixel_scale;
+   float x = 0.0f;
+   float y = 0.0f;
+   SDL_Rect dst_rect;
+   dst_rect.x = x;
+   dst_rect.y = y;
+   dst_rect.w = width;
+   dst_rect.h = height;
 
-      if(layers[l].active)
-      {
-         switch(layers[l].type)
-         {
-         case SLK_LAYER_PAL:
-         {
-#if SLK_ENABLE_PAL*/
-            float width = (float)XRES*pixel_scale;
-            float height = (float)YRES*pixel_scale;
-            float x = 0.0f;
-            float y = 0.0f;
-            SDL_Rect dst_rect;
-            dst_rect.x = x;
-            dst_rect.y = y;
-            dst_rect.w = width;
-            dst_rect.h = height;
+   void *data;
+   int stride;
+   SDL_LockTexture(layer_texture,NULL,&data,&stride);
+   RvR_color *pix = data;
+   for(int i = 0;i<XRES*YRES;i++)
+      pix[i] = RvR_palette[framebuffer[i]];
+   SDL_UnlockTexture(layer_texture);
 
-            //for(int i = 0;i<XRES*YRES;i++)
-               //layers[l].type_0.render->data[i] = layers[l].type_0.palette->colors[layers[l].type_0.target->data[i]];
-
-            /*int w, h;
-            SDL_QueryTexture(layer_textures[l], NULL, NULL, &w, &h);
-
-            if(w!=layers[l].type_0.target->width||h!=layers[l].type_0.target->height)
-            {
-               SDL_DestroyTexture(layer_textures[l]);
-               layer_textures[l] = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STREAMING,layers[l].type_0.target->width,layers[l].type_0.target->height);
-               SDL_SetTextureBlendMode(layer_textures[l],SDL_BLENDMODE_BLEND);
-            }*/
-
-            void *data;
-            int stride;
-            SDL_LockTexture(layer_texture,NULL,&data,&stride);
-            RvR_color *pix = data;
-            for(int i = 0;i<XRES*YRES;i++)
-               pix[i] = RvR_palette[framebuffer[i]];
-            //memcpy(data,layers[l].type_0.render->data,sizeof(*layers[l].type_0.render->data)*layers[l].type_0.target->width*layers[l].type_0.target->height);
-            SDL_UnlockTexture(layer_texture);
-
-            //SDL_SetTextureColorMod(layer_texture,layers[l].tint.r,layers[l].tint.g,layers[l].tint.b);
-            //SDL_SetTextureAlphaMod(layer_texture,layers[l].tint.a);
-            SDL_RenderCopy(renderer,layer_texture,NULL,&dst_rect);
+   SDL_RenderCopy(renderer,layer_texture,NULL,&dst_rect);
 
    SDL_RenderPresent(renderer);
 }

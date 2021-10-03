@@ -10,17 +10,16 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //External includes
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
-#include <SLK/SLK.h>
 //-------------------------------------
 
 //Internal includes
 #include "RvR_core.h"
-#include "RvR_config.h"
-#include "RvR_error.h"
 #include "RvR_malloc.h"
 #include "RvR_pak.h"
 #include "RvR_compress.h"
+#include "RvR_draw.h"
 #include "RvR_texture.h"
 //-------------------------------------
 
@@ -79,7 +78,6 @@ void RvR_texture_load_end()
                RvR_free(textures[i]->data);
                RvR_free(textures[i]);
             }
-            //SLK_pal_sprite_destroy(textures[i]);
             textures[i] = NULL;
          }
       }
@@ -119,10 +117,10 @@ void RvR_font_load(uint16_t id)
    RvR_texture_load(id);
    textures_timeout[id] = PERMANENT;
 
-   //if(RvR_texture_get(id))
-      //SLK_draw_pal_set_font_sprite(RvR_texture_get(id));
-   //else
-      //SLK_draw_pal_set_font_sprite(RvR_texture_get(0));
+   if(RvR_texture_get(id))
+      RvR_draw_set_font(RvR_texture_get(id));
+   else
+      RvR_draw_set_font(RvR_texture_get(0));
 }
 
 void RvR_font_unload(uint16_t id)
@@ -145,7 +143,6 @@ static RvR_texture *texture_load(const uint8_t *mem, unsigned len)
    p->data = RvR_malloc(sizeof(*p->data)*width*height);
    p->width = width;
    p->height = height;
-   //p = SLK_pal_sprite_create(width,height);
    RvR_error_check(p!=NULL,0x001);
    RvR_error_check(p->data!=NULL,0x001);
 

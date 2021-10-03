@@ -10,14 +10,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //External includes
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <SLK/SLK.h>
+#include <stdint.h>
 //-------------------------------------
 
 //Internal includes
 #include "RvR_core.h"
-#include "RvR_config.h"
-#include "RvR_error.h"
 #include "RvR_malloc.h"
 //-------------------------------------
 
@@ -69,7 +68,7 @@ void RvR_malloc_init(int min, int max)
 
    for(mem = NULL;!mem&&size>=min;)
    {
-      mem = SLK_system_malloc(size);
+      mem = malloc(size);
       if(mem==NULL) 
          size-=0x100;        
    }
@@ -93,7 +92,7 @@ void *RvR_malloc(size_t size)
 
    if(!bmanage_total) 
    {
-      return SLK_system_malloc(size);
+      return malloc(size);
    }
 
    m_instance++;
@@ -118,7 +117,7 @@ void RvR_free(void *ptr)
 {
    if(!bmanage_total) 
    { 
-      SLK_system_free(ptr); 
+      free(ptr); 
       return ; 
    }
 
@@ -141,7 +140,7 @@ void *RvR_realloc(void *ptr, size_t size)
 
    if(!bmanage_total) 
    {
-      void *d = SLK_system_realloc(ptr,size); 
+      void *d = realloc(ptr,size); 
       return d;
    }
 

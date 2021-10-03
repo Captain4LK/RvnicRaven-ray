@@ -15,8 +15,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "RvR_core.h"
-#include "RvR_config.h"
-#include "RvR_error.h"
 #include "RvR_math.h"
 #include "RvR_texture.h"
 #include "sprite.h"

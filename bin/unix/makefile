@@ -1,19 +1,26 @@
 CC = gcc -O3 -flto=auto -s -std=c99 -pedantic -Wall -Wextra
-CFLAGS+=-lm -lSDL2 -lSLK -lSDL2_mixer
+CFLAGS+=-lm -lSDL2 -lSDL2_mixer
 HEADERS = ../../src/RvR_config.h ../../src/RvR_error.h ../../src/RvR_core.h
+OBJECTS = main.o state.o game.o player.o ai.o sprite.o sound.o
 
-game: main.o state.o game.o player.o ai.o sprite.o sound.o RvR_config.o RvR_error.o RvR_math.o RvR_rand.o RvR_hash.o RvR_compress.o RvR_malloc.o RvR_pal.o RvR_pak.o RvR_texture.o RvR_raycast.o RvR_raycast_draw.o RvR_raycast_map.o RvR_core.o RvR_backend_sdl2.o
+# Core
+OBJECTS+=RvR_config.o RvR_error.o RvR_math.o RvR_rand.o RvR_hash.o RvR_compress.o RvR_malloc.o RvR_pal.o RvR_pak.o RvR_texture.o RvR_draw.o RvR_core.o RvR_backend_sdl2.o
+
+# Raycasting
+OBJECTS+=RvR_raycast.o RvR_raycast_draw.o RvR_raycast_map.o
+
+game: $(OBJECTS)
 	$(CC) -o RvnicRaven $^ $(CFLAGS)
 	chmod +x RvnicRaven
 	mv RvnicRaven ../
 
-main.o: ../../src/main.c ../../src/state.h ../../src/player.h ../../src/sound.h ../../src/ai.h ../../src/sprite.h ../../src/RvR_malloc.h ../../src/RvR_math.h ../../src/RvR_pak.h ../../src/RvR_pal.h ../../src/RvR_texture.h ../../src/RvR_ray_map.h $(HEADERS)
+main.o: ../../src/main.c ../../src/state.h ../../src/sound.h ../../src/RvR_malloc.h ../../src/RvR_pak.h ../../src/RvR_pal.h ../../src/RvR_texture.h $(HEADERS)
 	$(CC) -c $<
 
-state.o: ../../src/state.c ../../src/state.h ../../src/game.h ../../src/ai.h ../../src/sprite.h ../../src/sound.h ../../src/player.h ../../src/RvR_math.h ../../src/RvR_texture.h $(HEADERS)
+state.o: ../../src/state.c ../../src/state.h ../../src/game.h ../../src/ai.h ../../src/sprite.h ../../src/sound.h ../../src/player.h ../../src/RvR_math.h ../../src/RvR_texture.h ../../src/RvR_draw.h $(HEADERS)
 	$(CC) -c $<
 
-game.o: ../../src/game.c ../../src/game.h ../../src/player.h ../../src/ai.h ../../src/sprite.h ../../src/RvR_texture.h ../../src/RvR_ray_draw.h ../../src/RvR_malloc.h ../../src/RvR_math.h ../../src/RvR_ray_map.h $(HEADERS)
+game.o: ../../src/game.c ../../src/game.h ../../src/player.h ../../src/ai.h ../../src/sprite.h ../../src/RvR_texture.h ../../src/RvR_ray_draw.h ../../src/RvR_malloc.h ../../src/RvR_math.h ../../src/RvR_ray_map.h ../../src/RvR_draw.h $(HEADERS)
 	$(CC) -c $<
 
 player.o: ../../src/player.c ../../src/player.h ../../src/ai.h ../../src/sprite.h ../../src/RvR_math.h ../../src/RvR_ray.h $(HEADERS)
@@ -58,7 +65,10 @@ RvR_pal.o: ../../src/RvR_pal.c ../../src/RvR_pal.h ../../src/RvR_pak.h ../../src
 RvR_pak.o: ../../src/RvR_pak.c ../../src/RvR_pak.h ../../src/RvR_malloc.h ../../src/RvR_hash.h $(HEADERS)
 	$(CC) -c $<
 
-RvR_texture.o: ../../src/RvR_texture.c ../../src/RvR_texture.h ../../src/RvR_malloc.h ../../src/RvR_pak.h ../../src/RvR_compress.h $(HEADERS)
+RvR_texture.o: ../../src/RvR_texture.c ../../src/RvR_texture.h ../../src/RvR_malloc.h ../../src/RvR_pak.h ../../src/RvR_compress.h ../../src/RvR_draw.h $(HEADERS)
+	$(CC) -c $<
+
+RvR_draw.o: ../../src/RvR_draw.c ../../src/RvR_draw.h $(HEADERS)
 	$(CC) -c $<
 
 RvR_raycast.o: ../../src/RvR_raycast.c ../../src/RvR_ray.h ../../src/RvR_math.h ../../src/RvR_ray_map.h ../../src/RvR_ray_draw.h $(HEADERS)
