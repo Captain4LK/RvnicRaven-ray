@@ -10,11 +10,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //External includes
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
 #include <SDL2/SDL_mixer.h>
 //-------------------------------------
 
 //Internal includes
-#include "RvR_core.h"
+#include "../../src/RvnicRaven.h"
 #include "sound.h"
 //-------------------------------------
 

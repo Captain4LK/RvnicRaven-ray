@@ -9,14 +9,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 //-------------------------------------
 
 //Internal includes
-#include "RvR_core.h"
-#include "RvR_math.h"
-#include "RvR_texture.h"
+#include "../../src/RvnicRaven.h"
 #include "sprite.h"
 #include "ai.h"
 //-------------------------------------

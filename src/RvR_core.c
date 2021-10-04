@@ -15,7 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
-#include "RvR_core.h"
+#include "RvnicRaven.h"
 #include "RvR_backend.h"
 //-------------------------------------
 

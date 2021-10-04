@@ -1,18 +1,6 @@
 # Rvnic Raven
 
-# Building from source
-
-1. Get a compiler: I recommend gcc but clang works too.
-2. Compile and install SoftLK-lib: https://github.com/Captain4LK/SoftLK-lib
-3. Install SDL2_mixer
-4. Clone this repository: ``https://github.com/Captain4LK/RvnicRaven-ray``
-5. Compile, the binary can be found in the bin/ directory: 
-```
-cd bin/[OS]
-make -j 4
-```
-6. Get the assets, download data.zip from here: https://github.com/Captain4LK/RvnicRaven-ray/releases/ and unpack it.
-7. Place the data directory in bin/ so that the path to main.json is: ``bin/data/main.json``
+There currently are no building instructions, since the project is in a temporay (very short, expected to be done by October 06 2021) migration phase
 
 # Credits (code)
 

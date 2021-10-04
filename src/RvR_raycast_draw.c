@@ -16,14 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
-#include "RvR_core.h"
-#include "RvR_math.h"
-#include "RvR_malloc.h"
-#include "RvR_pal.h"
-#include "RvR_ray_map.h"
-#include "RvR_texture.h"
-#include "RvR_ray.h"
-#include "RvR_ray_draw.h"
+#include "RvnicRaven.h"
 //-------------------------------------
 
 //#defines
@@ -59,7 +52,7 @@ typedef struct
 //-------------------------------------
 
 //Variables
-uint8_t *framebuffer = NULL;
+uint8_t *_ray_draw_framebuffer = NULL;
 static RvR_fix22 depth_buffer[MAX_STEPS*2][XRES][4];
 
 static RvR_fix22 start_floor_height = 0;
@@ -130,7 +123,7 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
 {
    //Update drawing target pointer
    //in case its location has changed (e.g. resize)
-   framebuffer = RvR_core_framebuffer();
+   _ray_draw_framebuffer = RvR_core_framebuffer();
 
    //Clear depth buffer
    //but only to the depth needed for
@@ -185,7 +178,7 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
          {
             //Sky is rendered fullbright, no lut needed
             RvR_fix22 texture_coord = pl->start[x]*SKY_TEX_STEP;
-            uint8_t * restrict pix = &framebuffer[(pl->start[x])*XRES+x-1];
+            uint8_t * restrict pix = &_ray_draw_framebuffer[(pl->start[x])*XRES+x-1];
             const uint8_t * restrict tex = &texture->data[((angle>>10)&255)*texture->height];
 
             for(int y = pl->start[x];y<pl->end[x]+1;y++)
@@ -291,7 +284,7 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
          }
 
          tex = &texture->data[texture->height*(u>>10)];
-         dst = &framebuffer[ys*XRES+x];
+         dst = &_ray_draw_framebuffer[ys*XRES+x];
          RvR_fix22 v = v_start+(ys-y)*v_step;
          for(int y1 = sy;y1<ey1;y1++,dst+=XRES)
          {
@@ -350,7 +343,7 @@ static int16_t draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, 
       texture_coord_scaled = RvR_zero_clamp(wall_position*coord_step_scaled);
    }
 
-   uint8_t * restrict pix = &framebuffer[(y_current+increment)*XRES+pixel_info->position.x];
+   uint8_t * restrict pix = &_ray_draw_framebuffer[(y_current+increment)*XRES+pixel_info->position.x];
    const uint8_t * restrict col = RvR_shade_table[RvR_min(63,(pixel_info->hit.direction&1)*10+22+(pixel_info->depth>>8))];
    const uint8_t * restrict tex = &texture->data[(pixel_info->tex_coords.x>>4)*texture->height];
 
@@ -701,7 +694,7 @@ static void span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, uint16
    ty+=x0*step_y;
 
    //const and restrict don't seem to influence the generated assembly in this case
-   uint8_t * restrict pix = &framebuffer[y*XRES+x0];
+   uint8_t * restrict pix = &_ray_draw_framebuffer[y*XRES+x0];
    const uint8_t * restrict col = RvR_shade_table[RvR_min(63,22+(depth>>8))];
    const uint8_t * restrict tex = RvR_texture_get(texture)->data;
 

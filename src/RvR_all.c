@@ -9,13 +9,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 //-------------------------------------
 
 //Internal includes
-#include "RvnicRaven.h"
 //-------------------------------------
 
 //#defines
@@ -25,41 +21,26 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static int seed = 0;
 //-------------------------------------
 
 //Function prototypes
 //-------------------------------------
 
 //Function implementations
-
-unsigned RvR_rand()
-{
-   static uint32_t w32_rtable[RNG_TABLE_SIZE] = {0};
-   static int initialized = 0;
-
-   if(!initialized)
-   {
-      uint32_t inc = 0xacd2d391, mul = 0xf34f9201, x = 0;
-      for(int i = 0;i<RNG_TABLE_SIZE;i++)
-      {     
-         w32_rtable[i] = x;
-         x = (x+inc)*mul;
-      }
-      initialized = 1;
-   }
-
-   seed = (seed+1)%RNG_TABLE_SIZE;
-   return w32_rtable[seed];
-}
-
-int RvR_rand_get_state()
-{
-   return seed;
-}
-
-void RvR_rand_set_state(int state)
-{
-   seed = state%RNG_TABLE_SIZE;
-}
+#include "RvR_config.c"
+#include "RvR_core.c"
+#include "RvR_error.c"
+#include "RvR_malloc.c"
+#include "RvR_math.c"
+#include "RvR_pak.c"
+#include "RvR_pal.c"
+#include "RvR_rand.c"
+#include "RvR_hash.c"
+#include "RvR_compress.c"
+#include "RvR_draw.c"
+#include "RvR_texture.c"
+#include "RvR_raycast.c"
+#include "RvR_raycast_draw.c"
+#include "RvR_raycast_map.c"
+#include "backend/RvR_backend_sdl2.c"
 //-------------------------------------

@@ -20,10 +20,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Internal includes
-#include "RvR_core.h"
-#include "RvR_malloc.h"
-#include "RvR_hash.h"
-#include "RvR_pak.h"
+#include "RvnicRaven.h"
 //-------------------------------------
 
 //#defines
