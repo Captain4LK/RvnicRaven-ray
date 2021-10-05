@@ -15,7 +15,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Window config
 #define XRES 320
 #define YRES 240
-#define TITLE "To be determined"
 #define FPS 30
 
 //Math config

@@ -25,64 +25,68 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static uint16_t *level_wall_tex = NULL;
-static uint16_t *level_floor_tex = NULL;
-static uint16_t *level_ceil_tex = NULL;
-static int8_t *level_floor = NULL;
-static int8_t *level_ceiling = NULL;
-static uint16_t level_width = 0;
-static uint16_t level_height = 0;
-static uint8_t level_floor_color = 23;
 
 static struct
 {
-   uint16_t *level_wall_tex;
-   uint16_t *level_floor_tex;
-   uint16_t *level_ceil_tex;
-   int8_t *level_floor;
-   int8_t *level_ceiling;
-   uint16_t level_width;
-   uint16_t level_height;
-   uint8_t level_floor_color;
+   uint16_t *wall_tex;
+   uint16_t *floor_tex;
+   uint16_t *ceil_tex;
+   int8_t *floor;
+   int8_t *ceiling;
+   uint16_t width;
+   uint16_t height;
+   uint8_t floor_color;
+}ray_map = {0};
 
-   RvR_ray_map_sprite *level_sprites;
-   uint32_t level_sprite_count;
-}map_cache = {0};
+static struct
+{
+   uint16_t *wall_tex;
+   uint16_t *floor_tex;
+   uint16_t *ceil_tex;
+   int8_t *floor;
+   int8_t *ceiling;
+   uint16_t width;
+   uint16_t height;
+   uint8_t floor_color;
+
+   RvR_ray_map_sprite *sprites;
+   uint32_t sprite_count;
+}ray_map_cache = {0};
 //-------------------------------------
 
 //Function prototypes
-static void map_free_editor();
-static void map_free_level();
+static void ray_map_free_editor();
+static void ray_map_free_level();
 //-------------------------------------
 
 //Function implementations
 
 void RvR_ray_map_create(uint16_t width, uint16_t height)
 {
-   map_free_editor();
-   map_free_level();
+   ray_map_free_editor();
+   ray_map_free_level();
 
-   map_cache.level_width = width;
-   map_cache.level_height = height;
-   map_cache.level_wall_tex = RvR_malloc(map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_wall_tex));
-   map_cache.level_floor_tex = RvR_malloc(map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_floor_tex));
-   map_cache.level_ceil_tex = RvR_malloc(map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_ceil_tex));
-   map_cache.level_floor = RvR_malloc(map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_floor));
-   map_cache.level_ceiling = RvR_malloc(map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_ceiling));
-   memset(map_cache.level_wall_tex,0,map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_wall_tex));
-   memset(map_cache.level_floor_tex,0,map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_floor_tex));
-   memset(map_cache.level_ceil_tex,0,map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_ceil_tex));
-   memset(map_cache.level_floor,0,map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_floor));
-   memset(map_cache.level_ceiling,0,map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_ceiling));
+   ray_map_cache.width = width;
+   ray_map_cache.height = height;
+   ray_map_cache.wall_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_tex));
+   ray_map_cache.floor_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor_tex));
+   ray_map_cache.ceil_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceil_tex));
+   ray_map_cache.floor = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor));
+   ray_map_cache.ceiling = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceiling));
+   memset(ray_map_cache.wall_tex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_tex));
+   memset(ray_map_cache.floor_tex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor_tex));
+   memset(ray_map_cache.ceil_tex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceil_tex));
+   memset(ray_map_cache.floor,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor));
+   memset(ray_map_cache.ceiling,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceiling));
 
-   map_cache.level_floor_color = 23;
+   ray_map_cache.floor_color = 23;
 
-   for(int y = 1;y<map_cache.level_height-1;y++)
+   for(int y = 1;y<ray_map_cache.height-1;y++)
    {
-      for(int x = 1;x<map_cache.level_width-1;x++)
+      for(int x = 1;x<ray_map_cache.width-1;x++)
       {
-         map_cache.level_floor[y*map_cache.level_width+x] = 0;
-         map_cache.level_ceiling[y*map_cache.level_width+x] = 127;
+         ray_map_cache.floor[y*ray_map_cache.width+x] = 0;
+         ray_map_cache.ceiling[y*ray_map_cache.width+x] = 127;
       }
    }
 
@@ -91,87 +95,87 @@ void RvR_ray_map_create(uint16_t width, uint16_t height)
    RvR_ray_map_reset_full();
 }
 
-static void map_free_editor()
+static void ray_map_free_editor()
 {
-   if(map_cache.level_wall_tex!=NULL)
-      RvR_free(map_cache.level_wall_tex);
-   if(map_cache.level_floor_tex!=NULL)
-      RvR_free(map_cache.level_floor_tex);
-   if(map_cache.level_ceil_tex!=NULL)
-      RvR_free(map_cache.level_ceil_tex);
-   if(map_cache.level_floor!=NULL)
-      RvR_free(map_cache.level_floor);
-   if(map_cache.level_ceiling!=NULL)
-      RvR_free(map_cache.level_ceiling);
-   if(map_cache.level_sprites!=NULL)
-      RvR_free(map_cache.level_sprites);
-   map_cache.level_wall_tex = NULL;
-   map_cache.level_floor = NULL;
-   map_cache.level_ceiling = NULL;
-   map_cache.level_width = 0;
-   map_cache.level_height = 0;
-   map_cache.level_sprite_count= 0;
+   if(ray_map_cache.wall_tex!=NULL)
+      RvR_free(ray_map_cache.wall_tex);
+   if(ray_map_cache.floor_tex!=NULL)
+      RvR_free(ray_map_cache.floor_tex);
+   if(ray_map_cache.ceil_tex!=NULL)
+      RvR_free(ray_map_cache.ceil_tex);
+   if(ray_map_cache.floor!=NULL)
+      RvR_free(ray_map_cache.floor);
+   if(ray_map_cache.ceiling!=NULL)
+      RvR_free(ray_map_cache.ceiling);
+   if(ray_map_cache.sprites!=NULL)
+      RvR_free(ray_map_cache.sprites);
+   ray_map_cache.wall_tex = NULL;
+   ray_map_cache.floor = NULL;
+   ray_map_cache.ceiling = NULL;
+   ray_map_cache.width = 0;
+   ray_map_cache.height = 0;
+   ray_map_cache.sprite_count= 0;
 }
 
-static void map_free_level()
+static void ray_map_free_level()
 {
-   if(level_wall_tex!=NULL)
-      RvR_free(level_wall_tex);
-   if(level_floor_tex!=NULL)
-      RvR_free(level_floor_tex);
-   if(level_ceil_tex!=NULL)
-      RvR_free(level_ceil_tex);
-   if(level_floor!=NULL)
-      RvR_free(level_floor);
-   if(level_ceiling!=NULL)
-      RvR_free(level_ceiling);
-   level_wall_tex = NULL;
-   level_floor = NULL;
-   level_ceiling = NULL;
-   level_width = 0;
-   level_height = 0;
+   if(ray_map.wall_tex!=NULL)
+      RvR_free(ray_map.wall_tex);
+   if(ray_map.floor_tex!=NULL)
+      RvR_free(ray_map.floor_tex);
+   if(ray_map.ceil_tex!=NULL)
+      RvR_free(ray_map.ceil_tex);
+   if(ray_map.floor!=NULL)
+      RvR_free(ray_map.floor);
+   if(ray_map.ceiling!=NULL)
+      RvR_free(ray_map.ceiling);
+   ray_map.wall_tex = NULL;
+   ray_map.floor = NULL;
+   ray_map.ceiling = NULL;
+   ray_map.width = 0;
+   ray_map.height = 0;
 }
 
 void RvR_ray_map_reset()
 {
-   if(level_width!=map_cache.level_width||level_height!=map_cache.level_height|| //Wrong dimensions
-      level_floor==NULL||level_ceiling==NULL||level_wall_tex==NULL //Not allocated yet
+   if(ray_map.width!=ray_map_cache.width||ray_map.height!=ray_map_cache.height|| //Wrong dimensions
+      ray_map.floor==NULL||ray_map.ceiling==NULL||ray_map.wall_tex==NULL //Not allocated yet
       ) 
    {
-      map_free_level();
+      ray_map_free_level();
 
-      level_width = map_cache.level_width;
-      level_height = map_cache.level_height;
-      level_wall_tex = RvR_malloc(level_width*level_height*sizeof(*level_wall_tex));
-      level_floor_tex = RvR_malloc(level_width*level_height*sizeof(*level_floor_tex));
-      level_ceil_tex = RvR_malloc(level_width*level_height*sizeof(*level_ceil_tex));
-      level_floor = RvR_malloc(level_width*level_height*sizeof(*level_floor));
-      level_ceiling = RvR_malloc(level_width*level_height*sizeof(*level_ceiling));
-      memset(level_wall_tex,0,level_width*level_height*sizeof(*level_wall_tex));
-      memset(level_floor_tex,0,level_width*level_height*sizeof(*level_floor_tex));
-      memset(level_ceil_tex,0,level_width*level_height*sizeof(*level_ceil_tex));
-      memset(level_floor,0,level_width*level_height*sizeof(*level_floor));
-      memset(level_ceiling,0,level_width*level_height*sizeof(*level_ceiling));
+      ray_map.width = ray_map_cache.width;
+      ray_map.height = ray_map_cache.height;
+      ray_map.wall_tex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.wall_tex));
+      ray_map.floor_tex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.floor_tex));
+      ray_map.ceil_tex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.ceil_tex));
+      ray_map.floor = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.floor));
+      ray_map.ceiling = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.ceiling));
+      memset(ray_map.wall_tex,0,ray_map.width*ray_map.height*sizeof(*ray_map.wall_tex));
+      memset(ray_map.floor_tex,0,ray_map.width*ray_map.height*sizeof(*ray_map.floor_tex));
+      memset(ray_map.ceil_tex,0,ray_map.width*ray_map.height*sizeof(*ray_map.ceil_tex));
+      memset(ray_map.floor,0,ray_map.width*ray_map.height*sizeof(*ray_map.floor));
+      memset(ray_map.ceiling,0,ray_map.width*ray_map.height*sizeof(*ray_map.ceiling));
    }
 
    //Misc
-   level_floor_color = map_cache.level_floor_color;
+   ray_map.floor_color = ray_map_cache.floor_color;
 
-   memcpy(level_wall_tex,map_cache.level_wall_tex,sizeof(*map_cache.level_wall_tex)*map_cache.level_width*map_cache.level_height);
-   memcpy(level_floor_tex,map_cache.level_floor_tex,sizeof(*map_cache.level_floor_tex)*map_cache.level_width*map_cache.level_height);
-   memcpy(level_ceil_tex,map_cache.level_ceil_tex,sizeof(*map_cache.level_ceil_tex)*map_cache.level_width*map_cache.level_height);
-   memcpy(level_floor,map_cache.level_floor,sizeof(*map_cache.level_floor)*map_cache.level_width*map_cache.level_height);
-   memcpy(level_ceiling,map_cache.level_ceiling,sizeof(*map_cache.level_ceiling)*map_cache.level_width*map_cache.level_height);
+   memcpy(ray_map.wall_tex,ray_map_cache.wall_tex,sizeof(*ray_map_cache.wall_tex)*ray_map_cache.width*ray_map_cache.height);
+   memcpy(ray_map.floor_tex,ray_map_cache.floor_tex,sizeof(*ray_map_cache.floor_tex)*ray_map_cache.width*ray_map_cache.height);
+   memcpy(ray_map.ceil_tex,ray_map_cache.ceil_tex,sizeof(*ray_map_cache.ceil_tex)*ray_map_cache.width*ray_map_cache.height);
+   memcpy(ray_map.floor,ray_map_cache.floor,sizeof(*ray_map_cache.floor)*ray_map_cache.width*ray_map_cache.height);
+   memcpy(ray_map.ceiling,ray_map_cache.ceiling,sizeof(*ray_map_cache.ceiling)*ray_map_cache.width*ray_map_cache.height);
 
    //Textures
    RvR_texture_load_begin();
    RvR_texture_load(0); //Texture 0 is always loaded, since it's used as a fallback texture
    RvR_texture_load(0x5300); //Sprite test texture
-   for(int i = 0;i<level_width*level_height;i++)
+   for(int i = 0;i<ray_map.width*ray_map.height;i++)
    {
-      RvR_texture_load(level_wall_tex[i]);
-      RvR_texture_load(level_floor_tex[i]);
-      RvR_texture_load(level_ceil_tex[i]);
+      RvR_texture_load(ray_map.wall_tex[i]);
+      RvR_texture_load(ray_map.floor_tex[i]);
+      RvR_texture_load(ray_map.ceil_tex[i]);
    }
    RvR_texture_load_end();
 
@@ -181,14 +185,14 @@ void RvR_ray_map_reset()
 
 int RvR_ray_map_sprite_count()
 {
-   return map_cache.level_sprite_count;
+   return ray_map_cache.sprite_count;
 }
 
 RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index)
 {
-   if(index>=map_cache.level_sprite_count)
+   if(index>=ray_map_cache.sprite_count)
       return NULL;
-   return &map_cache.level_sprites[index];
+   return &ray_map_cache.sprites[index];
 }
 
 void RvR_ray_map_reset_full()
@@ -226,35 +230,35 @@ void RvR_ray_map_load_mem(uint8_t *mem, int len)
    int pos = 0;
 
    //Read level width and height
-   map_cache.level_width = *(uint16_t *)(mem+pos); pos+=2;
-   map_cache.level_height = *(uint16_t *)(mem+pos); pos+=2;
+   ray_map_cache.width = *(uint16_t *)(mem+pos); pos+=2;
+   ray_map_cache.height = *(uint16_t *)(mem+pos); pos+=2;
 
    //Read sprite count
-   map_cache.level_sprite_count = *(uint32_t *)(mem+pos); pos+=4;
-   map_cache.level_sprites = RvR_malloc(sizeof(*map_cache.level_sprites)*map_cache.level_sprite_count);
+   ray_map_cache.sprite_count = *(uint32_t *)(mem+pos); pos+=4;
+   ray_map_cache.sprites = RvR_malloc(sizeof(*ray_map_cache.sprites)*ray_map_cache.sprite_count);
 
    //Read floor color
-   map_cache.level_floor_color = *(uint8_t *)(mem+pos); pos+=1;
+   ray_map_cache.floor_color = *(uint8_t *)(mem+pos); pos+=1;
 
    //Read texture, floor and ceiling
-   map_cache.level_wall_tex = RvR_malloc(map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_wall_tex));
-   map_cache.level_floor_tex = RvR_malloc(map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_floor_tex));
-   map_cache.level_ceil_tex = RvR_malloc(map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_ceil_tex));
-   map_cache.level_floor = RvR_malloc(map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_floor));
-   map_cache.level_ceiling = RvR_malloc(map_cache.level_width*map_cache.level_height*sizeof(*map_cache.level_ceiling));
-   memcpy(map_cache.level_wall_tex,mem+pos,map_cache.level_width*map_cache.level_height*2); pos+=map_cache.level_width*map_cache.level_height*2;
-   memcpy(map_cache.level_floor_tex,mem+pos,map_cache.level_width*map_cache.level_height*2); pos+=map_cache.level_width*map_cache.level_height*2;
-   memcpy(map_cache.level_ceil_tex,mem+pos,map_cache.level_width*map_cache.level_height*2); pos+=map_cache.level_width*map_cache.level_height*2;
-   memcpy(map_cache.level_floor,mem+pos,map_cache.level_width*map_cache.level_height); pos+=map_cache.level_width*map_cache.level_height;
-   memcpy(map_cache.level_ceiling,mem+pos,map_cache.level_width*map_cache.level_height); pos+=map_cache.level_width*map_cache.level_height;
+   ray_map_cache.wall_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_tex));
+   ray_map_cache.floor_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor_tex));
+   ray_map_cache.ceil_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceil_tex));
+   ray_map_cache.floor = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor));
+   ray_map_cache.ceiling = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceiling));
+   memcpy(ray_map_cache.wall_tex,mem+pos,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
+   memcpy(ray_map_cache.floor_tex,mem+pos,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
+   memcpy(ray_map_cache.ceil_tex,mem+pos,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
+   memcpy(ray_map_cache.floor,mem+pos,ray_map_cache.width*ray_map_cache.height); pos+=ray_map_cache.width*ray_map_cache.height;
+   memcpy(ray_map_cache.ceiling,mem+pos,ray_map_cache.width*ray_map_cache.height); pos+=ray_map_cache.width*ray_map_cache.height;
 
    //Read sprites
-   for(unsigned i = 0;i<map_cache.level_sprite_count;i++)
+   for(unsigned i = 0;i<ray_map_cache.sprite_count;i++)
    {
-      map_cache.level_sprites[i].type = *(uint16_t *)(mem+pos); pos+=2;
-      map_cache.level_sprites[i].pos.x = *(uint32_t *)(mem+pos); pos+=4;
-      map_cache.level_sprites[i].pos.y = *(uint32_t *)(mem+pos); pos+=4;
-      map_cache.level_sprites[i].pos.z = *(uint32_t *)(mem+pos); pos+=4;
+      ray_map_cache.sprites[i].type = *(uint16_t *)(mem+pos); pos+=2;
+      ray_map_cache.sprites[i].pos.x = *(uint32_t *)(mem+pos); pos+=4;
+      ray_map_cache.sprites[i].pos.y = *(uint32_t *)(mem+pos); pos+=4;
+      ray_map_cache.sprites[i].pos.z = *(uint32_t *)(mem+pos); pos+=4;
    }
 
    //Update actual map
@@ -265,42 +269,42 @@ void RvR_ray_map_save(const char *path)
 {
    //Calculate needed memory
    int size = 0;
-   size+=2; //level_width
-   size+=2; //level_height
-   size+=1; //level_floor_color
-   size+=map_cache.level_width*map_cache.level_height*2; //level_wall_tex
-   size+=map_cache.level_width*map_cache.level_height*2; //level_floor_tex
-   size+=map_cache.level_width*map_cache.level_height*2; //level_ceil_tex
-   size+=map_cache.level_width*map_cache.level_height; //level_floor
-   size+=map_cache.level_width*map_cache.level_height; //level_ceiling
+   size+=2; //ray_map.width
+   size+=2; //ray_map.height
+   size+=1; //ray_map.floor_color
+   size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.wall_tex
+   size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.floor_tex
+   size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.ceil_tex
+   size+=ray_map_cache.width*ray_map_cache.height; //ray_map.floor
+   size+=ray_map_cache.width*ray_map_cache.height; //ray_map.ceiling
 
    uint8_t *mem = RvR_malloc(size);
    int pos = 0;
 
    //Write width and height
-   *(uint16_t *)(mem+pos) = map_cache.level_width; pos+=2;
-   *(uint16_t *)(mem+pos) = map_cache.level_height; pos+=2;
+   *(uint16_t *)(mem+pos) = ray_map_cache.width; pos+=2;
+   *(uint16_t *)(mem+pos) = ray_map_cache.height; pos+=2;
 
    //Write sprite count
-   *(uint32_t *)(mem+pos) = map_cache.level_sprite_count; pos+=4;
+   *(uint32_t *)(mem+pos) = ray_map_cache.sprite_count; pos+=4;
 
    //Write floor color
-   *(uint8_t *)(mem+pos) = map_cache.level_floor_color; pos+=1;
+   *(uint8_t *)(mem+pos) = ray_map_cache.floor_color; pos+=1;
 
    //Write texture, floor and ceiling
-   memcpy(mem+pos,map_cache.level_wall_tex,map_cache.level_width*map_cache.level_height*2); pos+=map_cache.level_width*map_cache.level_height*2;
-   memcpy(mem+pos,map_cache.level_floor_tex,map_cache.level_width*map_cache.level_height*2); pos+=map_cache.level_width*map_cache.level_height*2;
-   memcpy(mem+pos,map_cache.level_ceil_tex,map_cache.level_width*map_cache.level_height*2); pos+=map_cache.level_width*map_cache.level_height*2;
-   memcpy(mem+pos,map_cache.level_floor,map_cache.level_width*map_cache.level_height); pos+=map_cache.level_width*map_cache.level_height;
-   memcpy(mem+pos,map_cache.level_ceiling,map_cache.level_width*map_cache.level_height); pos+=map_cache.level_width*map_cache.level_height;
+   memcpy(mem+pos,ray_map_cache.wall_tex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
+   memcpy(mem+pos,ray_map_cache.floor_tex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
+   memcpy(mem+pos,ray_map_cache.ceil_tex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
+   memcpy(mem+pos,ray_map_cache.floor,ray_map_cache.width*ray_map_cache.height); pos+=ray_map_cache.width*ray_map_cache.height;
+   memcpy(mem+pos,ray_map_cache.ceiling,ray_map_cache.width*ray_map_cache.height); pos+=ray_map_cache.width*ray_map_cache.height;
 
    //Write sprites
-   for(unsigned i = 0;i<map_cache.level_sprite_count;i++)
+   for(unsigned i = 0;i<ray_map_cache.sprite_count;i++)
    {
-      *(uint16_t *)(mem+pos) = map_cache.level_sprites[i].type; pos+=2;
-      *(int32_t *)(mem+pos) = map_cache.level_sprites[i].pos.x; pos+=4;
-      *(int32_t *)(mem+pos) = map_cache.level_sprites[i].pos.y; pos+=4;
-      *(int32_t *)(mem+pos) = map_cache.level_sprites[i].pos.z; pos+=4;
+      *(uint16_t *)(mem+pos) = ray_map_cache.sprites[i].type; pos+=2;
+      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.x; pos+=4;
+      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.y; pos+=4;
+      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.z; pos+=4;
    }
 
    //Compress and write to disk
@@ -314,32 +318,32 @@ void RvR_ray_map_save(const char *path)
 
 uint16_t RvR_ray_map_wall_tex_at(int16_t x, int16_t y)
 {
-   if(x>=0&&x<level_width&&y>=0&&y<level_height)
-      return level_wall_tex[y*level_width+x]; 
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      return ray_map.wall_tex[y*ray_map.width+x]; 
 
    return 0;
 }
 
 uint16_t RvR_ray_map_floor_tex_at(int16_t x, int16_t y)
 {
-   if(x>=0&&x<level_width&&y>=0&&y<level_height)
-      return level_floor_tex[y*level_width+x]; 
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      return ray_map.floor_tex[y*ray_map.width+x]; 
 
    return 0;
 }
 
 uint16_t RvR_ray_map_ceil_tex_at(int16_t x, int16_t y)
 {
-   if(x>=0&&x<level_width&&y>=0&&y<level_height)
-      return level_ceil_tex[y*level_width+x]; 
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      return ray_map.ceil_tex[y*ray_map.width+x]; 
 
    return 0x43;
 }
 
 RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y)
 {
-   if(x>=0&&x<level_width&&y>=0&&y<level_height)
-      return (level_floor[y*level_width+x]*1024)/8;
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      return (ray_map.floor[y*ray_map.width+x]*1024)/8;
 
    return 0;
 }
@@ -348,8 +352,8 @@ RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y)
 {
    int v = 127;
 
-   if(x>=0&&x<level_width&&y>=0&&y<level_height)
-      v = level_ceiling[(y)*level_width+x]; 
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      v = ray_map.ceiling[(y)*ray_map.width+x]; 
 
    return (v*1024)/8;
 }

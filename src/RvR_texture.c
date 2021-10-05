@@ -152,4 +152,7 @@ RvR_err:
 
    return NULL;
 }
+
+#undef READ
+#undef PERMANENT
 //-------------------------------------

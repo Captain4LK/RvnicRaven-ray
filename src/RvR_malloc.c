@@ -23,33 +23,32 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-typedef struct Memory_node
+typedef struct Malloc_memory_node
 {
   int32_t size;
-  struct Memory_node *next;
-}Memory_node;
+  struct Malloc_memory_node *next;
+}Malloc_memory_node;
 
 typedef struct
 {
    int32_t block_size;
    void *addr;
-   Memory_node *sfirst, *slast;
-}Block_manager;
+   Malloc_memory_node *sfirst, *slast;
+}Malloc_block_manager;
 //-------------------------------------
 
 //Variables
-static int bmanage_total = 0;
-static int m_instance = 0;
-static int mem_break = -1;
-static Block_manager bmanage = {0};
+static int malloc_bmanage_total = 0;
+static int malloc_instance = 0;
+static Malloc_block_manager malloc_bmanage = {0};
 //-------------------------------------
 
 //Function prototypes
-static void block_manager_init(Block_manager *b, void *block, long block_size);
-static void *block_manager_alloc(Block_manager *b, int32_t size);
-static void block_manager_free(Block_manager *b, void *ptr);
-static long block_manager_pointer_size(void *ptr);
-static void block_manager_report(Block_manager *b);
+static void malloc_block_init(Malloc_block_manager *b, void *block, long block_size);
+static void *malloc_block_alloc(Malloc_block_manager *b, int32_t size);
+static void malloc_block_free(Malloc_block_manager *b, void *ptr);
+static long malloc_block_pointer_size(void *ptr);
+static void malloc_block_report(Malloc_block_manager *b);
 //-------------------------------------
 
 //Function implementations
@@ -59,7 +58,7 @@ void RvR_malloc_init(int min, int max)
    void *mem = NULL;
    int32_t size = max;
 
-   if(bmanage_total)
+   if(malloc_bmanage_total)
    {
       RvR_log("RvR_malloc: already initialized\n");
       return;
@@ -74,8 +73,8 @@ void RvR_malloc_init(int min, int max)
 
    if(mem!=NULL)
    {
-      block_manager_init(&bmanage,mem,size);
-      bmanage_total++; 
+      malloc_block_init(&malloc_bmanage,mem,size);
+      malloc_bmanage_total++; 
       RvR_log("RvR_malloc: allocated %d bytes for allocator\n",size);
    }  
    else
@@ -89,18 +88,18 @@ void *RvR_malloc(size_t size)
    if(size==0)
       RvR_log("RvR_malloc: tried to malloc 0 bytes\n");
 
-   if(!bmanage_total) 
+   if(!malloc_bmanage_total) 
    {
       return malloc(size);
    }
 
-   m_instance++;
-   if(m_instance==mem_break)
+   malloc_instance++;
+   if(malloc_instance==-1)
       RvR_log("RvR_malloc: mem break\n");
 
    size = (size+3)&(0xffffffff-3);
 
-   void *mem = block_manager_alloc(&bmanage,size);
+   void *mem = malloc_block_alloc(&malloc_bmanage,size);
    if(mem!=NULL) 
       return mem;
 
@@ -114,17 +113,17 @@ void *RvR_malloc(size_t size)
 
 void RvR_free(void *ptr)
 {
-   if(!bmanage_total) 
+   if(!malloc_bmanage_total) 
    { 
       free(ptr); 
       return ; 
    }
 
-   if(ptr>=(void *)bmanage.sfirst)  //is the pointer in this block?
+   if(ptr>=(void *)malloc_bmanage.sfirst)  //is the pointer in this block?
    {
-      if(ptr<=(void *)bmanage.slast)  //is it in static space?
+      if(ptr<=(void *)malloc_bmanage.slast)  //is it in static space?
       {
-         block_manager_free(&bmanage,ptr);
+         malloc_block_free(&malloc_bmanage,ptr);
          return ;
       } 
    }
@@ -137,7 +136,7 @@ void *RvR_realloc(void *ptr, size_t size)
    if(ptr==NULL) 
       return RvR_malloc(size);
 
-   if(!bmanage_total) 
+   if(!malloc_bmanage_total) 
    {
       void *d = realloc(ptr,size); 
       return d;
@@ -150,12 +149,12 @@ void *RvR_realloc(void *ptr, size_t size)
    }
 
    int32_t old_size = 0;
-   if(ptr>=(void *)bmanage.sfirst && 
-      ptr<=(void *)(((char *)bmanage.sfirst)+bmanage.block_size))
+   if(ptr>=(void *)malloc_bmanage.sfirst && 
+      ptr<=(void *)(((char *)malloc_bmanage.sfirst)+malloc_bmanage.block_size))
    {
-      old_size = block_manager_pointer_size(ptr);  
+      old_size = malloc_block_pointer_size(ptr);  
 
-      if(ptr<=(void *)bmanage.slast)
+      if(ptr<=(void *)malloc_bmanage.slast)
       {
          void *nptr = RvR_malloc(size);
          if((int32_t)size>old_size)
@@ -163,7 +162,7 @@ void *RvR_realloc(void *ptr, size_t size)
          else
             memcpy(nptr,ptr,size);
 
-         block_manager_free(&bmanage,ptr);
+         malloc_block_free(&malloc_bmanage,ptr);
 
          return nptr;
       }
@@ -175,29 +174,29 @@ void *RvR_realloc(void *ptr, size_t size)
 
 void RvR_malloc_report()
 {
-   if(!bmanage_total)
+   if(!malloc_bmanage_total)
    {
       RvR_log("RvR_malloc: using system allocator, memory report not possible\n");
       return;
    }
 
-   block_manager_report(&bmanage);
+   malloc_block_report(&malloc_bmanage);
 }
 
-static void block_manager_init(Block_manager *b, void *block, long block_size)
+static void malloc_block_init(Malloc_block_manager *b, void *block, long block_size)
 {
    b->block_size = block_size;
    b->addr = block;
 
-   b->sfirst = (Memory_node *)(((char *)block));   
+   b->sfirst = (Malloc_memory_node *)(((char *)block));   
    b->slast = b->sfirst;
-   b->sfirst->size = -(block_size-(int32_t)sizeof(Memory_node));
+   b->sfirst->size = -(block_size-(int32_t)sizeof(Malloc_memory_node));
    b->sfirst->next = NULL;
 }
 
-static void *block_manager_alloc(Block_manager *b, int32_t size)
+static void *malloc_block_alloc(Malloc_block_manager *b, int32_t size)
 {
-   Memory_node *s = b->sfirst;
+   Malloc_memory_node *s = b->sfirst;
    if(s==NULL) 
       return NULL;
    for(;s&&-s->size<size;s = s->next);
@@ -205,33 +204,33 @@ static void *block_manager_alloc(Block_manager *b, int32_t size)
       return NULL;
    s->size = -s->size;
 
-   if(s->size-size>(int32_t)sizeof(Memory_node)+4)  //is there enough space to split the block?
+   if(s->size-size>(int32_t)sizeof(Malloc_memory_node)+4)  //is there enough space to split the block?
    {    
-      Memory_node *p = (Memory_node *)((char *)s+sizeof(Memory_node)+size);
+      Malloc_memory_node *p = (Malloc_memory_node *)((char *)s+sizeof(Malloc_memory_node)+size);
       if(s==b->slast)
          b->slast = p;
-      p->size = -(s->size-size-(int32_t)sizeof(Memory_node));
+      p->size = -(s->size-size-(int32_t)sizeof(Malloc_memory_node));
       p->next=s->next;
       s->next=p;
       s->size=size;
    }
 
-   return (void *)(((char *)s)+sizeof(Memory_node));
+   return (void *)(((char *)s)+sizeof(Malloc_memory_node));
 }
 
-static void block_manager_free(Block_manager *b, void *ptr)
+static void malloc_block_free(Malloc_block_manager *b, void *ptr)
 {
-   Memory_node *o = (Memory_node *)(((char *)ptr)-sizeof(Memory_node)),*last = NULL;
+   Malloc_memory_node *o = (Malloc_memory_node *)(((char *)ptr)-sizeof(Malloc_memory_node)),*last = NULL;
 
    if(o->next&&o->next->size<0)   //see if we can add into next block
    {
       if(o->next==b->slast)
          b->slast = o;
-      o->size+=-o->next->size+sizeof(Memory_node);
+      o->size+=-o->next->size+sizeof(Malloc_memory_node);
       o->next = o->next->next;
    }
 
-   Memory_node *n = b->sfirst;
+   Malloc_memory_node *n = b->sfirst;
    for(;n&&n!=o;n=n->next)
       last = n;
 
@@ -240,7 +239,7 @@ static void block_manager_free(Block_manager *b, void *ptr)
       if(o==b->slast)
          b->slast = last;
       last->next=o->next;
-      last->size-=o->size+sizeof(Memory_node);	
+      last->size-=o->size+sizeof(Malloc_memory_node);	
    }
    else
    {
@@ -248,17 +247,17 @@ static void block_manager_free(Block_manager *b, void *ptr)
    }
 }
 
-static long block_manager_pointer_size(void *ptr)
+static long malloc_block_pointer_size(void *ptr)
 {
-   return ((Memory_node *)(((char *)ptr)-sizeof(Memory_node)))->size;
+   return ((Malloc_memory_node *)(((char *)ptr)-sizeof(Malloc_memory_node)))->size;
 }
 
-static void block_manager_report(Block_manager *b)
+static void malloc_block_report(Malloc_block_manager *b)
 {
    RvR_log("************** Block size = %d ***************\n",b->block_size);
    RvR_log("Index\tBase\t\t(Offset)\t      Size\n");
    int i = 0;
-   Memory_node * f = b->sfirst;
+   Malloc_memory_node * f = b->sfirst;
    int32_t f_total = 0, a_total = 0;
 
    for(;f;f = f->next,i++)

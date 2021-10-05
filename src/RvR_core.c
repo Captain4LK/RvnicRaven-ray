@@ -26,7 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static int running = 1;
+static int core_running = 1;
 //-------------------------------------
 
 //Function prototypes
@@ -36,7 +36,7 @@ static int running = 1;
 
 void RvR_core_quit()
 {
-   running = 0;
+   core_running = 0;
 }
 
 void RvR_core_init(char *title, int scale)
@@ -51,7 +51,7 @@ void RvR_core_mouse_relative(int relative)
 
 int RvR_core_running()
 {
-   return running;
+   return core_running;
 }
 
 void RvR_core_update()

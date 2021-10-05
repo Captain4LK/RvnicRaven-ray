@@ -59,4 +59,7 @@ uint32_t RvR_fnv32a(const char *str)
 
    return hval;
 }
+
+#undef RNV_64_PRIME
+#undef RNV_32_PRIME
 //-------------------------------------

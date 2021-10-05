@@ -25,13 +25,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static RvR_fix22 cam_angle = 0;
-static RvR_vec3 cam_position = {0};
-static int16_t cam_shear = 0;
+static RvR_fix22 ray_cam_angle = 0;
+static RvR_vec3 ray_cam_position = {0};
+static int16_t ray_cam_shear = 0;
 //-------------------------------------
 
 //Function prototypes
-static RvR_fix22 fov_correction_factor(RvR_fix22 fov);
+static RvR_fix22 ray_fov_correction_factor(RvR_fix22 fov);
 //-------------------------------------
 
 //Function implementations
@@ -221,8 +221,8 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
 
 void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
 {
-   RvR_vec2 dir0 = RvR_vec2_rot(cam_angle-(HORIZONTAL_FOV/2));
-   RvR_vec2 dir1 = RvR_vec2_rot(cam_angle+(HORIZONTAL_FOV/2));
+   RvR_vec2 dir0 = RvR_vec2_rot(ray_cam_angle-(HORIZONTAL_FOV/2));
+   RvR_vec2 dir1 = RvR_vec2_rot(ray_cam_angle+(HORIZONTAL_FOV/2));
 
    RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(HORIZONTAL_FOV/2));
 
@@ -239,7 +239,7 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
    uint16_t hit_count = 0;
 
    RvR_ray r;
-   r.start = (RvR_vec2) {cam_position.x,cam_position.y};
+   r.start = (RvR_vec2) {ray_cam_position.x,ray_cam_position.y};
 
    RvR_fix22 current_dx = 0;
    RvR_fix22 current_dy = 0;
@@ -266,7 +266,7 @@ RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 dista
 {
    static RvR_fix22 correction_factor = 0;
    if(correction_factor==0)
-      correction_factor = fov_correction_factor(VERTICAL_FOV);
+      correction_factor = ray_fov_correction_factor(VERTICAL_FOV);
 
    return distance!=0?((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024)):0;
 }
@@ -275,7 +275,7 @@ RvR_fix22 RvR_ray_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix
 {
    static RvR_fix22 correction_factor = 0;
    if(correction_factor==0)
-      correction_factor = fov_correction_factor(VERTICAL_FOV);
+      correction_factor = ray_fov_correction_factor(VERTICAL_FOV);
 
    return sc_size!=0?((org_size*1024)/RvR_non_zero((correction_factor*sc_size)/1024)):RvR_INFINITY;
 }
@@ -284,7 +284,7 @@ RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 dis
 {
    static RvR_fix22 correction_factor = 0;
    if(correction_factor==0)
-      correction_factor = fov_correction_factor(HORIZONTAL_FOV);
+      correction_factor = ray_fov_correction_factor(HORIZONTAL_FOV);
 
    return distance!=0?((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024)):0;
 }
@@ -303,8 +303,8 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
       int16_t x_dir = offset.x>0?1:-1;
       int16_t y_dir = offset.y>0?1:-1;
 
-      corner.x = cam_position.x+x_dir*CAMERA_COLL_RADIUS;
-      corner.y = cam_position.y+y_dir*CAMERA_COLL_RADIUS;
+      corner.x = ray_cam_position.x+x_dir*CAMERA_COLL_RADIUS;
+      corner.y = ray_cam_position.y+y_dir*CAMERA_COLL_RADIUS;
 
       int16_t x_square = RvR_div_round_down(corner.x,1024);
       int16_t y_square = RvR_div_round_down(corner.y,1024);
@@ -322,9 +322,9 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
 
       if(compute_height)
       {
-         bottom_limit = cam_position.z-CAMERA_COLL_HEIGHT_BELOW+CAMERA_COLL_STEP_HEIGHT;
+         bottom_limit = ray_cam_position.z-CAMERA_COLL_HEIGHT_BELOW+CAMERA_COLL_STEP_HEIGHT;
 
-         top_limit = cam_position.z+CAMERA_COLL_HEIGHT_ABOVE;
+         top_limit = ray_cam_position.z+CAMERA_COLL_HEIGHT_ABOVE;
 
          curr_ceil_height = RvR_ray_map_ceiling_height_at(x_square,y_square);
       }
@@ -401,11 +401,11 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
             square_pos.x = x_square*1024;
             square_pos.y = y_square*1024;
 
-            new_pos.x = RvR_max(square_pos.x+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.x+1024-CAMERA_COLL_RADIUS-1,cam_position.x));
-            new_pos.y = RvR_max(square_pos.y+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.y+1024-CAMERA_COLL_RADIUS-1,cam_position.y));
+            new_pos.x = RvR_max(square_pos.x+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.x+1024-CAMERA_COLL_RADIUS-1,ray_cam_position.x));
+            new_pos.y = RvR_max(square_pos.y+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.y+1024-CAMERA_COLL_RADIUS-1,ray_cam_position.y));
 
-            corner_new.x = corner.x+(new_pos.x-cam_position.x);
-            corner_new.y = corner.y+(new_pos.y-cam_position.y);
+            corner_new.x = corner.x+(new_pos.x-ray_cam_position.x);
+            corner_new.y = corner.y+(new_pos.y-ray_cam_position.y);
          }
       }
       else 
@@ -427,21 +427,21 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
 
 #undef collCheck
 
-      cam_position.x = corner_new.x-x_dir*CAMERA_COLL_RADIUS;
-      cam_position.y = corner_new.y-y_dir*CAMERA_COLL_RADIUS;  
+      ray_cam_position.x = corner_new.x-x_dir*CAMERA_COLL_RADIUS;
+      ray_cam_position.y = corner_new.y-y_dir*CAMERA_COLL_RADIUS;  
    }
 
    if(compute_height&&(moves_in_plane||(offset.z!=0)||force))
    {
-      cam_position.z+=offset.z;
+      ray_cam_position.z+=offset.z;
 
-      int16_t x_square1 = RvR_div_round_down(cam_position.x-CAMERA_COLL_RADIUS,1024);
+      int16_t x_square1 = RvR_div_round_down(ray_cam_position.x-CAMERA_COLL_RADIUS,1024);
 
-      int16_t x_square2 = RvR_div_round_down(cam_position.x+CAMERA_COLL_RADIUS,1024);
+      int16_t x_square2 = RvR_div_round_down(ray_cam_position.x+CAMERA_COLL_RADIUS,1024);
 
-      int16_t y_square1 = RvR_div_round_down(cam_position.y-CAMERA_COLL_RADIUS,1024);
+      int16_t y_square1 = RvR_div_round_down(ray_cam_position.y-CAMERA_COLL_RADIUS,1024);
 
-      int16_t y_square2 = RvR_div_round_down(cam_position.y+CAMERA_COLL_RADIUS,1024);
+      int16_t y_square2 = RvR_div_round_down(ray_cam_position.y+CAMERA_COLL_RADIUS,1024);
 
       RvR_fix22 bottom_limit = RvR_ray_map_floor_height_at(x_square1,y_square1);
       RvR_fix22 top_limit = RvR_ray_map_ceiling_height_at(x_square1,y_square1);
@@ -465,7 +465,7 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
       if(x_square2!=x_square1&&y_square2!=y_square1)
          checkSquares(2,2)
 
-      cam_position.z = RvR_clamp(cam_position.z,bottom_limit+CAMERA_COLL_HEIGHT_BELOW,top_limit-CAMERA_COLL_HEIGHT_ABOVE);
+      ray_cam_position.z = RvR_clamp(ray_cam_position.z,bottom_limit+CAMERA_COLL_HEIGHT_BELOW,top_limit-CAMERA_COLL_HEIGHT_ABOVE);
 
 #undef checkSquares
    }
@@ -473,35 +473,35 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
 
 void RvR_ray_set_angle(RvR_fix22 angle)
 {
-   cam_angle = angle;
+   ray_cam_angle = angle;
 }
 
 RvR_fix22 RvR_ray_get_angle()
 {
-   return cam_angle;
+   return ray_cam_angle;
 }
 
 void RvR_ray_set_shear(int16_t shear)
 {
-   cam_shear = shear;
+   ray_cam_shear = shear;
 }
 
 int16_t RvR_ray_get_shear()
 {
-   return cam_shear;
+   return ray_cam_shear;
 }
 
 void RvR_ray_set_position(RvR_vec3 position)
 {
-   cam_position = position;
+   ray_cam_position = position;
 }
 
 RvR_vec3 RvR_ray_get_position()
 {
-   return cam_position;
+   return ray_cam_position;
 }
 
-static RvR_fix22 fov_correction_factor(RvR_fix22 fov)
+static RvR_fix22 ray_fov_correction_factor(RvR_fix22 fov)
 {
    uint16_t table[9] = {1,208,408,692,1024,1540,2304,5376,30000};
 

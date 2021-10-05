@@ -25,7 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static int seed = 0;
+static int rand_seed = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -49,17 +49,17 @@ unsigned RvR_rand()
       initialized = 1;
    }
 
-   seed = (seed+1)%RNG_TABLE_SIZE;
-   return w32_rtable[seed];
+   rand_seed = (rand_seed+1)%RNG_TABLE_SIZE;
+   return w32_rtable[rand_seed];
 }
 
 int RvR_rand_get_state()
 {
-   return seed;
+   return rand_seed;
 }
 
 void RvR_rand_set_state(int state)
 {
-   seed = state%RNG_TABLE_SIZE;
+   rand_seed = state%RNG_TABLE_SIZE;
 }
 //-------------------------------------

@@ -37,7 +37,7 @@ RvR_color *RvR_palette = NULL;
 //-------------------------------------
 
 //Function prototypes
-static void HLH_pal_calculate_colormap();
+static void pal_calculate_colormap();
 //-------------------------------------
 
 //Function implementations
@@ -66,7 +66,7 @@ void RvR_palette_load(uint16_t id)
       RvR_palette[i].a = 255;
    }
 
-   HLH_pal_calculate_colormap();
+   pal_calculate_colormap();
 
    RvR_free(mem_pak);
 
@@ -80,7 +80,7 @@ RvR_err:
    RvR_log("RvR error %s\n",RvR_error_get_string());
 }
 
-static void HLH_pal_calculate_colormap()
+static void pal_calculate_colormap()
 {
    for(int x = 0;x<256;x++)
    {
@@ -117,4 +117,6 @@ static void HLH_pal_calculate_colormap()
       }
    }
 }
+
+#undef READ
 //-------------------------------------

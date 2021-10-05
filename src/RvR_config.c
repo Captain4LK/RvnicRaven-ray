@@ -39,9 +39,9 @@ int RvR_config_camera_shear_step = 8;
 //-------------------------------------
 
 //Function prototypes
-static char *ini(const char *s);
-static RvR_key strtokey(const char *s);
-static const char *keytostr(RvR_key k);
+static char *config_ini(const char *s);
+static RvR_key config_strtokey(const char *s);
+static const char *config_keytostr(RvR_key k);
 //-------------------------------------
 
 //Function implementations
@@ -74,7 +74,7 @@ int RvR_ini_parse(const char *path)
    RvR_error_check(fclose(in)!=EOF,0x007);
    in = NULL;
 
-   kv = ini(buffer_in);
+   kv = config_ini(buffer_in);
    RvR_error_check(kv!=NULL,0x000);
    for(iter = kv;iter[0];)
    {
@@ -87,12 +87,12 @@ int RvR_ini_parse(const char *path)
       {
       case 16969830980003191976U: RvR_config_mouse_sensitivity = atoi(iter); break;             //"mouse_sensitivity"
       case  6023395255864463179U: RvR_config_mouse_sensitivity_vertical = atoi(iter); break;    //"mouse_sensitivity_vertical"
-      case  3560386037893974558U: RvR_config_move_forward = strtokey(iter); break;              //"move_forward"
-      case  2211778712401880640U: RvR_config_move_backward = strtokey(iter); break;             //"move_backward"
-      case  9406806077120427738U: RvR_config_strafe_left = strtokey(iter); break;               //"strafe_left"
-      case  5573416641251682759U: RvR_config_strafe_right = strtokey(iter); break;              //"strafe_right"
-      case  6604522056233544978U: RvR_config_enable_freelook = strtokey(iter); break;           //"enable_freelook"
-      case 16940139219101328589U: RvR_config_jump = strtokey(iter); break;                      //"jump"
+      case  3560386037893974558U: RvR_config_move_forward = config_strtokey(iter); break;              //"move_forward"
+      case  2211778712401880640U: RvR_config_move_backward = config_strtokey(iter); break;             //"move_backward"
+      case  9406806077120427738U: RvR_config_strafe_left = config_strtokey(iter); break;               //"strafe_left"
+      case  5573416641251682759U: RvR_config_strafe_right = config_strtokey(iter); break;              //"strafe_right"
+      case  6604522056233544978U: RvR_config_enable_freelook = config_strtokey(iter); break;           //"enable_freelook"
+      case 16940139219101328589U: RvR_config_jump = config_strtokey(iter); break;                      //"jump"
       case 11034882399129047948U: RvR_config_texture_timeout = atoi(iter); break;               //"texture_timeout"
       case  7868638888548120077U: RvR_config_camera_max_shear = atoi(iter); break;              //"camera_max_shear"
       case 11836815913816774343U: RvR_config_camera_shear_step = atoi(iter); break;             //"camera_shear_step"
@@ -137,12 +137,12 @@ int RvR_ini_write(const char *path)
    RvR_error_check(fprintf(f,"mouse_sensitivity_vertical=%d\n",RvR_config_mouse_sensitivity_vertical)>=0,0x008);
 
    RvR_error_check(fprintf(f,"\n;Keyboard input\n")>=0,0x008);
-   RvR_error_check(fprintf(f,"move_forward=%s\n",keytostr(RvR_config_move_forward))>=0,0x008);
-   RvR_error_check(fprintf(f,"move_backward=%s\n",keytostr(RvR_config_move_backward))>=0,0x008);
-   RvR_error_check(fprintf(f,"strafe_left=%s\n",keytostr(RvR_config_strafe_left))>=0,0x008);
-   RvR_error_check(fprintf(f,"strafe_right=%s\n",keytostr(RvR_config_strafe_right))>=0,0x008);
-   RvR_error_check(fprintf(f,"enable_freelook=%s\n",keytostr(RvR_config_enable_freelook))>=0,0x008);
-   RvR_error_check(fprintf(f,"jump=%s\n",keytostr(RvR_config_jump))>=0,0x008);
+   RvR_error_check(fprintf(f,"move_forward=%s\n",config_keytostr(RvR_config_move_forward))>=0,0x008);
+   RvR_error_check(fprintf(f,"move_backward=%s\n",config_keytostr(RvR_config_move_backward))>=0,0x008);
+   RvR_error_check(fprintf(f,"strafe_left=%s\n",config_keytostr(RvR_config_strafe_left))>=0,0x008);
+   RvR_error_check(fprintf(f,"strafe_right=%s\n",config_keytostr(RvR_config_strafe_right))>=0,0x008);
+   RvR_error_check(fprintf(f,"enable_freelook=%s\n",config_keytostr(RvR_config_enable_freelook))>=0,0x008);
+   RvR_error_check(fprintf(f,"jump=%s\n",config_keytostr(RvR_config_jump))>=0,0x008);
 
    RvR_error_check(fprintf(f,"\n;Engine settings\n")>=0,0x008);
    RvR_error_check(fprintf(f,"texture_timeout=%d\n",RvR_config_texture_timeout)>=0,0x008);
@@ -184,7 +184,7 @@ RvR_err:
 //   -note=linefeeds are either \r, \n or \r\n.
 //   -note=utf8 everywhere.
 //
-static char *ini(const char *s)
+static char *config_ini(const char *s)
 {
    char *map = NULL;
    int mapcap = 0;
@@ -238,7 +238,7 @@ RvR_err:
    return NULL;
 }
 
-static RvR_key strtokey(const char *s)
+static RvR_key config_strtokey(const char *s)
 {
    uint64_t hash_key = RvR_fnv64a(s);
    //printf("ikey: %s;%luU\n",s,hash_key);
@@ -286,7 +286,7 @@ static RvR_key strtokey(const char *s)
    }
 }
 
-static const char *keytostr(RvR_key k)
+static const char *config_keytostr(RvR_key k)
 {
    switch(k)
    {

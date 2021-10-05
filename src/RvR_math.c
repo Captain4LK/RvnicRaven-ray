@@ -26,7 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 
-static const RvR_fix22 cos_table[1024] =
+static const RvR_fix22 math_cos_table[1024] =
 {
    1024,1023,1023,1023,1023,1023,1023,1023,1022,1022,1022,1021,1021,1020,1020,1019,
    1019,1018,1017,1017,1016,1015,1014,1013,1012,1011,1010,1009,1008,1007,1006,1005,
@@ -126,7 +126,7 @@ RvR_fix22 RvR_fix22_div(RvR_fix22 a, RvR_fix22 b)
 
 RvR_fix22 RvR_fix22_cos(RvR_fix22 a)
 {
-   return cos_table[a&1023];
+   return math_cos_table[a&1023];
 }
 
 RvR_fix22 RvR_fix22_sin(RvR_fix22 a)

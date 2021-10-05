@@ -40,7 +40,7 @@ int main()
    RvR_malloc_init(1<<25,1<<26);
 
    //Init RvnicRaven core
-   RvR_core_init(TITLE,0);
+   RvR_core_init("To be determined",0);
    RvR_core_mouse_relative(1);
 
    //Load ressources
