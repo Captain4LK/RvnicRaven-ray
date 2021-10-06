@@ -47,19 +47,19 @@ void RvR_draw_texture(RvR_texture *t, int x, int y)
       draw_start_x = -x;
    if(y<0)
       draw_start_y = -y;
-   if(x+draw_end_x>XRES)
-      draw_end_x = t->width+(XRES-x-draw_end_x);
-   if(y+draw_end_y>YRES)
-      draw_end_y = t->height+(YRES-y-draw_end_y);
+   if(x+draw_end_x>RVR_XRES)
+      draw_end_x = t->width+(RVR_XRES-x-draw_end_x);
+   if(y+draw_end_y>RVR_YRES)
+      draw_end_y = t->height+(RVR_YRES-y-draw_end_y);
 
    //Clip dst sprite
    x = x<0?0:x;
    y = y<0?0:y;
 
    const uint8_t *src = &t->data[draw_start_x+draw_start_y*t->width];
-   uint8_t *dst = &RvR_core_framebuffer()[x+y*XRES];
+   uint8_t *dst = &RvR_core_framebuffer()[x+y*RVR_XRES];
    int src_step = -(draw_end_x-draw_start_x)+t->width;
-   int dst_step = XRES-(draw_end_x-draw_start_x);
+   int dst_step = RVR_XRES-(draw_end_x-draw_start_x);
     
    for(int y1 = draw_start_y;y1<draw_end_y;y1++,dst+=dst_step,src+=src_step)
       for(int x1 = draw_start_x;x1<draw_end_x;x1++,src++,dst++)
@@ -106,11 +106,11 @@ void RvR_draw_string(int x, int y, int scale, const char *text, uint8_t index)
 
 void RvR_draw(int x, int y, uint8_t index)
 {
-   if(x<0||x>=XRES)
+   if(x<0||x>=RVR_XRES)
       return;
-   if(y<0||y>=YRES)
+   if(y<0||y>=RVR_YRES)
       return;
 
-   RvR_core_framebuffer()[y*XRES+x] = index;
+   RvR_core_framebuffer()[y*RVR_XRES+x] = index;
 }
 //-------------------------------------

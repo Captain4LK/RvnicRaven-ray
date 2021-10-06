@@ -12,33 +12,44 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _RVNICRAVEN_H_
 
-//Window config
-#define XRES 320
-#define YRES 240
-#define FPS 30
+//Config
 
-//Math config
+//Core
+//Framebuffer resolution
+#define RVR_XRES 320
+#define RVR_YRES 240
 
-//DO NOT CHANGE!
-#define RvR_INFINITY 2000000000
+//Fps, RvnicRaven must use a fixed timestep
+#define RVR_FPS 30
 
-#define DITHERING 1
-#define RNG_TABLE_SIZE 512
+//Size of precalculated rng table
+#define RVR_RNG_TABLE_SIZE 512
+//-------------------------------------
+
+//Constants
+#define RvR_fix22_infinity 2000000000
+//-------------------------------------
+
+//RvnicRaven raycasting
+
+//Basically render distance
+#define RVR_RAY_MAX_STEPS 24
+
+//Field of view, 360deg is 1024
+#define RVR_RAY_HORIZONTAL_FOV 256
+#define RVR_RAY_VERTICAL_FOV 330
+
+//Depth buffer precision is (1<<RVR_RAY_DEPTH_BUFFER_PRECISION), lower value means higher precision, range: [0,10]
+#define RVR_RAY_DEPTH_BUFFER_PRECISION 9
+//-------------------------------------
 
 #define GRAVITY 16
 #define MAX_VERTICAL_SPEED 256
 #define JUMP_SPEED 128
 
 //Graphics and raycasting
-#define MAX_STEPS 24
-#define MAX_HITS 24
-#define HORIZONTAL_FOV 256
-#define VERTICAL_FOV 330
-#define VERTICAL_DEPTH_MULTIPLY 2
-#define HORIZON_DEPTH (11*1024)
-#define SCANLINE_BATCH_SIZE 256
-#define ANGLE_STEP (((1024/4)*1024)/XRES)
-#define SKY_TEX_STEP ((1024*128-1)/YRES)
+#define ANGLE_STEP (((1024/4)*1024)/RVR_XRES)
+#define SKY_TEX_STEP ((1024*128-1)/RVR_YRES)
 
 //Collision
 //TODO: rename (remove CAMERA prefix)

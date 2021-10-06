@@ -66,15 +66,15 @@ static void mode_title()
 
    //Graphics
    RvR_draw_texture(RvR_texture_get(0x4100),0,0);
-   RvR_draw_string((XRES-200)/2,YRES/6,5,"Title",8);
-   RvR_draw_string((XRES-80)/2,YRES/2,2,"Start",8);
-   RvR_draw_string((XRES-112)/2,YRES/2+YRES/12,2,"Credits",8);
-   RvR_draw_string((XRES-64)/2,YRES/2+YRES/6,2,"Quit",8);
+   RvR_draw_string((RVR_XRES-200)/2,RVR_YRES/6,5,"Title",8);
+   RvR_draw_string((RVR_XRES-80)/2,RVR_YRES/2,2,"Start",8);
+   RvR_draw_string((RVR_XRES-112)/2,RVR_YRES/2+RVR_YRES/12,2,"Credits",8);
+   RvR_draw_string((RVR_XRES-64)/2,RVR_YRES/2+RVR_YRES/6,2,"Quit",8);
    switch(selected)
    {
-   case 0: RvR_draw_string((XRES-112)/2,YRES/2,2,">     <",78); break;
-   case 1: RvR_draw_string((XRES-144)/2,YRES/2+YRES/12,2,">       <",78); break;
-   case 2: RvR_draw_string((XRES-96)/2,YRES/2+YRES/6,2,">    <",78); break;
+   case 0: RvR_draw_string((RVR_XRES-112)/2,RVR_YRES/2,2,">     <",78); break;
+   case 1: RvR_draw_string((RVR_XRES-144)/2,RVR_YRES/2+RVR_YRES/12,2,">       <",78); break;
+   case 2: RvR_draw_string((RVR_XRES-96)/2,RVR_YRES/2+RVR_YRES/6,2,">    <",78); break;
    }
 
    //Input
@@ -116,8 +116,8 @@ static void mode_credits()
 {
    //Graphics
    RvR_draw_texture(RvR_texture_get(0x4100),0,0);
-   RvR_draw_string((XRES-280)/2,YRES/8,5,"Credits",78);
-   RvR_draw_string((XRES-560)/2,YRES/3,1,"H. Lukas Holzbeierlein (Captain4LK)",78);
+   RvR_draw_string((RVR_XRES-280)/2,RVR_YRES/8,5,"Credits",78);
+   RvR_draw_string((RVR_XRES-560)/2,RVR_YRES/3,1,"H. Lukas Holzbeierlein (Captain4LK)",78);
 
    //Input
    if(RvR_core_key_pressed(RVR_KEY_ENTER)||RvR_core_key_pressed(RVR_KEY_ESCAPE))

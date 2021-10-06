@@ -39,8 +39,8 @@ typedef struct
    int max;
    RvR_fix22 height;
    uint16_t tex;
-   uint16_t start[XRES+2];
-   uint16_t end[XRES+2];
+   uint16_t start[RVR_XRES+2];
+   uint16_t end[RVR_XRES+2];
 }ray_plane;
 
 typedef struct
@@ -52,7 +52,7 @@ typedef struct
 //-------------------------------------
 
 //Variables
-static RvR_fix22 ray_depth_buffer[MAX_STEPS*2][XRES][4];
+static RvR_fix22 ray_depth_buffer[RVR_RAY_MAX_STEPS*2][RVR_XRES][4];
 
 static RvR_fix22 ray_start_floor_height = 0;
 static RvR_fix22 ray_start_ceil_height = 0;
@@ -60,7 +60,7 @@ static int32_t ray_middle_row = 0;
 
 static int ray_planes_used;
 static ray_plane ray_planes[256];
-static RvR_fix22 ray_span_start[YRES];
+static RvR_fix22 ray_span_start[RVR_YRES];
 static RvR_vec2 ray_cam_dir0;
 static RvR_vec2 ray_cam_dir1;
 
@@ -106,7 +106,7 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex)
       return;
    //TODO: find a better way to do this, which requires
    //less tolerance (needed here to handle really close sprites)
-   if(p.position.x<-2*XRES||p.position.x>4*XRES)
+   if(p.position.x<-2*RVR_XRES||p.position.x>4*RVR_XRES)
       return;
 
    //Only store the absolute minimum of information needed
@@ -123,10 +123,10 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
    //Clear depth buffer
    //but only to the depth needed for
    //max drawing distance
-   for(int i = 0;i<XRES;i++)
+   for(int i = 0;i<RVR_XRES;i++)
    {
       ray_depth_buffer[0][i][0] = 0;
-      ray_depth_buffer[0][i][2] = YRES;
+      ray_depth_buffer[0][i][2] = RVR_YRES;
    }
    for(int i = 1;i<16;i++)
       memcpy(ray_depth_buffer[i],ray_depth_buffer[0],sizeof(ray_depth_buffer[0]));
@@ -139,7 +139,7 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
    RvR_ray_set_angle(cangle);
    RvR_ray_set_shear(cshear);
 
-   ray_middle_row = (YRES/2)+cshear;
+   ray_middle_row = (RVR_YRES/2)+cshear;
    ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_div_round_down(cpos.x,1024),RvR_div_round_down(cpos.y,1024))-1*cpos.z;
    ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_div_round_down(cpos.x,1024),RvR_div_round_down(cpos.y,1024))-1*cpos.z;
 
@@ -147,9 +147,9 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
    //-------------------------------------
    
    //Render floor planes
-   ray_cam_dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(HORIZONTAL_FOV/2));
-   ray_cam_dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(HORIZONTAL_FOV/2));
-   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(HORIZONTAL_FOV/2));
+   ray_cam_dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(RVR_RAY_HORIZONTAL_FOV/2));
+   ray_cam_dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(RVR_RAY_HORIZONTAL_FOV/2));
+   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RVR_RAY_HORIZONTAL_FOV/2));
    ray_cam_dir0.x = (ray_cam_dir0.x*1024)/cos;
    ray_cam_dir0.y = (ray_cam_dir0.y*1024)/cos;
    ray_cam_dir1.x = (ray_cam_dir1.x*1024)/cos;
@@ -173,14 +173,14 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
          {
             //Sky is rendered fullbright, no lut needed
             RvR_fix22 texture_coord = pl->start[x]*SKY_TEX_STEP;
-            uint8_t * restrict pix = &RvR_core_framebuffer()[(pl->start[x])*XRES+x-1];
+            uint8_t * restrict pix = &RvR_core_framebuffer()[(pl->start[x])*RVR_XRES+x-1];
             const uint8_t * restrict tex = &texture->data[((angle>>10)&255)*texture->height];
 
             for(int y = pl->start[x];y<pl->end[x]+1;y++)
             {
                *pix = tex[texture_coord>>10];
                texture_coord+=SKY_TEX_STEP;
-               pix+=XRES;
+               pix+=RVR_XRES;
             }
 
             angle+=ANGLE_STEP;
@@ -244,10 +244,10 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
          sx = -x;
       if(y<0)
          sy = -y;
-      if(x+ex>XRES)
-         ex = size_horizontal+(XRES-x-ex);
-      if(y+ey>YRES)
-         ey = size_vertical+(YRES-y-ey);
+      if(x+ex>RVR_XRES)
+         ex = size_horizontal+(RVR_XRES-x-ex);
+      if(y+ey>RVR_YRES)
+         ey = size_vertical+(RVR_YRES-y-ey);
       x = x<0?0:x;
       y = y<0?0:y;
 
@@ -279,9 +279,9 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
          }
 
          tex = &texture->data[texture->height*(u>>10)];
-         dst = &RvR_core_framebuffer()[ys*XRES+x];
+         dst = &RvR_core_framebuffer()[ys*RVR_XRES+x];
          RvR_fix22 v = v_start+(ys-y)*v_step;
-         for(int y1 = sy;y1<ey1;y1++,dst+=XRES)
+         for(int y1 = sy;y1<ey1;y1++,dst+=RVR_XRES)
          {
             uint8_t index = tex[v>>10];
             *dst = index?col[index]:*dst;
@@ -306,7 +306,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
          RvR_fix22 f_end = y_current+increment;
          if(f_end<f_start)
             return limit;
-         ray_plane_add(pixel_info->is_horizon?-RvR_INFINITY:pixel_info->hit.fheight,pixel_info->hit.floor_tex,pixel_info->position.x,f_start,f_end);
+         ray_plane_add(pixel_info->is_horizon?-RvR_fix22_infinity:pixel_info->hit.fheight,pixel_info->hit.floor_tex,pixel_info->position.x,f_start,f_end);
       }
       else if(increment==1)
       {
@@ -314,7 +314,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
          RvR_fix22 c_end = limit;
          if(c_end<c_start)
             return limit;
-         ray_plane_add(pixel_info->is_horizon?RvR_INFINITY:pixel_info->hit.cheight,pixel_info->hit.ceil_tex,pixel_info->position.x,c_start,c_end);
+         ray_plane_add(pixel_info->is_horizon?RvR_fix22_infinity:pixel_info->hit.cheight,pixel_info->hit.ceil_tex,pixel_info->position.x,c_start,c_end);
       }
 
       return limit;
@@ -338,7 +338,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
       texture_coord_scaled = RvR_zero_clamp(wall_position*coord_step_scaled);
    }
 
-   uint8_t * restrict pix = &RvR_core_framebuffer()[(y_current+increment)*XRES+pixel_info->position.x];
+   uint8_t * restrict pix = &RvR_core_framebuffer()[(y_current+increment)*RVR_XRES+pixel_info->position.x];
    const uint8_t * restrict col = RvR_shade_table[RvR_min(63,(pixel_info->hit.direction&1)*10+22+(pixel_info->depth>>8))];
    const uint8_t * restrict tex = &texture->data[(pixel_info->tex_coords.x>>4)*texture->height];
 
@@ -350,7 +350,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
          {
             texture_coord_scaled+=coord_step_scaled;
             *pix = col[tex[(texture_coord_scaled>>14)&127]];
-            pix-=XRES;
+            pix-=RVR_XRES;
          }
       }
       else
@@ -359,7 +359,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
          {
             texture_coord_scaled+=coord_step_scaled;
             *pix = col[tex[(texture_coord_scaled>>14)&63]];
-            pix-=XRES;
+            pix-=RVR_XRES;
          }
       }
    }
@@ -371,7 +371,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
          {
             texture_coord_scaled+=coord_step_scaled;
             *pix = col[tex[(texture_coord_scaled>>14)&127]];
-            pix+=XRES;
+            pix+=RVR_XRES;
          }
       }
       else
@@ -380,7 +380,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
          {
             texture_coord_scaled+=coord_step_scaled;
             *pix = col[tex[(texture_coord_scaled>>14)&63]];
-            pix+=XRES;
+            pix+=RVR_XRES;
          }
       }
    }
@@ -398,7 +398,7 @@ static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, R
       RvR_fix22 f_end = y_current+increment;
       if(f_end<f_start)
          return limit;
-      ray_plane_add(ray_pixel_info->is_horizon?-RvR_INFINITY:ray_pixel_info->hit.fheight,ray_pixel_info->hit.floor_tex,ray_pixel_info->position.x,f_start,f_end);
+      ray_plane_add(ray_pixel_info->is_horizon?-RvR_fix22_infinity:ray_pixel_info->hit.fheight,ray_pixel_info->hit.floor_tex,ray_pixel_info->position.x,f_start,f_end);
    }
    else if(increment==1)
    {
@@ -406,7 +406,7 @@ static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, R
       RvR_fix22 c_end = limit;
       if(c_end<c_start)
          return limit;
-      ray_plane_add(ray_pixel_info->is_horizon?RvR_INFINITY:ray_pixel_info->hit.cheight,ray_pixel_info->hit.ceil_tex,ray_pixel_info->position.x,c_start,c_end);
+      ray_plane_add(ray_pixel_info->is_horizon?RvR_fix22_infinity:ray_pixel_info->hit.cheight,ray_pixel_info->hit.ceil_tex,ray_pixel_info->position.x,c_start,c_end);
    }
 
    return limit;
@@ -415,7 +415,7 @@ static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, R
 static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16_t x, RvR_ray ray)
 {
    //last written Y position, can never go backwards
-   RvR_fix22 f_pos_y = YRES;
+   RvR_fix22 f_pos_y = RVR_YRES;
    RvR_fix22 c_pos_y = -1;
 
    //world coordinates (relative to camera height though)
@@ -451,13 +451,13 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
 
          f_wall_height = RvR_ray_map_floor_height_at(hit.square.x,hit.square.y);
          f_z2_world = f_wall_height-RvR_ray_get_position().z;
-         f_z1_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((f_z1_world*YRES)/1024,distance);
-         f_z2_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((f_z2_world*YRES)/1024,distance);
+         f_z1_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((f_z1_world*RVR_YRES)/1024,distance);
+         f_z2_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((f_z2_world*RVR_YRES)/1024,distance);
 
          c_wall_height = RvR_ray_map_ceiling_height_at(hit.square.x,hit.square.y);
          c_z2_world = c_wall_height-RvR_ray_get_position().z;
-         c_z1_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((c_z1_world*YRES)/1024,distance);
-         c_z2_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((c_z2_world*YRES)/1024,distance);
+         c_z1_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((c_z1_world*RVR_YRES)/1024,distance);
+         c_z2_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((c_z2_world*RVR_YRES)/1024,distance);
       }
       else
       {
@@ -483,10 +483,8 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
       p.is_horizon = drawing_horizon;
 
       //draw floor until wall
-      p.depth = ((ray_middle_row+(YRES/2))-f_pos_y)*(HORIZON_DEPTH/YRES);
-
       limit = ray_draw_horizontal_column(f_pos_y,f_z1_screen,c_pos_y+1,
-                                                 YRES,-1,
+                                                 RVR_YRES,-1,
                                                  //^ purposfully allow outside screen bounds
                                                  &p);
 
@@ -496,8 +494,6 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
          f_pos_y = limit;
 
       //draw ceiling until wall
-      p.depth = (c_pos_y-(ray_middle_row-(YRES/2)))*(HORIZON_DEPTH/YRES);
-
       limit = ray_draw_horizontal_column(c_pos_y,c_z1_screen,
                                                 -1,f_pos_y-1,1,&p);
                                                 //^ purposfully allow outside screen bounds here
@@ -510,14 +506,14 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
       if(!drawing_horizon) //don't draw walls for horizon plane
       {
          p.depth = distance;
-         p.depth = RvR_max(0,RvR_min(p.depth,(MAX_STEPS-1)*DEPTH_BUFFER_PRECISION));
+         p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*DEPTH_BUFFER_PRECISION));
          p.tex_coords.x = hit.texture_coord;
 
          //draw floor wall
          if(f_pos_y>0)  //still pixels left?
          {
             limit = ray_draw_wall(f_pos_y,f_z1_screen,f_z2_screen,c_pos_y+1,
-                                          YRES,
+                                          RVR_YRES,
                                           //^ purposfully allow outside screen bounds here
                                           f_z2_world-f_z1_world
                                           ,-1,&p);
@@ -541,7 +537,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
          }               //^ purposfully allow outside screen bounds here
 
          //draw ceiling wall
-         if(c_pos_y<YRES-1) //pixels left?
+         if(c_pos_y<RVR_YRES-1) //pixels left?
          {
             limit = ray_draw_wall(c_pos_y,c_z1_screen,c_z2_screen,
                               -1,f_pos_y-1,
@@ -549,7 +545,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
                               c_z1_world-c_z2_world 
                               ,1,&p);
 
-            p.depth = RvR_max(0,RvR_min(p.depth,(MAX_STEPS-1)*DEPTH_BUFFER_PRECISION));
+            p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*DEPTH_BUFFER_PRECISION));
             if(ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][0]<limit)
             {
                ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][0] = limit;
@@ -580,7 +576,7 @@ static ray_pixel_info ray_map_to_screen(RvR_vec3 world_position)
    to_point.x = world_position.x-RvR_ray_get_position().x;
    to_point.y = world_position.y-RvR_ray_get_position().y;
 
-   RvR_fix22 middle_column = XRES/2;
+   RvR_fix22 middle_column = RVR_XRES/2;
 
    //rotate the point to camera space (y left/right, x forw/backw)
    //TODO: cache cosine, sinus values
@@ -596,8 +592,8 @@ static ray_pixel_info ray_map_to_screen(RvR_vec3 world_position)
    result.depth = to_point.x;
 
    result.position.x = middle_column-(RvR_ray_perspective_scale_horizontal(to_point.y,result.depth)*middle_column)/1024;
-   result.position.y = (RvR_ray_perspective_scale_vertical(world_position.z-RvR_ray_get_position().z,result.depth)*YRES)/1024;
-   result.position.y = YRES/2-result.position.y+RvR_ray_get_shear();
+   result.position.y = (RvR_ray_perspective_scale_vertical(world_position.z-RvR_ray_get_position().z,result.depth)*RVR_YRES)/1024;
+   result.position.y = RVR_YRES/2-result.position.y+RvR_ray_get_shear();
 
    return result;
 }
@@ -648,7 +644,7 @@ static void ray_plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
       }
 
       cur = &ray_planes[ray_planes_used++];
-      cur->min = XRES;
+      cur->min = RVR_XRES;
       cur->max = -1;
       cur->height = height;
       cur->tex = tex;
@@ -677,19 +673,19 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
       return;
 
    //Calculate the depth of the row to be rendered
-   RvR_fix22 cam_height_screen_size = RvR_abs((RvR_ray_get_position().z-height)*YRES)/1024;
+   RvR_fix22 cam_height_screen_size = RvR_abs((RvR_ray_get_position().z-height)*RVR_YRES)/1024;
    RvR_fix22 depth = RvR_ray_perspective_scale_vertical_inverse(cam_height_screen_size,RvR_abs(y-ray_middle_row));
 
    //Calculate texture mapping step size and starting coordinates
-   RvR_fix22 step_x = (depth*(ray_cam_dir1.x-ray_cam_dir0.x))/XRES;
-   RvR_fix22 step_y = (depth*(ray_cam_dir1.y-ray_cam_dir0.y))/XRES;
+   RvR_fix22 step_x = (depth*(ray_cam_dir1.x-ray_cam_dir0.x))/RVR_XRES;
+   RvR_fix22 step_y = (depth*(ray_cam_dir1.y-ray_cam_dir0.y))/RVR_XRES;
    RvR_fix22 tx = (RvR_ray_get_position().x&1023)*1024+(depth*ray_cam_dir0.x);
    RvR_fix22 ty = (RvR_ray_get_position().y&1023)*1024+(depth*ray_cam_dir0.y);
    tx+=x0*step_x;
    ty+=x0*step_y;
 
    //const and restrict don't seem to influence the generated assembly in this case
-   uint8_t * restrict pix = &RvR_core_framebuffer()[y*XRES+x0];
+   uint8_t * restrict pix = &RvR_core_framebuffer()[y*RVR_XRES+x0];
    const uint8_t * restrict col = RvR_shade_table[RvR_min(63,22+(depth>>8))];
    const uint8_t * restrict tex = RvR_texture_get(texture)->data;
 

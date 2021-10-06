@@ -106,8 +106,8 @@ void RvR_backend_init(const char *title, int scale)
       {
          int max_x,max_y;
 
-         max_x = max_size.w/XRES;
-         max_y = max_size.h/YRES;
+         max_x = max_size.w/RVR_XRES;
+         max_y = max_size.h/RVR_YRES;
 
          pixel_scale = (max_x>max_y)?max_y:max_x;
       }
@@ -117,7 +117,7 @@ void RvR_backend_init(const char *title, int scale)
    if(pixel_scale<=0)
       pixel_scale = 1;
 
-   sdl_window = SDL_CreateWindow(title,SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,XRES*pixel_scale,YRES*pixel_scale,0);
+   sdl_window = SDL_CreateWindow(title,SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,RVR_XRES*pixel_scale,RVR_YRES*pixel_scale,0);
 
    if(sdl_window==NULL)
    {
@@ -134,7 +134,7 @@ void RvR_backend_init(const char *title, int scale)
 
    SDL_SetRenderDrawColor(renderer,0,0,0,0);
 
-   layer_texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STREAMING,XRES,YRES);
+   layer_texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STREAMING,RVR_XRES,RVR_YRES);
    if(layer_texture==NULL)
       RvR_log("RvR_backend_sdl2: failed to create texture for layer %d: %s",index,SDL_GetError());
 
@@ -265,14 +265,14 @@ void RvR_backend_init(const char *title, int scale)
       memset(gamepads[i].old_button_state,0,sizeof(gamepads[i].old_button_state));
    }
 
-   if(FPS<1||FPS>1000)
+   if(RVR_FPS<1||RVR_FPS>1000)
       fps = 1000;
    else
-      fps = FPS;
+      fps = RVR_FPS;
    framedelay = 1000/fps;
 
-   framebuffer = RvR_malloc(XRES*YRES);
-   memset(framebuffer,0,XRES*YRES);
+   framebuffer = RvR_malloc(RVR_XRES*RVR_YRES);
+   memset(framebuffer,0,RVR_XRES*RVR_YRES);
 }
 
 void RvR_backend_update()
@@ -380,10 +380,10 @@ void RvR_backend_update()
    mouse_x_rel = mouse_x_rel/pixel_scale;
    mouse_y_rel = mouse_y_rel/pixel_scale;
 
-   if(mouse_x>=XRES)
-     mouse_x = XRES-1;
-   if(mouse_y>=YRES)
-     mouse_y = YRES-1;
+   if(mouse_x>=RVR_XRES)
+     mouse_x = RVR_XRES-1;
+   if(mouse_y>=RVR_YRES)
+     mouse_y = RVR_YRES-1;
 
    if(mouse_x<0)
      mouse_x = 0;
@@ -395,8 +395,8 @@ void RvR_backend_render_present()
 {
    SDL_RenderClear(renderer);
 
-   float width = (float)XRES*pixel_scale;
-   float height = (float)YRES*pixel_scale;
+   float width = (float)RVR_XRES*pixel_scale;
+   float height = (float)RVR_YRES*pixel_scale;
    float x = 0.0f;
    float y = 0.0f;
    SDL_Rect dst_rect;
@@ -409,7 +409,7 @@ void RvR_backend_render_present()
    int stride;
    SDL_LockTexture(layer_texture,NULL,&data,&stride);
    RvR_color *pix = data;
-   for(int i = 0;i<XRES*YRES;i++)
+   for(int i = 0;i<RVR_XRES*RVR_YRES;i++)
       pix[i] = RvR_palette[framebuffer[i]];
    SDL_UnlockTexture(layer_texture);
 
@@ -428,8 +428,8 @@ static void backend_update_viewport()
 {
    SDL_GetWindowSize(sdl_window,&window_width,&window_height);
 
-   view_width = XRES*pixel_scale;
-   view_height = YRES*pixel_scale;
+   view_width = RVR_XRES*pixel_scale;
+   view_height = RVR_YRES*pixel_scale;
 
    view_x = (window_width-view_width)/2;
    view_y = (window_height-view_height)/2;

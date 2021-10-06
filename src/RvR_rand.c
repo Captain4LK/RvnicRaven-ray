@@ -35,13 +35,13 @@ static int rand_seed = 0;
 
 unsigned RvR_rand()
 {
-   static uint32_t w32_rtable[RNG_TABLE_SIZE] = {0};
+   static uint32_t w32_rtable[RVR_RNG_TABLE_SIZE] = {0};
    static int initialized = 0;
 
    if(!initialized)
    {
       uint32_t inc = 0xacd2d391, mul = 0xf34f9201, x = 0;
-      for(int i = 0;i<RNG_TABLE_SIZE;i++)
+      for(int i = 0;i<RVR_RNG_TABLE_SIZE;i++)
       {     
          w32_rtable[i] = x;
          x = (x+inc)*mul;
@@ -49,7 +49,7 @@ unsigned RvR_rand()
       initialized = 1;
    }
 
-   rand_seed = (rand_seed+1)%RNG_TABLE_SIZE;
+   rand_seed = (rand_seed+1)%RVR_RNG_TABLE_SIZE;
    return w32_rtable[rand_seed];
 }
 
@@ -60,6 +60,6 @@ int RvR_rand_get_state()
 
 void RvR_rand_set_state(int state)
 {
-   rand_seed = state%RNG_TABLE_SIZE;
+   rand_seed = state%RVR_RNG_TABLE_SIZE;
 }
 //-------------------------------------

@@ -97,7 +97,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
    //^ we precompute reciprocals to avoid divisions in the loop
 
    int first = 1;
-   for(unsigned i = 0;i<MAX_STEPS;i++)
+   for(unsigned i = 0;i<RVR_RAY_MAX_STEPS;i++)
    {
       if(!first)//current_type!=square_type)
       {
@@ -198,7 +198,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
          hit_results[*hit_results_len] = h;
          *hit_results_len+=1;
 
-         if(*hit_results_len>=MAX_HITS)
+         if(*hit_results_len>=RVR_RAY_MAX_STEPS)
             break;
       }
 
@@ -221,10 +221,10 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
 
 void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
 {
-   RvR_vec2 dir0 = RvR_vec2_rot(ray_cam_angle-(HORIZONTAL_FOV/2));
-   RvR_vec2 dir1 = RvR_vec2_rot(ray_cam_angle+(HORIZONTAL_FOV/2));
+   RvR_vec2 dir0 = RvR_vec2_rot(ray_cam_angle-(RVR_RAY_HORIZONTAL_FOV/2));
+   RvR_vec2 dir1 = RvR_vec2_rot(ray_cam_angle+(RVR_RAY_HORIZONTAL_FOV/2));
 
-   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(HORIZONTAL_FOV/2));
+   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RVR_RAY_HORIZONTAL_FOV/2));
 
    dir0.x = (dir0.x*1024)/cos;
    dir0.y = (dir0.y*1024)/cos;
@@ -235,7 +235,7 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
    RvR_fix22 dx = dir1.x-dir0.x;
    RvR_fix22 dy = dir1.y-dir0.y;
 
-   RvR_ray_hit_result hits[MAX_HITS] = {0};
+   RvR_ray_hit_result hits[RVR_RAY_MAX_STEPS] = {0};
    uint16_t hit_count = 0;
 
    RvR_ray r;
@@ -244,14 +244,14 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
    RvR_fix22 current_dx = 0;
    RvR_fix22 current_dy = 0;
 
-   for(int16_t i = 0;i<XRES;i++)
+   for(int16_t i = 0;i<RVR_XRES;i++)
    {
        /* Here by linearly interpolating the direction vector its length changes,
        which in result achieves correcting the fish eye effect (computing
        perpendicular distance). */
 
-      r.direction.x = dir0.x+(current_dx/XRES);
-      r.direction.y = dir0.y+(current_dy/XRES);
+      r.direction.x = dir0.x+(current_dx/RVR_XRES);
+      r.direction.y = dir0.y+(current_dy/RVR_XRES);
       
       RvR_ray_cast_multi_hit(r,hits,&hit_count);
 
@@ -266,7 +266,7 @@ RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 dista
 {
    static RvR_fix22 correction_factor = 0;
    if(correction_factor==0)
-      correction_factor = ray_fov_correction_factor(VERTICAL_FOV);
+      correction_factor = ray_fov_correction_factor(RVR_RAY_VERTICAL_FOV);
 
    return distance!=0?((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024)):0;
 }
@@ -275,16 +275,16 @@ RvR_fix22 RvR_ray_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix
 {
    static RvR_fix22 correction_factor = 0;
    if(correction_factor==0)
-      correction_factor = ray_fov_correction_factor(VERTICAL_FOV);
+      correction_factor = ray_fov_correction_factor(RVR_RAY_VERTICAL_FOV);
 
-   return sc_size!=0?((org_size*1024)/RvR_non_zero((correction_factor*sc_size)/1024)):RvR_INFINITY;
+   return sc_size!=0?((org_size*1024)/RvR_non_zero((correction_factor*sc_size)/1024)):RvR_fix22_infinity;
 }
 
 RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 distance)
 {
    static RvR_fix22 correction_factor = 0;
    if(correction_factor==0)
-      correction_factor = ray_fov_correction_factor(HORIZONTAL_FOV);
+      correction_factor = ray_fov_correction_factor(RVR_RAY_HORIZONTAL_FOV);
 
    return distance!=0?((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024)):0;
 }
@@ -315,10 +315,10 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
       x_square_new = RvR_div_round_down(corner_new.x,1024);
       y_square_new = RvR_div_round_down(corner_new.y,1024);
 
-      RvR_fix22 bottom_limit = -RvR_INFINITY;
-      RvR_fix22 top_limit = RvR_INFINITY;
+      RvR_fix22 bottom_limit = -RvR_fix22_infinity;
+      RvR_fix22 top_limit = RvR_fix22_infinity;
 
-      RvR_fix22 curr_ceil_height = RvR_INFINITY;
+      RvR_fix22 curr_ceil_height = RvR_fix22_infinity;
 
       if(compute_height)
       {
