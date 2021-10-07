@@ -43,13 +43,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define RVR_RAY_DEPTH_BUFFER_PRECISION 9
 //-------------------------------------
 
-#define GRAVITY 16
-#define MAX_VERTICAL_SPEED 256
-#define JUMP_SPEED 128
-
-//Graphics and raycasting
-#define ANGLE_STEP (((1024/4)*1024)/RVR_XRES)
-#define SKY_TEX_STEP ((1024*128-1)/RVR_YRES)
+//Config end
+//-------------------------------------
 
 //Collision
 //TODO: rename (remove CAMERA prefix)
@@ -58,11 +53,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define CAMERA_COLL_STEP_HEIGHT (1024/4)
 #define CAMERA_COLL_HEIGHT_ABOVE 200
 
-//TODO: affect depth buffer size
-//currently needs to be changed manually in RvR_raycast_draw.c
-#define DEPTH_BUFFER_PRECISION 512
-
-//RvR_raycast
+//RvnicRaven core types
 
 typedef enum 
 {
@@ -98,18 +89,6 @@ typedef enum
    RVR_BUTTON_MAX,
 }RvR_mouse_button;
 
-typedef struct
-{
-   uint8_t r,g,b,a;
-}RvR_color;
-
-typedef struct
-{
-   int width;
-   int height;
-   uint8_t *data;
-}RvR_texture;
-
 typedef enum
 {
    RVR_ERROR_NONE = 0x000,              //No error encountered
@@ -126,6 +105,23 @@ typedef enum
    RVR_ERROR_BUFFER_SHORT = 0x200,      //buffer short
 }RvR_error;
 
+typedef enum
+{
+   RVR_LUMP_ERROR, RVR_LUMP_PAL, RVR_LUMP_MUS, RVR_LUMP_JSON, RVR_LUMP_PAK, RVR_LUMP_TEX, RVR_LUMP_WAV, RVR_LUMP_MAP,
+}RvR_lump;
+
+typedef struct
+{
+   uint8_t r,g,b,a;
+}RvR_color;
+
+typedef struct
+{
+   int width;
+   int height;
+   uint8_t *data;
+}RvR_texture;
+
 typedef int32_t RvR_fix22;
 
 typedef struct
@@ -141,39 +137,13 @@ typedef struct
    RvR_fix22 z;
 }RvR_vec3;
 
-//TODO: rename, lowercase v
-typedef enum
-{
-   RVR_LUMP_ERROR, RVR_LUMP_PAL, RVR_LUMP_MUS, RVR_LUMP_JSON, RVR_LUMP_PAK, RVR_LUMP_TEX, RVR_LUMP_WAV, RVR_LUMP_MAP,
-}RvR_lump;
+//RvnicRaven core types end
+//-------------------------------------
 
-typedef struct
-{
-   RvR_vec2 start;
-   RvR_vec2 direction;
-}RvR_ray;
+//RvnicRaven core variables
 
-typedef struct
-{
-   RvR_vec2 position;
-   RvR_vec2 square;
-   RvR_fix22 distance;
-   uint8_t direction;
-   uint16_t wall_tex;
-   uint16_t floor_tex;
-   uint16_t ceil_tex;
-   RvR_fix22 fheight;
-   RvR_fix22 cheight;
-   RvR_fix22 texture_coord;
-}RvR_ray_hit_result;
-
-typedef struct
-{
-   uint16_t type;
-   RvR_vec3 pos;
-}RvR_ray_map_sprite;
-
-typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t hit_count, uint16_t x, RvR_ray ray);
+extern uint8_t RvR_shade_table[64][256];
+extern RvR_color *RvR_palette;
 
 extern int RvR_config_mouse_sensitivity;
 extern int RvR_config_mouse_sensitivity_vertical;
@@ -187,8 +157,10 @@ extern unsigned RvR_config_texture_timeout;
 extern int RvR_config_camera_max_shear;
 extern int RvR_config_camera_shear_step;
 
-extern uint8_t RvR_shade_table[64][256];
-extern RvR_color *RvR_palette;
+//RvnicRaven core variables end
+//-------------------------------------
+
+//RvnicRaven core functions
 
 //Read config variables from ini file
 //Returns 0 on success or 1 on failure
@@ -335,6 +307,44 @@ void RvR_texture_load(uint16_t id);
 void RvR_font_load(uint16_t id);
 void RvR_font_unload(uint16_t id);
 
+//RvnicRaven core functions end
+//-------------------------------------
+
+//RvnicRaven raycast types
+
+typedef struct
+{
+   RvR_vec2 start;
+   RvR_vec2 direction;
+}RvR_ray;
+
+typedef struct
+{
+   RvR_vec2 position;
+   RvR_vec2 square;
+   RvR_fix22 distance;
+   uint8_t direction;
+   uint16_t wall_tex;
+   uint16_t floor_tex;
+   uint16_t ceil_tex;
+   RvR_fix22 fheight;
+   RvR_fix22 cheight;
+   RvR_fix22 texture_coord;
+}RvR_ray_hit_result;
+
+typedef struct
+{
+   uint16_t type;
+   RvR_vec3 pos;
+}RvR_ray_map_sprite;
+
+typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t hit_count, uint16_t x, RvR_ray ray);
+
+//RvnicRaven raycast types end
+//-------------------------------------
+
+//RvnicRaven raycast functions
+
 void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16_t *hit_results_len);
 void RvR_rays_cast_multi_hit(RvR_ray_column_function column);
 RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 distance);
@@ -367,5 +377,8 @@ RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y);
 
 void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex);
 void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear);
+
+//RvnicRaven raycast functions end
+//-------------------------------------
 
 #endif

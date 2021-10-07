@@ -52,7 +52,7 @@ typedef struct
 //-------------------------------------
 
 //Variables
-static RvR_fix22 ray_depth_buffer[RVR_RAY_MAX_STEPS*2][RVR_XRES][4];
+static RvR_fix22 ray_depth_buffer[RVR_RAY_MAX_STEPS*(1<<(10-RVR_RAY_DEPTH_BUFFER_PRECISION))][RVR_XRES][4];
 
 static RvR_fix22 ray_start_floor_height = 0;
 static RvR_fix22 ray_start_ceil_height = 0;
@@ -165,25 +165,28 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
       //Sky texture is rendered differently (vertical collumns instead of horizontal ones)
       if(pl->tex==0x43)
       {
+         RvR_fix22 angle_step = (256*1024)/RVR_XRES;
+         RvR_fix22 tex_step = (1024*128-1)/RVR_YRES;
+
          RvR_texture *texture = RvR_texture_get(0x43);
          RvR_fix22 angle = (RvR_ray_get_angle())*1024;
-         angle+=(pl->min-1)*ANGLE_STEP;
+         angle+=(pl->min-1)*angle_step;
 
          for(int x = pl->min;x<pl->max+1;x++)
          {
             //Sky is rendered fullbright, no lut needed
-            RvR_fix22 texture_coord = pl->start[x]*SKY_TEX_STEP;
+            RvR_fix22 texture_coord = pl->start[x]*tex_step;
             uint8_t * restrict pix = &RvR_core_framebuffer()[(pl->start[x])*RVR_XRES+x-1];
             const uint8_t * restrict tex = &texture->data[((angle>>10)&255)*texture->height];
 
             for(int y = pl->start[x];y<pl->end[x]+1;y++)
             {
                *pix = tex[texture_coord>>10];
-               texture_coord+=SKY_TEX_STEP;
+               texture_coord+=tex_step;
                pix+=RVR_XRES;
             }
 
-            angle+=ANGLE_STEP;
+            angle+=angle_step;
          }
          continue;
       }
@@ -233,7 +236,7 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
       int ey = size_vertical;
       int x = sp.s_pos.x-size_horizontal/2;
       int y = sp.s_pos.y-size_vertical;
-      int clip_depth = (depth)/DEPTH_BUFFER_PRECISION;
+      int clip_depth = (depth)/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION);
       RvR_fix22 u_step = (texture->width*1024-1)/RvR_non_zero(size_horizontal);
       RvR_fix22 u = 0;
       RvR_fix22 v_step = (texture->height*1024-1)/RvR_non_zero(size_vertical);
@@ -506,7 +509,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
       if(!drawing_horizon) //don't draw walls for horizon plane
       {
          p.depth = distance;
-         p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*DEPTH_BUFFER_PRECISION));
+         p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)));
          p.tex_coords.x = hit.texture_coord;
 
          //draw floor wall
@@ -518,16 +521,16 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
                                           f_z2_world-f_z1_world
                                           ,-1,&p);
 
-            if(ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][2]>limit)
+            if(ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][2]>limit)
             {
-               ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][2] = limit;
-               ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][3] = p.depth;
+               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][2] = limit;
+               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][3] = p.depth;
             }
 
-            if(ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][2]>limit_f)
+            if(ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][2]>limit_f)
             {
-               ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][2] = limit_f;
-               ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][3] = p.depth;
+               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][2] = limit_f;
+               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][3] = p.depth;
             }
 
             if(f_pos_y>limit)
@@ -545,17 +548,17 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
                               c_z1_world-c_z2_world 
                               ,1,&p);
 
-            p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*DEPTH_BUFFER_PRECISION));
-            if(ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][0]<limit)
+            p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)));
+            if(ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][0]<limit)
             {
-               ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][0] = limit;
-               ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][1] = p.depth;
+               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][0] = limit;
+               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][1] = p.depth;
             }
 
-            if(ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][0]<limit_c)
+            if(ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][0]<limit_c)
             {
-               ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][0] = limit_c;
-               ray_depth_buffer[p.depth/DEPTH_BUFFER_PRECISION][p.position.x][1] = p.depth;
+               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][0] = limit_c;
+               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][1] = p.depth;
             }
 
             if(c_pos_y<limit)

@@ -21,6 +21,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
+#define GRAVITY 16
+#define MAX_VERTICAL_SPEED 256
+#define JUMP_SPEED 128
 //-------------------------------------
 
 //Typedefs
