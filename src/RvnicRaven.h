@@ -24,6 +24,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Size of precalculated rng table
 #define RVR_RNG_TABLE_SIZE 512
+
+//Amount of load cycles a unused texture will stay loaded
+#define RVR_TEXTURE_TIMEOUT 2
 //-------------------------------------
 
 //Constants
@@ -110,6 +113,11 @@ typedef enum
    RVR_LUMP_ERROR, RVR_LUMP_PAL, RVR_LUMP_MUS, RVR_LUMP_JSON, RVR_LUMP_PAK, RVR_LUMP_TEX, RVR_LUMP_WAV, RVR_LUMP_MAP,
 }RvR_lump;
 
+typedef enum
+{
+   RVR_CONFIG_INT, RVR_CONFIG_KEY,
+}RvR_config_type;
+
 typedef struct
 {
    uint8_t r,g,b,a;
@@ -123,6 +131,7 @@ typedef struct
 }RvR_texture;
 
 typedef int32_t RvR_fix22;
+typedef char * RvR_config;
 
 typedef struct
 {
@@ -145,18 +154,6 @@ typedef struct
 extern uint8_t RvR_shade_table[64][256];
 extern RvR_color *RvR_palette;
 
-extern int RvR_config_mouse_sensitivity;
-extern int RvR_config_mouse_sensitivity_vertical;
-extern RvR_key RvR_config_move_forward;
-extern RvR_key RvR_config_move_backward;
-extern RvR_key RvR_config_strafe_left;
-extern RvR_key RvR_config_strafe_right;
-extern RvR_key RvR_config_enable_freelook;
-extern RvR_key RvR_config_jump;
-extern unsigned RvR_config_texture_timeout;
-extern int RvR_config_camera_max_shear;
-extern int RvR_config_camera_shear_step;
-
 //RvnicRaven core variables end
 //-------------------------------------
 
@@ -177,20 +174,9 @@ extern int RvR_config_camera_shear_step;
 //Parameters:
 //    const char *path - path to ini file
 //                       path != NULL
-int RvR_ini_parse(const char *path);
-
-//Write config variables to file
-//Returns 0 on success or 1 on failure
-//Possible errors:
-//    RVR_ERROR_ARG_NULL
-//    RVR_ERROR_FAIL_FOPEN
-//    RVR_ERROR_FAIL_FCLOSE
-//    RVR_ERROR_FAIL_FPRINTF
-//
-//Parameters:
-//    const char *path - path to write ini to
-//                       path != NULL
-int RvR_ini_write(const char *path);
+RvR_config RvR_ini_parse(const char *path);
+void RvR_ini_free(RvR_config config);
+void RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char *ident);
 
 void RvR_core_quit();
 void RvR_core_init(char *title, int scale);

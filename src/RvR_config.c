@@ -25,17 +25,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-int RvR_config_mouse_sensitivity = 128;
-int RvR_config_mouse_sensitivity_vertical = 128;
-RvR_key RvR_config_move_forward = RVR_KEY_W;
-RvR_key RvR_config_move_backward = RVR_KEY_S;
-RvR_key RvR_config_strafe_left = RVR_KEY_A;
-RvR_key RvR_config_strafe_right = RVR_KEY_D;
-RvR_key RvR_config_enable_freelook = RVR_KEY_F;
-RvR_key RvR_config_jump = RVR_KEY_SPACE;
-unsigned RvR_config_texture_timeout = 1;
-int RvR_config_camera_max_shear = 192;
-int RvR_config_camera_shear_step = 8;
 //-------------------------------------
 
 //Function prototypes
@@ -46,22 +35,16 @@ static const char *config_keytostr(RvR_key k);
 
 //Function implementations
 
-int RvR_ini_parse(const char *path)
+RvR_config RvR_ini_parse(const char *path)
 {
    char *buffer_in = NULL;
    char *kv = NULL;
-   char *iter = NULL;
    int32_t size = 0;
-   uint64_t hash_key = 0;
    FILE *in = NULL;
 
    RvR_error_check(path!=NULL,0x101);
    in = fopen(path,"rb");
-   if(in==NULL)
-   {
-      RvR_ini_write(path);
-      RvR_error_check(0,0x006);
-   }
+   RvR_error_check(in!=NULL,0x006);
 
    RvR_error_check(fseek(in,0,SEEK_END)==0,0x004);
    size = ftell(in);
@@ -76,7 +59,9 @@ int RvR_ini_parse(const char *path)
 
    kv = config_ini(buffer_in);
    RvR_error_check(kv!=NULL,0x000);
-   for(iter = kv;iter[0];)
+
+   RvR_free(buffer_in);
+   /*for(iter = kv;iter[0];)
    {
       //Read key
       hash_key = RvR_fnv64a(iter);
@@ -104,9 +89,9 @@ int RvR_ini_parse(const char *path)
    }
    
    RvR_free(kv);
-   RvR_free(buffer_in);
+   RvR_free(buffer_in);*/
 
-   return 0;
+   return kv;
 
 RvR_err:
 
@@ -121,46 +106,41 @@ RvR_err:
 
    RvR_log("RvR error %s\n",RvR_error_get_string());
 
-   return 1;
+   return NULL;
 }
 
-int RvR_ini_write(const char *path)
+void RvR_ini_free(RvR_config config)
 {
-   FILE *f = NULL;
+   RvR_free(config);
+}
 
-   RvR_error_check(path!=NULL,0x101);
-   f = fopen(path,"w");
-   RvR_error_check(f!=NULL,0x006);
+void RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char *ident)
+{
+   uint64_t hash = RvR_fnv64a(ident);
+   uint64_t hash_key = 0;
 
-   RvR_error_check(fprintf(f,";Mouse input\n")>=0,0x008);
-   RvR_error_check(fprintf(f,"mouse_sensitivity=%d\n",RvR_config_mouse_sensitivity)>=0,0x008);
-   RvR_error_check(fprintf(f,"mouse_sensitivity_vertical=%d\n",RvR_config_mouse_sensitivity_vertical)>=0,0x008);
+   char *iter = NULL;
+   for(iter = config;iter[0];)
+   {
+      //Read key
+      hash_key = RvR_fnv64a(iter);
 
-   RvR_error_check(fprintf(f,"\n;Keyboard input\n")>=0,0x008);
-   RvR_error_check(fprintf(f,"move_forward=%s\n",config_keytostr(RvR_config_move_forward))>=0,0x008);
-   RvR_error_check(fprintf(f,"move_backward=%s\n",config_keytostr(RvR_config_move_backward))>=0,0x008);
-   RvR_error_check(fprintf(f,"strafe_left=%s\n",config_keytostr(RvR_config_strafe_left))>=0,0x008);
-   RvR_error_check(fprintf(f,"strafe_right=%s\n",config_keytostr(RvR_config_strafe_right))>=0,0x008);
-   RvR_error_check(fprintf(f,"enable_freelook=%s\n",config_keytostr(RvR_config_enable_freelook))>=0,0x008);
-   RvR_error_check(fprintf(f,"jump=%s\n",config_keytostr(RvR_config_jump))>=0,0x008);
+      if(hash_key==hash)
+      {
+         while(*iter++);
+         
+         switch(type)
+         {
+         case RVR_CONFIG_INT: *((int *)dst) = atoi(iter); break;
+         case RVR_CONFIG_KEY: *((RvR_key *)dst) = config_strtokey(iter); break;
+         }
 
-   RvR_error_check(fprintf(f,"\n;Engine settings\n")>=0,0x008);
-   RvR_error_check(fprintf(f,"texture_timeout=%d\n",RvR_config_texture_timeout)>=0,0x008);
-   RvR_error_check(fprintf(f,"camera_max_shear=%d\n",RvR_config_camera_max_shear)>=0,0x008);
-   RvR_error_check(fprintf(f,"camera_shear_step=%d\n",RvR_config_camera_shear_step)>=0,0x008);
+         break;
+      }
 
-   RvR_error_check(fclose(f)!=EOF,0x007);
-
-   return 0;
-
-RvR_err:
-
-   if(f!=NULL&&RvR_error_get()!=RVR_ERROR_FAIL_FCLOSE)
-      fclose(f);
-
-   RvR_log("RvR error %s\n",RvR_error_get_string());
-
-   return 1;
+      while(*iter++);
+      while(*iter++);
+   }
 }
 
 //Ini parser by r-lyeh: https://github.com/r-lyeh/tinybits

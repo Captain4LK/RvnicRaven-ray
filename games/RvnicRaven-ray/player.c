@@ -18,6 +18,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "sprite.h"
 #include "ai.h"
 #include "player.h"
+#include "config.h"
 //-------------------------------------
 
 //#defines
@@ -54,24 +55,24 @@ void player_update()
    RvR_vec3 move_offset = {0};
 
    //Forward/Backward movement
-   if(RvR_core_key_down(RvR_config_move_forward))
+   if(RvR_core_key_down(config_move_forward))
    {
       move_offset.x+=step*direction.x;
       move_offset.y+=step*direction.y;
    }
-   else if(RvR_core_key_down(RvR_config_move_backward))
+   else if(RvR_core_key_down(config_move_backward))
    {
       move_offset.x-=step*direction.x;
       move_offset.y-=step*direction.y;
    }
 
    //Strafing
-   if(RvR_core_key_down(RvR_config_strafe_left))
+   if(RvR_core_key_down(config_strafe_left))
    {
       move_offset.x-=direction.y;
       move_offset.y+=direction.x;
    }
-   else if(RvR_core_key_down(RvR_config_strafe_right))
+   else if(RvR_core_key_down(config_strafe_right))
    {
       move_offset.x+=direction.y;
       move_offset.y-=direction.x;
@@ -79,18 +80,18 @@ void player_update()
    
    //Mouse look: x-axis
    if(x!=0)
-      player.entity->direction+=(x*RvR_config_mouse_sensitivity)/128;
+      player.entity->direction+=(x*config_mouse_sensitivity)/128;
 
    //Shearing (fake looking up/down)
    //Drift back to 0
    if(!shearing&&player.shear!=0)
-      player.shear = (player.shear>0)?(RvR_max(0,player.shear-RvR_config_camera_shear_step)):(RvR_min(0,player.shear+RvR_config_camera_shear_step));
+      player.shear = (player.shear>0)?(RvR_max(0,player.shear-config_camera_shear_step)):(RvR_min(0,player.shear+config_camera_shear_step));
    //Enable freelook
-   if(RvR_core_key_pressed(RvR_config_enable_freelook))
+   if(RvR_core_key_pressed(config_enable_freelook))
       shearing = !shearing;
    //Mouse look: y-axis
    if(y!=0&&shearing)
-      player.shear = RvR_max(RvR_min(player.shear-(y*RvR_config_mouse_sensitivity_vertical)/128,RvR_config_camera_max_shear),-RvR_config_camera_max_shear);
+      player.shear = RvR_max(RvR_min(player.shear-(y*config_mouse_sensitivity_vertical)/128,config_camera_max_shear),-config_camera_max_shear);
 
    //Only for testing --> flying basically
    player.vertical_speed-=GRAVITY;
@@ -100,7 +101,7 @@ void player_update()
       player.vertical_speed = step*100;
 
    //Jumping (hacky but works)
-   if(RvR_core_key_down(RvR_config_jump)&&player.vertical_speed<=0&&last_vertical_speed==0&&on_ground)
+   if(RvR_core_key_down(config_jump)&&player.vertical_speed<=0&&last_vertical_speed==0&&on_ground)
       player.vertical_speed = JUMP_SPEED;
 
    //Cap player speed

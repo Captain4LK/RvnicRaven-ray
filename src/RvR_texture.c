@@ -89,7 +89,7 @@ void RvR_texture_load(uint16_t id)
       memset(textures_timeout,0,sizeof(*textures_timeout)*UINT16_MAX);
    }
 
-   textures_timeout[id] = RvR_config_texture_timeout;
+   textures_timeout[id] = RVR_TEXTURE_TIMEOUT;
    if(textures[id]!=NULL)
       return;
 
