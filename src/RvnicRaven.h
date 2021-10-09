@@ -149,14 +149,6 @@ typedef struct
 //RvnicRaven core types end
 //-------------------------------------
 
-//RvnicRaven core variables
-
-extern uint8_t RvR_shade_table[64][256];
-extern RvR_color *RvR_palette;
-
-//RvnicRaven core variables end
-//-------------------------------------
-
 //RvnicRaven core functions
 
 //Read config variables from ini file
@@ -281,6 +273,8 @@ void *RvR_lump_get(const char *name, RvR_lump type, unsigned *size);
 const char *RvR_lump_get_path(const char *name, RvR_lump type);
 
 void RvR_palette_load(uint16_t id);
+RvR_color *RvR_palette();
+uint8_t *RvR_shade_table(uint8_t light);
 
 unsigned RvR_rand();
 int RvR_rand_get_state();

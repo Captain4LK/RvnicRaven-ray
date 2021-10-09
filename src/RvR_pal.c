@@ -32,8 +32,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-uint8_t RvR_shade_table[64][256] = {0};
-RvR_color *RvR_palette = NULL;
+static uint8_t shade_table[64][256] = {0};
+static RvR_color *palette = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -52,18 +52,18 @@ void RvR_palette_load(uint16_t id)
    sprintf(tmp,"PAL%05d",id);
    mem_pak = RvR_lump_get(tmp,RVR_LUMP_PAL,&size_in);
 
-   if(RvR_palette==NULL)
+   if(palette==NULL)
    {
-      RvR_palette = RvR_malloc(sizeof(*RvR_palette)*256);
+      palette = RvR_malloc(sizeof(*palette)*256);
    }
-   RvR_error_check(RvR_palette!=NULL,0x001);
+   RvR_error_check(palette!=NULL,0x001);
 
    for(unsigned i = 0;i<256;i++)
    {
-      READ(RvR_palette[i].r,mem_pak,pos,size_in,uint8_t);
-      READ(RvR_palette[i].g,mem_pak,pos,size_in,uint8_t);
-      READ(RvR_palette[i].b,mem_pak,pos,size_in,uint8_t);
-      RvR_palette[i].a = 255;
+      READ(palette[i].r,mem_pak,pos,size_in,uint8_t);
+      READ(palette[i].g,mem_pak,pos,size_in,uint8_t);
+      READ(palette[i].b,mem_pak,pos,size_in,uint8_t);
+      palette[i].a = 255;
    }
 
    pal_calculate_colormap();
@@ -89,18 +89,18 @@ static void pal_calculate_colormap()
          if(x<256)
          {
             int r,g,b;
-            r = RvR_min(255,((int)RvR_palette[x].r*(63-y)+16)>>5);
-            g = RvR_min(255,((int)RvR_palette[x].g*(63-y)+16)>>5);
-            b = RvR_min(255,((int)RvR_palette[x].b*(63-y)+16)>>5);
+            r = RvR_min(255,((int)palette[x].r*(63-y)+16)>>5);
+            g = RvR_min(255,((int)palette[x].g*(63-y)+16)>>5);
+            b = RvR_min(255,((int)palette[x].b*(63-y)+16)>>5);
 
             int best_index = -1;
             int best_dist = 0;
             for(int i = 0;i<256;i++)
             {
                int dist = 0;
-               dist+=abs(r-RvR_palette[i].r)*abs(r-RvR_palette[i].r);
-               dist+=abs(g-RvR_palette[i].g)*abs(g-RvR_palette[i].g);
-               dist+=abs(b-RvR_palette[i].b)*abs(b-RvR_palette[i].b);
+               dist+=abs(r-palette[i].r)*abs(r-palette[i].r);
+               dist+=abs(g-palette[i].g)*abs(g-palette[i].g);
+               dist+=abs(b-palette[i].b)*abs(b-palette[i].b);
 
                if(best_index==-1||dist<best_dist)
                {
@@ -108,14 +108,24 @@ static void pal_calculate_colormap()
                   best_dist = dist;
                }
             }
-            RvR_shade_table[y][x] = (uint8_t)best_index;
+            shade_table[y][x] = (uint8_t)best_index;
          }
          else
          {
-            RvR_shade_table[y][x] = x;
+            shade_table[y][x] = x;
          }
       }
    }
+}
+
+RvR_color *RvR_palette()
+{
+   return palette;
+}
+
+uint8_t *RvR_shade_table(uint8_t light)
+{
+   return shade_table[light];
 }
 
 #undef READ
