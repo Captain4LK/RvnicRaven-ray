@@ -43,20 +43,21 @@ void sound_init()
    if(Mix_OpenAudio(22050,MIX_DEFAULT_FORMAT,2,2048 )<0)
         printf("Error: SDL_mixer failed to initialize! SDL_mixer Error: %s\n",Mix_GetError());
 
-   sounds[SOUND_PISTOL] = Mix_LoadWAV("data/dspistol.wav");
+   //Sound disabled for now
+   /*sounds[SOUND_PISTOL] = Mix_LoadWAV("data/dspistol.wav");
    sounds[SOUND_SWITCH] = Mix_LoadWAV("data/dsswtchn.wav");
    sounds[SOUND_STOP] = Mix_LoadWAV("data/dspstop.wav");
    sounds[SOUND_DSG] = Mix_LoadWAV("data/dsdshtgn.wav");
    sounds[SOUND_DSG_OPEN] = Mix_LoadWAV("data/dsdbopn.wav");
    sounds[SOUND_DSG_LOAD] = Mix_LoadWAV("data/dsdbload.wav");
-   sounds[SOUND_DSG_CLOSE] = Mix_LoadWAV("data/dsdbcls.wav");
+   sounds[SOUND_DSG_CLOSE] = Mix_LoadWAV("data/dsdbcls.wav");*/
 
-   music = Mix_LoadMUS("data/WeltHerrschererTheme1.ogg");
+   ///music = Mix_LoadMUS("data/WeltHerrschererTheme1.ogg");
 }
 
 void sound_play(Sound sound, int once)
 {
-   if(sound==SOUND_MAX)
+   /*if(sound==SOUND_MAX)
       return;
 
    if(once)
@@ -71,11 +72,11 @@ void sound_play(Sound sound, int once)
    {
       sound_channel[sound] = -1;
       sound_channel[sound] = Mix_PlayChannel(-1,sounds[sound],0);
-   }
+   }*/
 }
 
 void music_play()
 {
-   Mix_PlayMusic(music,-1);
+   //Mix_PlayMusic(music,-1);
 }
 //-------------------------------------

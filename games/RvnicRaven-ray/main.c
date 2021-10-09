@@ -56,11 +56,6 @@ int main()
 
    //Load ressources
    RvR_config config = RvR_ini_parse("settings.ini");
-   RvR_pak_add("data/main.json");
-   RvR_palette_load(0);
-   RvR_font_load(0xF000);
-   RvR_texture_load(0x4100);
-
    RvR_ini_read(config,&config_mouse_sensitivity,RVR_CONFIG_INT,"mouse_sensitivity");
    RvR_ini_read(config,&config_mouse_sensitivity_vertical,RVR_CONFIG_INT,"mouse_sensitivity_vertical");
    RvR_ini_read(config,&config_move_forward,RVR_CONFIG_KEY,"move_forward");
@@ -71,6 +66,12 @@ int main()
    RvR_ini_read(config,&config_jump,RVR_CONFIG_KEY,"jump");
    RvR_ini_read(config,&config_camera_max_shear,RVR_CONFIG_INT,"camera_max_shear");
    RvR_ini_read(config,&config_camera_shear_step,RVR_CONFIG_INT,"camera_shear_step");
+   RvR_ini_free(config);
+
+   RvR_pak_add("data_ray/main.json");
+   RvR_palette_load(0);
+   RvR_font_load(0xF000);
+   RvR_texture_load(0x4100);
 
    sound_init();
 

@@ -61,35 +61,6 @@ RvR_config RvR_ini_parse(const char *path)
    RvR_error_check(kv!=NULL,0x000);
 
    RvR_free(buffer_in);
-   /*for(iter = kv;iter[0];)
-   {
-      //Read key
-      hash_key = RvR_fnv64a(iter);
-      //printf("key: %s;%luU\n",iter,hash_key);
-
-      while(*iter++);
-      switch(hash_key)
-      {
-      case 16969830980003191976U: RvR_config_mouse_sensitivity = atoi(iter); break;             //"mouse_sensitivity"
-      case  6023395255864463179U: RvR_config_mouse_sensitivity_vertical = atoi(iter); break;    //"mouse_sensitivity_vertical"
-      case  3560386037893974558U: RvR_config_move_forward = config_strtokey(iter); break;              //"move_forward"
-      case  2211778712401880640U: RvR_config_move_backward = config_strtokey(iter); break;             //"move_backward"
-      case  9406806077120427738U: RvR_config_strafe_left = config_strtokey(iter); break;               //"strafe_left"
-      case  5573416641251682759U: RvR_config_strafe_right = config_strtokey(iter); break;              //"strafe_right"
-      case  6604522056233544978U: RvR_config_enable_freelook = config_strtokey(iter); break;           //"enable_freelook"
-      case 16940139219101328589U: RvR_config_jump = config_strtokey(iter); break;                      //"jump"
-      case 11034882399129047948U: RvR_config_texture_timeout = atoi(iter); break;               //"texture_timeout"
-      case  7868638888548120077U: RvR_config_camera_max_shear = atoi(iter); break;              //"camera_max_shear"
-      case 11836815913816774343U: RvR_config_camera_shear_step = atoi(iter); break;             //"camera_shear_step"
-      }
-
-      //printf("val: '%s'\n", iter);
-
-      while(*iter++);
-   }
-   
-   RvR_free(kv);
-   RvR_free(buffer_in);*/
 
    return kv;
 

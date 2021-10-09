@@ -3,8 +3,6 @@ bin/data
 bin/ldtk
 src/RvR_unroll.c
 
-*.rvr
-*.cop
 *.slk
 *.vim
 *.o

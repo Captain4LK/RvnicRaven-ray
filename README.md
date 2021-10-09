@@ -1,6 +1,26 @@
 # Rvnic Raven
 
-There currently are no building instructions, since the project is in a temporay (very short, expected to be done by October 06 2021) migration phase
+# Building
+
+1. Get a compiler: I recommend gcc but clang works too.
+
+2. Install the SDL2 and SDL2_mixer development files:
+
+   On Debian/Ubuntu: sudo apt install libsdl2-dev libsdl2-mixer-dev
+
+3. Clone this repository: ``git clone https://github.com/Captain4LK/RvnicRaven-ray.git``
+
+4. Compile RvR_all.c, just keep the generated object file (.o) in the root directory of this repository: 
+   ``gcc -c src/RvR_all.c -std=c99 -Wall -Wextra -pedantic -O3 -flto``
+
+# Building the example games
+
+1. cd into the directory of the example, eg: ``cd games/RvnicRaven-ray``
+
+2. Build the example (you may need to change the location of the RvR_all.o file depending on where you stored it):
+   ``gcc -o ../../bin/RvnicRaven *.c ../../RvR_all.o -std=c99 -Wall -Wextra -pedantic -O3 -flto=auto -s -lSDL2 -lSDL2_mixer``
+
+3. You can now run the example from the bin directory
 
 # Credits (code)
 
@@ -21,7 +41,7 @@ Rvnic Raven incorporates code from multiple different sources. Here is a list of
 
 # License
 
-All code in this repository (unless clearly marked otherwise, see above for potential exceptions) is released into the public domain (CC0), see COPYING for more info.
+All code in this repository (unless marked otherwise, see above for potential exceptions) is released into the public domain (CC0), see COPYING for more info.
 
 # Gallery
 
