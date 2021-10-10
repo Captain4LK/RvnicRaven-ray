@@ -27,6 +27,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Amount of load cycles a unused texture will stay loaded
 #define RVR_TEXTURE_TIMEOUT 2
+
+//Unroll some loops
+#define RVR_UNROLL 1
 //-------------------------------------
 
 //Constants

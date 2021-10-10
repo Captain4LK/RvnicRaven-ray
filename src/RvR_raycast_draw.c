@@ -620,8 +620,8 @@ static void ray_plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
       //Additionally the spans collumn needs to be either empty...
       if(ray_planes[i].start[x]!=UINT16_MAX)
       {
-         //... or directly adjacent to each other vertically
-         //Concat planes vertically, only works if the spans are directly adjacent
+         //... or directly adjacent to each other vertically, in that case
+         //Concat planes vertically
          if(ray_planes[i].start[x]-1==y1)
          {
             ray_planes[i].start[x] = y0;
@@ -692,6 +692,32 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
    const uint8_t * restrict col = RvR_shade_table(RvR_min(63,22+(depth>>8)));
    const uint8_t * restrict tex = RvR_texture_get(texture)->data;
 
+#if RVR_UNROLL
+
+   unsigned len = x1-x0;
+   unsigned n = ((len+7)/8);
+   unsigned s = len&7;
+   if(s!=0)
+      n--;
+
+   for(unsigned i = 0;i<s;i++)
+   {
+      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
+   }
+
+   for(unsigned i = 0;i<n;i++)
+   {
+      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
+      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
+      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
+      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
+      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
+      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
+      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
+      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
+   }
+
+#else
    for(int x = x0;x<x1;x++)
    {
       *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]];
@@ -699,6 +725,7 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
       ty+=step_y;
       pix++;
    }
+#endif
 }
 
 static void ray_sprite_stack_push(ray_sprite s)

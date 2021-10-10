@@ -51,12 +51,14 @@ void RvR_palette_load(uint16_t id)
 
    sprintf(tmp,"PAL%05d",id);
    mem_pak = RvR_lump_get(tmp,RVR_LUMP_PAL,&size_in);
+   if(mem_pak==NULL)
+      RvR_error_check(0,0x000);
 
    if(palette==NULL)
    {
       palette = RvR_malloc(sizeof(*palette)*256);
+      RvR_error_check(palette!=NULL,0x001);
    }
-   RvR_error_check(palette!=NULL,0x001);
 
    for(unsigned i = 0;i<256;i++)
    {

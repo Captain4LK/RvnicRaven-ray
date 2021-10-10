@@ -30,7 +30,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Function prototypes
 static char *config_ini(const char *s);
 static RvR_key config_strtokey(const char *s);
-static const char *config_keytostr(RvR_key k);
 //-------------------------------------
 
 //Function implementations
@@ -234,51 +233,6 @@ static RvR_key config_strtokey(const char *s)
    case 12638143220090513556U: return RVR_KEY_9;
    case  4858524775536387045U: return RVR_KEY_SPACE;
    default: return RVR_KEY_NONE;
-   }
-}
-
-static const char *config_keytostr(RvR_key k)
-{
-   switch(k)
-   {
-      case RVR_KEY_A: return "a";
-      case RVR_KEY_B: return "b";
-      case RVR_KEY_C: return "c";
-      case RVR_KEY_D: return "d";
-      case RVR_KEY_E: return "e";
-      case RVR_KEY_F: return "f";
-      case RVR_KEY_G: return "g";
-      case RVR_KEY_H: return "h";
-      case RVR_KEY_I: return "i";
-      case RVR_KEY_J: return "j";
-      case RVR_KEY_K: return "k";
-      case RVR_KEY_L: return "l";
-      case RVR_KEY_M: return "m";
-      case RVR_KEY_N: return "n";
-      case RVR_KEY_O: return "o";
-      case RVR_KEY_P: return "p";
-      case RVR_KEY_Q: return "q";
-      case RVR_KEY_R: return "r";
-      case RVR_KEY_S: return "s";
-      case RVR_KEY_T: return "t";
-      case RVR_KEY_U: return "u";
-      case RVR_KEY_V: return "v";
-      case RVR_KEY_W: return "w";
-      case RVR_KEY_X: return "x";
-      case RVR_KEY_Y: return "y";
-      case RVR_KEY_Z: return "z";
-      case RVR_KEY_0: return "0";
-      case RVR_KEY_1: return "1";
-      case RVR_KEY_2: return "2";
-      case RVR_KEY_3: return "3";
-      case RVR_KEY_4: return "4";
-      case RVR_KEY_5: return "5";
-      case RVR_KEY_6: return "6";
-      case RVR_KEY_7: return "7";
-      case RVR_KEY_8: return "8";
-      case RVR_KEY_9: return "9";
-      case RVR_KEY_SPACE: return "space";
-      default: return "NONE";
    }
 }
 //-------------------------------------

@@ -46,35 +46,38 @@ static RvR_texture *texture_load(const uint8_t *mem, unsigned len);
 
 RvR_texture *RvR_texture_get(uint16_t id)
 {
+   if(textures==NULL)
+      return NULL;
+
    return textures[id];
 }
 
 void RvR_texture_load_begin()
 {
-   if(textures!=NULL&&textures_timeout!=NULL)
-   {
-      for(int i = 0;i<UINT16_MAX;i++)
-         if(textures_timeout[i]!=PERMANENT)
-            textures_timeout[i]--;
-   }
+   if(textures==NULL||textures_timeout==NULL)
+      return;
+
+   for(int i = 0;i<UINT16_MAX;i++)
+      if(textures_timeout[i]!=PERMANENT)
+         textures_timeout[i]--;
 }
 
 void RvR_texture_load_end()
 {
-   if(textures!=NULL&&textures_timeout!=NULL)
+   if(textures==NULL||textures_timeout==NULL)
+      return;
+
+   for(unsigned i = 0;i<UINT16_MAX;i++)
    {
-      for(int i = 0;i<UINT16_MAX;i++)
+      if(textures_timeout[i]<=0)
       {
-         if(textures_timeout[i]<=0)
+         textures_timeout[i] = 0;
+         if(textures[i]!=NULL)
          {
-            textures_timeout[i] = 0;
-            if(textures[i]!=NULL)
-            {
-               RvR_free(textures[i]->data);
-               RvR_free(textures[i]);
-            }
-            textures[i] = NULL;
+            RvR_free(textures[i]->data);
+            RvR_free(textures[i]);
          }
+         textures[i] = NULL;
       }
    }
 }
