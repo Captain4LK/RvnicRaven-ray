@@ -159,36 +159,52 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
          }
 
          h.wall_tex = RvR_ray_map_wall_tex_at(current_square.x,current_square.y);
+         h.fheight = 0;
+         h.cheight = (127*1024)/8;
+         h.floor_tex = 0;
+         h.ceil_tex = 0x43;
 
          switch(h.direction)
          {
          case 0:
             h.texture_coord = RvR_wrap(-1*h.position.x,1024);
-            h.fheight = RvR_ray_map_floor_height_at(current_square.x,current_square.y+1);
-            h.cheight = RvR_ray_map_ceiling_height_at(current_square.x,current_square.y+1);
-            h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x,h.square.y+1);
-            h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x,h.square.y+1);
+            if(RvR_ray_map_inbounds(current_square.x,current_square.y+1))
+            {
+               h.fheight = RvR_ray_map_floor_height_at_us(current_square.x,current_square.y+1);
+               h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x,current_square.y+1);
+               h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x,h.square.y+1);
+               h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x,h.square.y+1);
+            }
             break;
          case 1:
             h.texture_coord = RvR_wrap(h.position.y,1024);
-            h.fheight = RvR_ray_map_floor_height_at(current_square.x+1,current_square.y);
-            h.cheight = RvR_ray_map_ceiling_height_at(current_square.x+1,current_square.y);
-            h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x+1,h.square.y);
-            h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x+1,h.square.y);
+            if(RvR_ray_map_inbounds(current_square.x+1,current_square.y))
+            {
+               h.fheight = RvR_ray_map_floor_height_at_us(current_square.x+1,current_square.y);
+               h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x+1,current_square.y);
+               h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x+1,h.square.y);
+               h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x+1,h.square.y);
+            }
             break;
          case 2:
             h.texture_coord = RvR_wrap(h.position.x,1024);
-            h.fheight = RvR_ray_map_floor_height_at(current_square.x,current_square.y-1);
-            h.cheight = RvR_ray_map_ceiling_height_at(current_square.x,current_square.y-1);
-            h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x,h.square.y-1);
-            h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x,h.square.y-1);
+            if(RvR_ray_map_inbounds(current_square.x,current_square.y-1))
+            {
+               h.fheight = RvR_ray_map_floor_height_at_us(current_square.x,current_square.y-1);
+               h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x,current_square.y-1);
+               h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x,h.square.y-1);
+               h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x,h.square.y-1);
+            }
             break;
          case 3:
             h.texture_coord = RvR_wrap(-1*h.position.y,1024);
-            h.fheight = RvR_ray_map_floor_height_at(current_square.x-1,current_square.y);
-            h.cheight = RvR_ray_map_ceiling_height_at(current_square.x-1,current_square.y);
-            h.floor_tex = RvR_ray_map_floor_tex_at(h.square.x-1,h.square.y);
-            h.ceil_tex = RvR_ray_map_ceil_tex_at(h.square.x-1,h.square.y);
+            if(RvR_ray_map_inbounds(current_square.x-1,current_square.y))
+            {
+               h.fheight = RvR_ray_map_floor_height_at_us(current_square.x-1,current_square.y);
+               h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x-1,current_square.y);
+               h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x-1,h.square.y);
+               h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x-1,h.square.y);
+            }
             break;
          default:
             h.texture_coord = 0;

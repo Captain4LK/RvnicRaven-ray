@@ -513,7 +513,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
          p.tex_coords.x = hit.texture_coord;
 
          //draw floor wall
-         if(f_pos_y>0)  //still pixels left?
+         if(f_pos_y>0&&f_z1_world!=f_z2_world)  //still pixels left?
          {
             limit = ray_draw_wall(f_pos_y,f_z1_screen,f_z2_screen,c_pos_y+1,
                                           RVR_YRES,
@@ -540,7 +540,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
          }               //^ purposfully allow outside screen bounds here
 
          //draw ceiling wall
-         if(c_pos_y<RVR_YRES-1) //pixels left?
+         if(c_pos_y<RVR_YRES-1&&c_z1_world!=c_z2_world) //pixels left?
          {
             limit = ray_draw_wall(c_pos_y,c_z1_screen,c_z2_screen,
                               -1,f_pos_y-1,
@@ -695,7 +695,7 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
 #if RVR_UNROLL
 
    unsigned len = x1-x0;
-   unsigned n = ((len+7)/8);
+   unsigned n = (len+7)/8;
    unsigned s = len&7;
    if(s!=0)
       n--;
@@ -718,6 +718,7 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
    }
 
 #else
+
    for(int x = x0;x<x1;x++)
    {
       *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]];
@@ -725,6 +726,7 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
       ty+=step_y;
       pix++;
    }
+
 #endif
 }
 

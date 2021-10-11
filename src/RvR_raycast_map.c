@@ -316,6 +316,13 @@ void RvR_ray_map_save(const char *path)
    RvR_free(mem);
 }
 
+int RvR_ray_map_inbounds(int16_t x, int16_t y)
+{
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      return 1;
+   return 0;
+}
+
 uint16_t RvR_ray_map_wall_tex_at(int16_t x, int16_t y)
 {
    if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
@@ -354,6 +361,33 @@ RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y)
 
    if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
       v = ray_map.ceiling[(y)*ray_map.width+x]; 
+
+   return (v*1024)/8;
+}
+
+uint16_t RvR_ray_map_wall_tex_at_us(int16_t x, int16_t y)
+{
+   return ray_map.wall_tex[y*ray_map.width+x]; 
+}
+
+uint16_t RvR_ray_map_floor_tex_at_us(int16_t x, int16_t y)
+{
+   return ray_map.floor_tex[y*ray_map.width+x]; 
+}
+
+uint16_t RvR_ray_map_ceil_tex_at_us(int16_t x, int16_t y)
+{
+   return ray_map.ceil_tex[y*ray_map.width+x]; 
+}
+
+RvR_fix22 RvR_ray_map_floor_height_at_us(int16_t x, int16_t y)
+{
+   return (ray_map.floor[y*ray_map.width+x]*1024)/8;
+}
+
+RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y)
+{
+   RvR_fix22 v = ray_map.ceiling[(y)*ray_map.width+x]; 
 
    return (v*1024)/8;
 }

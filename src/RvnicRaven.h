@@ -352,11 +352,18 @@ void RvR_ray_map_save(const char *path);
 int RvR_ray_map_sprite_count();
 RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index);
 
+int RvR_ray_map_inbounds(int16_t x, int16_t y);
 uint16_t RvR_ray_map_wall_tex_at(int16_t x, int16_t y);
 uint16_t RvR_ray_map_floor_tex_at(int16_t x, int16_t y);
 uint16_t RvR_ray_map_ceil_tex_at(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y);
+
+uint16_t RvR_ray_map_wall_tex_at_us(int16_t x, int16_t y);
+uint16_t RvR_ray_map_floor_tex_at_us(int16_t x, int16_t y);
+uint16_t RvR_ray_map_ceil_tex_at_us(int16_t x, int16_t y);
+RvR_fix22 RvR_ray_map_floor_height_at_us(int16_t x, int16_t y);
+RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y);
 
 void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex);
 void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear);
