@@ -79,7 +79,7 @@ static void ray_plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
 static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, uint16_t texture);
 static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, ray_pixel_info *pixel_info);
 static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, int16_t increment, ray_pixel_info *ray_pixel_info);
-static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16_t x, RvR_ray ray);
+static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
 static ray_pixel_info ray_map_to_screen(RvR_vec3 world_position);
 
 static void ray_sprite_stack_push(ray_sprite s);
@@ -415,7 +415,7 @@ static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, R
    return limit;
 }
 
-static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16_t x, RvR_ray ray)
+static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
 {
    //last written Y position, can never go backwards
    RvR_fix22 f_pos_y = RVR_YRES;
@@ -434,9 +434,9 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t hit_count, uint16
    int limit_f = 0;
 
    //we'll be simulatenously drawing the floor and the ceiling now  
-   for(RvR_fix22 j = 0;j<=hit_count;++j)
+   for(RvR_fix22 j = 0;j<RVR_RAY_MAX_STEPS;++j)
    {                    //^ = add extra iteration for horizon plane
-      int8_t drawing_horizon = j==hit_count;
+      int8_t drawing_horizon = j==(RVR_RAY_MAX_STEPS-1);
 
       RvR_ray_hit_result hit;
       RvR_fix22 distance = 1;

@@ -1,0 +1,10 @@
+{
+   "version": 1,
+   "lumps":
+   [
+      { "name": "PAL00000", "type": "PAL", "path": "pal00000.cop" },
+      { "name": "TEX16640", "type": "TEX", "path": "tex16640.rvr" },
+      { "name": "TEX16641", "type": "TEX", "path": "tex16641.rvr" },
+      { "name": "TEX61440", "type": "TEX", "path": "tex61440.rvr" }
+   ]
+}

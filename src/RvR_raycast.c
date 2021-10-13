@@ -271,7 +271,7 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
       
       RvR_ray_cast_multi_hit(r,hits,&hit_count);
 
-      column(hits,hit_count,i,r);
+      column(hits,i,r);
 
       current_dx+=dx;
       current_dy+=dy;

@@ -201,7 +201,10 @@ void *RvR_decompress(FILE *in, int32_t *length);
 void *RvR_decompress_path(const char *path, int32_t *length);
 void *RvR_mem_decompress(void *mem, int32_t length_in, int32_t *length_out);
 
+void RvR_draw_clear(uint8_t index);
 void RvR_draw_texture(RvR_texture *t, int x, int y);
+void RvR_draw_texture2(RvR_texture *t, int x, int y);
+void RvR_draw_rectangle_fill(int x, int y, int width, int height, uint8_t index);
 void RvR_draw_set_font(RvR_texture *t);
 void RvR_draw_string(int x, int y, int scale, const char *text, uint8_t index);
 void RvR_draw(int x, int y, uint8_t index); //do not use, access framebuffer directly if possible
@@ -321,7 +324,7 @@ typedef struct
    RvR_vec3 pos;
 }RvR_ray_map_sprite;
 
-typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t hit_count, uint16_t x, RvR_ray ray);
+typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
 
 //RvnicRaven raycast types end
 //-------------------------------------

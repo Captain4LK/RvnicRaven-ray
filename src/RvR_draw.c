@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 //-------------------------------------
 
 //Internal includes
@@ -32,6 +33,11 @@ static RvR_texture *draw_font = NULL;
 //-------------------------------------
 
 //Function implementations
+
+void RvR_draw_clear(uint8_t index)
+{
+   memset(RvR_core_framebuffer(),index,RVR_XRES*RVR_YRES);
+}
 
 void RvR_draw_texture(RvR_texture *t, int x, int y)
 {
@@ -64,6 +70,88 @@ void RvR_draw_texture(RvR_texture *t, int x, int y)
    for(int y1 = draw_start_y;y1<draw_end_y;y1++,dst+=dst_step,src+=src_step)
       for(int x1 = draw_start_x;x1<draw_end_x;x1++,src++,dst++)
          *dst = *src?*src:*dst;
+}
+
+void RvR_draw_texture2(RvR_texture *t, int x, int y)
+{
+   //This function is awfull...
+   if(t==NULL)
+      return;
+
+   //Clip source texture
+   int draw_start_y = 0;
+   int draw_start_x = 0;
+   int draw_end_x = t->width*2;
+   int draw_end_y = t->height*2;
+   if(x<0)
+      draw_start_x = -x;
+   if(y<0)
+      draw_start_y = -y;
+   if(x+draw_end_x>RVR_XRES)
+      draw_end_x = t->width*2+(RVR_XRES-x-draw_end_x);
+   if(y+draw_end_y>RVR_YRES)
+      draw_end_y = t->height*2+(RVR_YRES-y-draw_end_y);
+
+   //Clip dst sprite
+   x = x<0?0:x;
+   y = y<0?0:y;
+
+   const uint8_t *src = &t->data[draw_start_x/2+(draw_start_y/2)*t->width];
+   uint8_t *dst = &RvR_core_framebuffer()[x+y*RVR_XRES];
+   int src_step = -((draw_end_x-draw_start_x)/2)+t->width;
+   int dst_step = RVR_XRES-(draw_end_x-draw_start_x);
+   int next = !(draw_start_x&1);
+    
+   for(int y1 = draw_start_y;y1<draw_end_y;y1++,dst+=dst_step)
+   {
+      const uint8_t *src_old = src;
+      uint8_t *dst_old = dst;
+
+      for(int x1 = draw_start_x;x1<draw_end_x;x1+=2,src++,dst+=2)
+         *dst = *src?*src:*dst;
+      dst = dst_old+1;
+      src = src_old;
+      for(int x1 = draw_start_x+1;x1<draw_end_x;x1+=2,src++,dst+=2)
+         *dst = *src?*src:*dst;
+      //What?
+      //src+=t->width;
+      dst--;
+
+      if(next)
+         src = src_old;
+      else
+         src+=src_step;
+      next = !next;
+   }
+}
+
+void RvR_draw_rectangle_fill(int x, int y, int width, int height, uint8_t index)
+{
+   //Clip src rect
+   int draw_start_y = 0;
+   int draw_start_x = 0;
+   int draw_end_x = width;
+   int draw_end_y = height;
+
+   if(x<0)
+      draw_start_x = -x;
+   if(y<0)
+      draw_start_y = -y;
+   if(x+draw_end_x>RVR_XRES)
+      draw_end_x = width+(RVR_XRES-x-draw_end_x);
+   if(y+draw_end_y>RVR_YRES)
+      draw_end_y = height+(RVR_YRES-y-draw_end_y);
+    
+   //Clip dst rect
+   x = x<0?0:x;
+   y = y<0?0:y;
+
+   uint8_t *dst = &RvR_core_framebuffer()[x+y*RVR_XRES];
+   int dst_step = RVR_XRES-(draw_end_x-draw_start_x);
+    
+   for(int y1 = draw_start_y;y1<draw_end_y;y1++,dst+=dst_step)
+      for(int x1 = draw_start_x;x1<draw_end_x;x1++,dst++)
+         *dst = index;
 }
 
 void RvR_draw_set_font(RvR_texture *t)
