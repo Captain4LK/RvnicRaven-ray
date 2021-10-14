@@ -109,7 +109,6 @@ static void mode_title()
          break;
       case 4:
          RvR_core_quit();
-         //sound_play(SOUND_PISTOL);
          break;
       }
    }
