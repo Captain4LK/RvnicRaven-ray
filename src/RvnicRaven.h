@@ -191,6 +191,8 @@ int RvR_core_gamepad_down(int index, RvR_gamepad_button button);
 int RvR_core_gamepad_pressed(int index, RvR_gamepad_button button);
 int RvR_core_gamepad_released(int index, RvR_gamepad_button button);
 void RvR_core_mouse_relative_pos(int *x, int *y);
+void RvR_core_text_input_start(char *text, int max_length);
+void RvR_core_text_input_end();
 
 uint8_t *RvR_core_framebuffer();
 
@@ -310,7 +312,8 @@ typedef struct
    RvR_vec2 square;
    RvR_fix22 distance;
    uint8_t direction;
-   uint16_t wall_tex;
+   uint16_t wall_ftex;
+   uint16_t wall_ctex;
    uint16_t floor_tex;
    uint16_t ceil_tex;
    RvR_fix22 fheight;
@@ -356,13 +359,16 @@ int RvR_ray_map_sprite_count();
 RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index);
 
 int RvR_ray_map_inbounds(int16_t x, int16_t y);
-uint16_t RvR_ray_map_wall_tex_at(int16_t x, int16_t y);
+uint16_t RvR_ray_map_sky_tex();
+uint16_t RvR_ray_map_wall_ftex_at(int16_t x, int16_t y);
+uint16_t RvR_ray_map_wall_ctex_at(int16_t x, int16_t y);
 uint16_t RvR_ray_map_floor_tex_at(int16_t x, int16_t y);
 uint16_t RvR_ray_map_ceil_tex_at(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y);
 
-uint16_t RvR_ray_map_wall_tex_at_us(int16_t x, int16_t y);
+uint16_t RvR_ray_map_wall_ftex_at_us(int16_t x, int16_t y);
+uint16_t RvR_ray_map_wall_ctex_at_us(int16_t x, int16_t y);
 uint16_t RvR_ray_map_floor_tex_at_us(int16_t x, int16_t y);
 uint16_t RvR_ray_map_ceil_tex_at_us(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_floor_height_at_us(int16_t x, int16_t y);

@@ -45,7 +45,8 @@ typedef struct
 //-------------------------------------
 
 //Variables
-static uint16_t *level_wall_tex = NULL;
+static uint16_t *level_wall_ftex = NULL;
+static uint16_t *level_wall_ctex = NULL;
 static uint16_t *level_floor_tex = NULL;
 static uint16_t *level_ceil_tex = NULL;
 static int8_t *level_floor = NULL;
@@ -53,6 +54,7 @@ static int8_t *level_ceiling = NULL;
 static uint16_t level_width = 0;
 static uint16_t level_height = 0;
 static uint8_t level_floor_color = 23;
+static uint16_t level_sky_tex = 0;
 static uint32_t level_sprite_count = 0;
 static Sprite *level_sprites = NULL;
 //-------------------------------------
@@ -99,7 +101,8 @@ int main(int argc, char **argv)
 
    HLH_json5_root *json_data = HLH_json_parse_file(path_project);
    HLH_json5_root *json = HLH_json_parse_file(path_level);
-   HLH_json5 *wall_tex = NULL;
+   HLH_json5 *wall_ftex = NULL;
+   HLH_json5 *wall_ctex = NULL;
    HLH_json5 *floor_tex = NULL;
    HLH_json5 *ceil_tex = NULL;
    HLH_json5 *ceilings = NULL;
@@ -123,8 +126,10 @@ int main(int argc, char **argv)
          grid_size = HLH_json_get_object_integer(layer_instance,"__gridSize",16);
       }
 
-      if(strcmp(identifier,"Wall_tex")==0)
-         wall_tex = HLH_json_get_object(layer_instance,"gridTiles");
+      if(strcmp(identifier,"Wall_ftex")==0)
+         wall_ftex = HLH_json_get_object(layer_instance,"gridTiles");
+      if(strcmp(identifier,"Wall_ctex")==0)
+         wall_ctex = HLH_json_get_object(layer_instance,"gridTiles");
       if(strcmp(identifier,"Floor_tex")==0)
          floor_tex = HLH_json_get_object(layer_instance,"gridTiles");
       if(strcmp(identifier,"Ceil_tex")==0)
@@ -150,11 +155,14 @@ int main(int argc, char **argv)
       const char *identifier = HLH_json_get_object_string(field_instance,"__identifier","(NULL)");
       if(strcmp(identifier,"floor_color")==0)
          level_floor_color = HLH_json_get_object_integer(field_instance,"__value",0);
+      if(strcmp(identifier,"sky_tex")==0)
+         level_sky_tex = HLH_json_get_object_integer(field_instance,"__value",0);
    }
    //-------------------------------------
 
    //Allocate memory for map data
-   level_wall_tex = calloc(level_width*level_height,sizeof(*level_wall_tex));
+   level_wall_ftex = calloc(level_width*level_height,sizeof(*level_wall_ftex));
+   level_wall_ctex = calloc(level_width*level_height,sizeof(*level_wall_ctex));
    level_floor_tex = calloc(level_width*level_height,sizeof(*level_floor_tex));
    level_ceil_tex = calloc(level_width*level_height,sizeof(*level_ceil_tex));
    level_floor = calloc(level_width*level_height,sizeof(*level_floor));
@@ -162,12 +170,19 @@ int main(int argc, char **argv)
    //-------------------------------------
 
    //Read textures
-   for(int i = 0;i<HLH_json_get_array_size(wall_tex);i++)
+   for(int i = 0;i<HLH_json_get_array_size(wall_ftex);i++)
    {
-      HLH_json5 *tile = HLH_json_get_array_item(wall_tex,i);
+      HLH_json5 *tile = HLH_json_get_array_item(wall_ftex,i);
       int index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),1,0)/grid_size)*level_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),0,0)/grid_size);
       int tex_index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),1,0)/tile_dim)*tileset_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),0,0)/tile_dim);
-      level_wall_tex[index] = tex_index;
+      level_wall_ftex[index] = tex_index;
+   }
+   for(int i = 0;i<HLH_json_get_array_size(wall_ctex);i++)
+   {
+      HLH_json5 *tile = HLH_json_get_array_item(wall_ctex,i);
+      int index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),1,0)/grid_size)*level_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),0,0)/grid_size);
+      int tex_index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),1,0)/tile_dim)*tileset_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),0,0)/tile_dim);
+      level_wall_ctex[index] = tex_index;
    }
    for(int i = 0;i<HLH_json_get_array_size(floor_tex);i++)
    {
@@ -236,7 +251,8 @@ int main(int argc, char **argv)
       map_write(path_out);
    //-------------------------------------
 
-   free(level_wall_tex);
+   free(level_wall_ftex);
+   free(level_wall_ctex);
    free(level_floor_tex);
    free(level_ceil_tex);
    free(level_floor);
@@ -258,7 +274,9 @@ static void map_write(const char *path)
    size+=4; //level_height
    size+=4; //level_sprite_count
    size+=1; //level_floor_color
-   size+=level_width*level_height*2; //level_wall_tex
+   size+=2; //level_sky_tex
+   size+=level_width*level_height*2; //level_fwall_tex
+   size+=level_width*level_height*2; //level_cwall_tex
    size+=level_width*level_height*2; //level_floor_tex
    size+=level_width*level_height*2; //level_ceil_tex
    size+=level_width*level_height; //level_floor
@@ -278,8 +296,12 @@ static void map_write(const char *path)
    //Write floor color
    *(uint8_t *)(mem+pos) = level_floor_color; pos+=1;
 
+   //Write sky texture
+   *(uint16_t *)(mem+pos) = level_sky_tex; pos+=2;
+
    //Write texture, floor and ceiling
-   memcpy(mem+pos,level_wall_tex,level_width*level_height*2); pos+=level_width*level_height*2;
+   memcpy(mem+pos,level_wall_ftex,level_width*level_height*2); pos+=level_width*level_height*2;
+   memcpy(mem+pos,level_wall_ctex,level_width*level_height*2); pos+=level_width*level_height*2;
    memcpy(mem+pos,level_floor_tex,level_width*level_height*2); pos+=level_width*level_height*2;
    memcpy(mem+pos,level_ceil_tex,level_width*level_height*2); pos+=level_width*level_height*2;
    memcpy(mem+pos,level_floor,level_width*level_height); pos+=level_width*level_height;

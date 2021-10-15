@@ -509,6 +509,22 @@ void RvR_backend_mouse_get_relative_pos(int *x, int *y)
    *y = mouse_y_rel;
 }
 
+void RvR_backend_text_input_start(char *text, int max_length)
+{
+   text_input = text;
+   text_input_active = 1;
+   text_input_max = max_length;
+
+   SDL_StartTextInput();
+}
+
+void RvR_backend_text_input_end()
+{
+   text_input_active = 0;
+   
+   SDL_StopTextInput();
+}
+
 uint8_t *RvR_backend_framebuffer()
 {
    return framebuffer;

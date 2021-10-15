@@ -28,7 +28,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 static struct
 {
-   uint16_t *wall_tex;
+   uint16_t *wall_ftex;
+   uint16_t *wall_ctex;
    uint16_t *floor_tex;
    uint16_t *ceil_tex;
    int8_t *floor;
@@ -36,11 +37,13 @@ static struct
    uint16_t width;
    uint16_t height;
    uint8_t floor_color;
+   uint16_t sky_tex;
 }ray_map = {0};
 
 static struct
 {
-   uint16_t *wall_tex;
+   uint16_t *wall_ftex;
+   uint16_t *wall_ctex;
    uint16_t *floor_tex;
    uint16_t *ceil_tex;
    int8_t *floor;
@@ -48,6 +51,7 @@ static struct
    uint16_t width;
    uint16_t height;
    uint8_t floor_color;
+   uint16_t sky_tex;
 
    RvR_ray_map_sprite *sprites;
    uint32_t sprite_count;
@@ -68,18 +72,21 @@ void RvR_ray_map_create(uint16_t width, uint16_t height)
 
    ray_map_cache.width = width;
    ray_map_cache.height = height;
-   ray_map_cache.wall_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_tex));
+   ray_map_cache.wall_ftex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_ftex));
+   ray_map_cache.wall_ctex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_ctex));
    ray_map_cache.floor_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor_tex));
    ray_map_cache.ceil_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceil_tex));
    ray_map_cache.floor = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor));
    ray_map_cache.ceiling = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceiling));
-   memset(ray_map_cache.wall_tex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_tex));
+   memset(ray_map_cache.wall_ftex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_ftex));
+   memset(ray_map_cache.wall_ctex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_ctex));
    memset(ray_map_cache.floor_tex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor_tex));
    memset(ray_map_cache.ceil_tex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceil_tex));
    memset(ray_map_cache.floor,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor));
    memset(ray_map_cache.ceiling,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceiling));
 
    ray_map_cache.floor_color = 23;
+   ray_map_cache.sky_tex = 0;
 
    for(int y = 1;y<ray_map_cache.height-1;y++)
    {
@@ -97,8 +104,10 @@ void RvR_ray_map_create(uint16_t width, uint16_t height)
 
 static void ray_map_free_editor()
 {
-   if(ray_map_cache.wall_tex!=NULL)
-      RvR_free(ray_map_cache.wall_tex);
+   if(ray_map_cache.wall_ftex!=NULL)
+      RvR_free(ray_map_cache.wall_ftex);
+   if(ray_map_cache.wall_ctex!=NULL)
+      RvR_free(ray_map_cache.wall_ctex);
    if(ray_map_cache.floor_tex!=NULL)
       RvR_free(ray_map_cache.floor_tex);
    if(ray_map_cache.ceil_tex!=NULL)
@@ -109,7 +118,8 @@ static void ray_map_free_editor()
       RvR_free(ray_map_cache.ceiling);
    if(ray_map_cache.sprites!=NULL)
       RvR_free(ray_map_cache.sprites);
-   ray_map_cache.wall_tex = NULL;
+   ray_map_cache.wall_ftex = NULL;
+   ray_map_cache.wall_ctex = NULL;
    ray_map_cache.floor = NULL;
    ray_map_cache.ceiling = NULL;
    ray_map_cache.width = 0;
@@ -119,8 +129,10 @@ static void ray_map_free_editor()
 
 static void ray_map_free_level()
 {
-   if(ray_map.wall_tex!=NULL)
-      RvR_free(ray_map.wall_tex);
+   if(ray_map.wall_ftex!=NULL)
+      RvR_free(ray_map.wall_ftex);
+   if(ray_map.wall_ctex!=NULL)
+      RvR_free(ray_map.wall_ctex);
    if(ray_map.floor_tex!=NULL)
       RvR_free(ray_map.floor_tex);
    if(ray_map.ceil_tex!=NULL)
@@ -129,7 +141,8 @@ static void ray_map_free_level()
       RvR_free(ray_map.floor);
    if(ray_map.ceiling!=NULL)
       RvR_free(ray_map.ceiling);
-   ray_map.wall_tex = NULL;
+   ray_map.wall_ftex = NULL;
+   ray_map.wall_ctex = NULL;
    ray_map.floor = NULL;
    ray_map.ceiling = NULL;
    ray_map.width = 0;
@@ -139,19 +152,21 @@ static void ray_map_free_level()
 void RvR_ray_map_reset()
 {
    if(ray_map.width!=ray_map_cache.width||ray_map.height!=ray_map_cache.height|| //Wrong dimensions
-      ray_map.floor==NULL||ray_map.ceiling==NULL||ray_map.wall_tex==NULL //Not allocated yet
+      ray_map.floor==NULL||ray_map.ceiling==NULL||ray_map.wall_ftex==NULL||ray_map.wall_ctex==NULL //Not allocated yet
       ) 
    {
       ray_map_free_level();
 
       ray_map.width = ray_map_cache.width;
       ray_map.height = ray_map_cache.height;
-      ray_map.wall_tex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.wall_tex));
+      ray_map.wall_ftex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.wall_ftex));
+      ray_map.wall_ctex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.wall_ctex));
       ray_map.floor_tex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.floor_tex));
       ray_map.ceil_tex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.ceil_tex));
       ray_map.floor = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.floor));
       ray_map.ceiling = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.ceiling));
-      memset(ray_map.wall_tex,0,ray_map.width*ray_map.height*sizeof(*ray_map.wall_tex));
+      memset(ray_map.wall_ftex,0,ray_map.width*ray_map.height*sizeof(*ray_map.wall_ftex));
+      memset(ray_map.wall_ctex,0,ray_map.width*ray_map.height*sizeof(*ray_map.wall_ctex));
       memset(ray_map.floor_tex,0,ray_map.width*ray_map.height*sizeof(*ray_map.floor_tex));
       memset(ray_map.ceil_tex,0,ray_map.width*ray_map.height*sizeof(*ray_map.ceil_tex));
       memset(ray_map.floor,0,ray_map.width*ray_map.height*sizeof(*ray_map.floor));
@@ -160,8 +175,10 @@ void RvR_ray_map_reset()
 
    //Misc
    ray_map.floor_color = ray_map_cache.floor_color;
+   ray_map.sky_tex = ray_map_cache.sky_tex;
 
-   memcpy(ray_map.wall_tex,ray_map_cache.wall_tex,sizeof(*ray_map_cache.wall_tex)*ray_map_cache.width*ray_map_cache.height);
+   memcpy(ray_map.wall_ftex,ray_map_cache.wall_ftex,sizeof(*ray_map_cache.wall_ftex)*ray_map_cache.width*ray_map_cache.height);
+   memcpy(ray_map.wall_ctex,ray_map_cache.wall_ctex,sizeof(*ray_map_cache.wall_ctex)*ray_map_cache.width*ray_map_cache.height);
    memcpy(ray_map.floor_tex,ray_map_cache.floor_tex,sizeof(*ray_map_cache.floor_tex)*ray_map_cache.width*ray_map_cache.height);
    memcpy(ray_map.ceil_tex,ray_map_cache.ceil_tex,sizeof(*ray_map_cache.ceil_tex)*ray_map_cache.width*ray_map_cache.height);
    memcpy(ray_map.floor,ray_map_cache.floor,sizeof(*ray_map_cache.floor)*ray_map_cache.width*ray_map_cache.height);
@@ -170,10 +187,11 @@ void RvR_ray_map_reset()
    //Textures
    RvR_texture_load_begin();
    RvR_texture_load(0); //Texture 0 is always loaded, since it's used as a fallback texture
-   RvR_texture_load(0x5300); //Sprite test texture
+   RvR_texture_load(ray_map.sky_tex); //Sky texture is always used
    for(int i = 0;i<ray_map.width*ray_map.height;i++)
    {
-      RvR_texture_load(ray_map.wall_tex[i]);
+      RvR_texture_load(ray_map.wall_ftex[i]);
+      RvR_texture_load(ray_map.wall_ctex[i]);
       RvR_texture_load(ray_map.floor_tex[i]);
       RvR_texture_load(ray_map.ceil_tex[i]);
    }
@@ -240,13 +258,18 @@ void RvR_ray_map_load_mem(uint8_t *mem, int len)
    //Read floor color
    ray_map_cache.floor_color = *(uint8_t *)(mem+pos); pos+=1;
 
+   //Read sky texture
+   ray_map_cache.sky_tex = *(uint16_t *)(mem+pos); pos+=2;
+
    //Read texture, floor and ceiling
-   ray_map_cache.wall_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_tex));
+   ray_map_cache.wall_ftex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_ftex));
+   ray_map_cache.wall_ctex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_ctex));
    ray_map_cache.floor_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor_tex));
    ray_map_cache.ceil_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceil_tex));
    ray_map_cache.floor = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor));
    ray_map_cache.ceiling = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceiling));
-   memcpy(ray_map_cache.wall_tex,mem+pos,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
+   memcpy(ray_map_cache.wall_ftex,mem+pos,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
+   memcpy(ray_map_cache.wall_ctex,mem+pos,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
    memcpy(ray_map_cache.floor_tex,mem+pos,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
    memcpy(ray_map_cache.ceil_tex,mem+pos,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
    memcpy(ray_map_cache.floor,mem+pos,ray_map_cache.width*ray_map_cache.height); pos+=ray_map_cache.width*ray_map_cache.height;
@@ -272,7 +295,9 @@ void RvR_ray_map_save(const char *path)
    size+=2; //ray_map.width
    size+=2; //ray_map.height
    size+=1; //ray_map.floor_color
-   size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.wall_tex
+   size+=2; //ray_map.sky_tex
+   size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.wall_ftex
+   size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.wall_ctex
    size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.floor_tex
    size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.ceil_tex
    size+=ray_map_cache.width*ray_map_cache.height; //ray_map.floor
@@ -291,8 +316,12 @@ void RvR_ray_map_save(const char *path)
    //Write floor color
    *(uint8_t *)(mem+pos) = ray_map_cache.floor_color; pos+=1;
 
+   //Write sky texture
+   *(uint16_t *)(mem+pos) = ray_map_cache.sky_tex; pos+=1;
+
    //Write texture, floor and ceiling
-   memcpy(mem+pos,ray_map_cache.wall_tex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
+   memcpy(mem+pos,ray_map_cache.wall_ftex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
+   memcpy(mem+pos,ray_map_cache.wall_ctex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
    memcpy(mem+pos,ray_map_cache.floor_tex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
    memcpy(mem+pos,ray_map_cache.ceil_tex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
    memcpy(mem+pos,ray_map_cache.floor,ray_map_cache.width*ray_map_cache.height); pos+=ray_map_cache.width*ray_map_cache.height;
@@ -323,10 +352,23 @@ int RvR_ray_map_inbounds(int16_t x, int16_t y)
    return 0;
 }
 
-uint16_t RvR_ray_map_wall_tex_at(int16_t x, int16_t y)
+uint16_t RvR_ray_map_sky_tex()
+{
+   return ray_map.sky_tex;
+}
+
+uint16_t RvR_ray_map_wall_ftex_at(int16_t x, int16_t y)
 {
    if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
-      return ray_map.wall_tex[y*ray_map.width+x]; 
+      return ray_map.wall_ftex[y*ray_map.width+x]; 
+
+   return 0;
+}
+
+uint16_t RvR_ray_map_wall_ctex_at(int16_t x, int16_t y)
+{
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      return ray_map.wall_ctex[y*ray_map.width+x]; 
 
    return 0;
 }
@@ -344,7 +386,7 @@ uint16_t RvR_ray_map_ceil_tex_at(int16_t x, int16_t y)
    if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
       return ray_map.ceil_tex[y*ray_map.width+x]; 
 
-   return 0x43;
+   return ray_map.sky_tex;
 }
 
 RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y)
@@ -365,9 +407,14 @@ RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y)
    return (v*1024)/8;
 }
 
-uint16_t RvR_ray_map_wall_tex_at_us(int16_t x, int16_t y)
+uint16_t RvR_ray_map_wall_ftex_at_us(int16_t x, int16_t y)
 {
-   return ray_map.wall_tex[y*ray_map.width+x]; 
+   return ray_map.wall_ftex[y*ray_map.width+x]; 
+}
+
+uint16_t RvR_ray_map_wall_ctex_at_us(int16_t x, int16_t y)
+{
+   return ray_map.wall_ctex[y*ray_map.width+x]; 
 }
 
 uint16_t RvR_ray_map_floor_tex_at_us(int16_t x, int16_t y)

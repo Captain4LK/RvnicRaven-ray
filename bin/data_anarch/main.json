@@ -3,6 +3,7 @@
    "lumps":
    [
       { "name": "PAL00000", "type": "PAL", "path": "pal00000.cop" },
+      { "name": "MAP00000", "type": "MAP", "path": "map00000.rvr" },
       { "name": "TEX00000", "type": "TEX", "path": "tex00000.rvr" },
       { "name": "TEX00001", "type": "TEX", "path": "tex00001.rvr" },
       { "name": "TEX00002", "type": "TEX", "path": "tex00002.rvr" },

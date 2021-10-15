@@ -123,4 +123,14 @@ uint8_t *RvR_core_framebuffer()
 {
    return RvR_backend_framebuffer();
 }
+
+void RvR_core_text_input_start(char *text, int max_length)
+{
+   RvR_backend_text_input_start(text,max_length);
+}
+
+void RvR_core_text_input_end()
+{
+   RvR_backend_text_input_end();
+}
 //-------------------------------------

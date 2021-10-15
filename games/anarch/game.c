@@ -65,7 +65,7 @@ void game_map_load()
       e->next = ai_ents;
       ai_ents = e;
       ai_init(e,u16_to_type(s->type));
-      sprite_load(u16_to_type(s->type));
+      //sprite_load(u16_to_type(s->type));
       e->pos = s->pos;
       if(u16_to_type(s->type)==AI_TYPE_PLAYER)
          player.entity = e;
@@ -108,7 +108,7 @@ void game_update()
 
    //Graphics
    RvR_ray_draw((RvR_vec3){player.entity->pos.x,player.entity->pos.y,player.entity->pos.z},player.entity->direction,player.shear);
-   RvR_draw_texture(player_sprite,(RVR_XRES-player_sprite->width)/2,RVR_YRES-player_sprite->height);
+   //RvR_draw_texture(player_sprite,(RVR_XRES-player_sprite->width)/2,RVR_YRES-player_sprite->height);
 }
 
 static AI_type u16_to_type(uint16_t type)

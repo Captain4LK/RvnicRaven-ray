@@ -163,12 +163,12 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
          continue;
 
       //Sky texture is rendered differently (vertical collumns instead of horizontal ones)
-      if(pl->tex==0x43)
+      if(pl->tex==RvR_ray_map_sky_tex())
       {
          RvR_fix22 angle_step = (256*1024)/RVR_XRES;
          RvR_fix22 tex_step = (1024*128-1)/RVR_YRES;
 
-         RvR_texture *texture = RvR_texture_get(0x43);
+         RvR_texture *texture = RvR_texture_get(RvR_ray_map_sky_tex());
          RvR_fix22 angle = (RvR_ray_get_angle())*1024;
          angle+=(pl->min-1)*angle_step;
 
@@ -301,29 +301,28 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    int16_t limit = RvR_clamp(y_to,limit0,limit1);
 
    //Sky texture is handled differently and instead added as a plane
-   if(pixel_info->hit.wall_tex==0x43)
+   if(increment==-1&&pixel_info->hit.wall_ftex==RvR_ray_map_sky_tex())
    {
-      if(increment==-1)
-      {
-         RvR_fix22 f_start = limit;
-         RvR_fix22 f_end = y_current+increment;
-         if(f_end<f_start)
-            return limit;
-         ray_plane_add(pixel_info->is_horizon?-RvR_fix22_infinity:pixel_info->hit.fheight,pixel_info->hit.floor_tex,pixel_info->position.x,f_start,f_end);
-      }
-      else if(increment==1)
-      {
-         RvR_fix22 c_start = y_current+increment;
-         RvR_fix22 c_end = limit;
-         if(c_end<c_start)
-            return limit;
-         ray_plane_add(pixel_info->is_horizon?RvR_fix22_infinity:pixel_info->hit.cheight,pixel_info->hit.ceil_tex,pixel_info->position.x,c_start,c_end);
-      }
+      RvR_fix22 f_start = limit;
+      RvR_fix22 f_end = y_current+increment;
+      if(f_end<f_start)
+         return limit;
+      ray_plane_add(pixel_info->is_horizon?-RvR_fix22_infinity:pixel_info->hit.fheight,pixel_info->hit.wall_ftex,pixel_info->position.x,f_start,f_end);
+
+      return limit;
+   }
+   if(increment==1&&pixel_info->hit.wall_ctex==RvR_ray_map_sky_tex())
+   {
+      RvR_fix22 c_start = y_current+increment;
+      RvR_fix22 c_end = limit;
+      if(c_end<c_start)
+         return limit;
+      ray_plane_add(pixel_info->is_horizon?RvR_fix22_infinity:pixel_info->hit.cheight,pixel_info->hit.wall_ctex,pixel_info->position.x,c_start,c_end);
 
       return limit;
    }
 
-   RvR_texture *texture = RvR_texture_get(pixel_info->hit.wall_tex);
+   RvR_texture *texture = RvR_texture_get(0);
    height = RvR_abs(height);
    RvR_fix22 wall_length = RvR_non_zero(RvR_abs(y_to-y_from-1));
    RvR_fix22 wall_position = RvR_abs(y_from-y_current)-increment;
@@ -335,10 +334,12 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    {
       texture_coord_scaled = height_scaled-(wall_position*coord_step_scaled);
       coord_step_scaled*=-1;
+      texture = RvR_texture_get(pixel_info->hit.wall_ftex);
    }
    else if(increment==1)
    {
       texture_coord_scaled = RvR_zero_clamp(wall_position*coord_step_scaled);
+      texture = RvR_texture_get(pixel_info->hit.wall_ctex);
    }
 
    uint8_t * restrict pix = &RvR_core_framebuffer()[(y_current+increment)*RVR_XRES+pixel_info->position.x];
@@ -476,9 +477,10 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
 
          p.hit.direction = 0;
          p.hit.texture_coord = 0;
-         p.hit.wall_tex = 0;
+         p.hit.wall_ftex = 0;
+         p.hit.wall_ctex = 0;
          //p.hit.floor_tex = 0;
-         p.hit.ceil_tex = 0x43;
+         p.hit.ceil_tex = RvR_ray_map_sky_tex();
       }
 
       RvR_fix22 limit;

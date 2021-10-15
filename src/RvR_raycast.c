@@ -157,12 +157,21 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
 
 #undef CORRECT
          }
-
-         h.wall_tex = RvR_ray_map_wall_tex_at(current_square.x,current_square.y);
+         
+         if(RvR_ray_map_inbounds(current_square.x,current_square.y))
+         {
+            h.wall_ftex = RvR_ray_map_wall_ftex_at_us(current_square.x,current_square.y);
+            h.wall_ctex = RvR_ray_map_wall_ctex_at_us(current_square.x,current_square.y);
+         }
+         else
+         {
+            h.wall_ftex = 0;
+            h.wall_ctex = 0;
+         }
          h.fheight = 0;
          h.cheight = (127*1024)/8;
          h.floor_tex = 0;
-         h.ceil_tex = 0x43;
+         h.ceil_tex = RvR_ray_map_sky_tex();
 
          switch(h.direction)
          {
