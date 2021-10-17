@@ -150,6 +150,7 @@ int main(int argc, char **argv)
 
    //Read layers
    HLH_json5 *layers = HLH_json_get_object(&json->root,"layers");
+   HLH_json5 *layer_entity = NULL;
    for(int i = 0;i<HLH_json_get_array_size(layers);i++)
    {
       HLH_json5 *layer = HLH_json_get_array_item(layers,i);
@@ -180,15 +181,33 @@ int main(int argc, char **argv)
       if(strcmp(name,"floor_height")==0)
          for(int j = 0;j<level_width*level_height;j++)
             level_floor[j] = HLH_json_get_array_integer(array,j,0)-offset_height-128;
+
+      if(strcmp(name,"entities")==0)
+         layer_entity = HLH_json_get_object(layer,"objects");
    }
 
-   level_sprite_count = 1;
-   level_sprites = malloc(sizeof(*level_sprites)*level_sprite_count);
-   memset(level_sprites,0,sizeof(*level_sprites)*level_sprite_count);
-   level_sprites[0].type = 14;
-   level_sprites[0].pos.x = 1024*52;
-   level_sprites[0].pos.y = 1024*55;
-   level_sprites[0].pos.z = 0;
+   //Read sprites
+   level_sprite_count = HLH_json_get_array_size(layer_entity);
+   level_sprites = calloc(sizeof(*level_sprites),level_sprite_count);
+   for(int i = 0;i<HLH_json_get_array_size(layer_entity);i++)
+   {
+      HLH_json5 *entity = HLH_json_get_array_item(layer_entity,i);
+      HLH_json5 ob = {0};
+      HLH_json5 *ent_properties = HLH_json_get_object_array(entity,"properties",&ob);
+      level_sprites[i].pos.x = (HLH_json_get_object_integer(entity,"x",0)/64)*1024+512;
+      level_sprites[i].pos.y = (HLH_json_get_object_integer(entity,"y",0)/64)*1024+512;
+
+      for(int p = 0;p<HLH_json_get_array_size(ent_properties);p++)
+      {
+         HLH_json5 *ent_prop = HLH_json_get_array_item(ent_properties,p);
+         const char *name = HLH_json_get_object_string(ent_prop,"name","(NULL)");
+
+         if(strcmp(name,"z")==0)
+            level_sprites[i].pos.z = HLH_json_get_object_integer(ent_prop,"value",0);
+         if(strcmp(name,"type")==0)
+            level_sprites[i].type = HLH_json_get_object_integer(ent_prop,"value",0);
+      }
+   }
 
    //Write map file
    if(path_out==NULL)
@@ -205,167 +224,6 @@ int main(int argc, char **argv)
    free(level_sprites);
 
    HLH_json_free(json);
-
-   //HLH_json5_root *json_tileset = HLH_json_parse_file(path_project);
-   /*HLH_json5 *wall_ftex = NULL;
-   HLH_json5 *wall_ctex = NULL;
-   HLH_json5 *floor_tex = NULL;
-   HLH_json5 *ceil_tex = NULL;
-   HLH_json5 *ceilings = NULL;
-   HLH_json5 *floors = NULL;
-   HLH_json5 *entities = NULL;
-   int grid_size = 0;
-   int tileset_width = 0;
-   int tileset_height = 0;
-   int tile_dim = 0;
-
-   //Parse basic information
-   HLH_json5 *layer_instances = HLH_json_get_object(&json->root,"layerInstances");
-   for(int i = 0;i<HLH_json_get_array_size(layer_instances);i++)
-   {
-      HLH_json5 *layer_instance = HLH_json_get_array_item(layer_instances,i);
-      const char *identifier = HLH_json_get_object_string(layer_instance,"__identifier","(NULL)");
-      if(strcmp(identifier,"Wall_tex")==0||strcmp(identifier,"Ceiling")==0||strcmp(identifier,"Floor")==0||strcmp(identifier,"Entities")==0)
-      {
-         level_width = HLH_json_get_object_integer(layer_instance,"__cWid",16);
-         level_height = HLH_json_get_object_integer(layer_instance,"__cHei",16);
-         grid_size = HLH_json_get_object_integer(layer_instance,"__gridSize",16);
-      }
-
-      if(strcmp(identifier,"Wall_ftex")==0)
-         wall_ftex = HLH_json_get_object(layer_instance,"gridTiles");
-      if(strcmp(identifier,"Wall_ctex")==0)
-         wall_ctex = HLH_json_get_object(layer_instance,"gridTiles");
-      if(strcmp(identifier,"Floor_tex")==0)
-         floor_tex = HLH_json_get_object(layer_instance,"gridTiles");
-      if(strcmp(identifier,"Ceil_tex")==0)
-         ceil_tex = HLH_json_get_object(layer_instance,"gridTiles");
-      if(strcmp(identifier,"Ceiling")==0)
-         ceilings = HLH_json_get_object(layer_instance,"intGrid");
-      if(strcmp(identifier,"Floor")==0)
-         floors = HLH_json_get_object(layer_instance,"intGrid");
-      if(strcmp(identifier,"Entities")==0)
-         entities = HLH_json_get_object(layer_instance,"entityInstances");
-   }
-   HLH_json5 *tileset = HLH_json_get_array_item(HLH_json_get_object(HLH_json_get_object(&json_data->root,"defs"),"tilesets"),0);
-   tileset_width = HLH_json_get_object_integer(tileset,"__cWid",16);
-   tileset_height = HLH_json_get_object_integer(tileset,"__cHei",16);
-   tile_dim = HLH_json_get_object_integer(tileset,"tileGridSize",16);
-   //-------------------------------------
-
-   //Parse field instances (custom variables
-   HLH_json5 *field_instances = HLH_json_get_object(&json->root,"fieldInstances");
-   for(int i = 0;i<HLH_json_get_array_size(field_instances);i++)
-   {
-      HLH_json5 *field_instance = HLH_json_get_array_item(field_instances,i);
-      const char *identifier = HLH_json_get_object_string(field_instance,"__identifier","(NULL)");
-      if(strcmp(identifier,"floor_color")==0)
-         level_floor_color = HLH_json_get_object_integer(field_instance,"__value",0);
-      if(strcmp(identifier,"sky_tex")==0)
-         level_sky_tex = HLH_json_get_object_integer(field_instance,"__value",0);
-   }
-   //-------------------------------------
-
-   //Allocate memory for map data
-   level_wall_ftex = calloc(level_width*level_height,sizeof(*level_wall_ftex));
-   level_wall_ctex = calloc(level_width*level_height,sizeof(*level_wall_ctex));
-   level_floor_tex = calloc(level_width*level_height,sizeof(*level_floor_tex));
-   level_ceil_tex = calloc(level_width*level_height,sizeof(*level_ceil_tex));
-   level_floor = calloc(level_width*level_height,sizeof(*level_floor));
-   level_ceiling = calloc(level_width*level_height,sizeof(*level_ceiling));
-   //-------------------------------------
-
-   //Read textures
-   for(int i = 0;i<HLH_json_get_array_size(wall_ftex);i++)
-   {
-      HLH_json5 *tile = HLH_json_get_array_item(wall_ftex,i);
-      int index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),1,0)/grid_size)*level_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),0,0)/grid_size);
-      int tex_index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),1,0)/tile_dim)*tileset_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),0,0)/tile_dim);
-      level_wall_ftex[index] = tex_index;
-   }
-   for(int i = 0;i<HLH_json_get_array_size(wall_ctex);i++)
-   {
-      HLH_json5 *tile = HLH_json_get_array_item(wall_ctex,i);
-      int index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),1,0)/grid_size)*level_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),0,0)/grid_size);
-      int tex_index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),1,0)/tile_dim)*tileset_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),0,0)/tile_dim);
-      level_wall_ctex[index] = tex_index;
-   }
-   for(int i = 0;i<HLH_json_get_array_size(floor_tex);i++)
-   {
-      HLH_json5 *tile = HLH_json_get_array_item(floor_tex,i);
-      int index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),1,0)/grid_size)*level_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),0,0)/grid_size);
-      int tex_index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),1,0)/tile_dim)*tileset_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),0,0)/tile_dim);
-      level_floor_tex[index] = tex_index;
-   }
-   for(int i = 0;i<HLH_json_get_array_size(ceil_tex);i++)
-   {
-      HLH_json5 *tile = HLH_json_get_array_item(ceil_tex,i);
-      int index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),1,0)/grid_size)*level_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"px"),0,0)/grid_size);
-      int tex_index = (HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),1,0)/tile_dim)*tileset_width+(HLH_json_get_array_integer(HLH_json_get_object(tile,"src"),0,0)/tile_dim);
-      level_ceil_tex[index] = tex_index;
-   }
-   //-------------------------------------
-
-   //Read ceiling height
-   for(int i = 0;i<HLH_json_get_array_size(ceilings);i++)
-   {
-      HLH_json5 *ceiling = HLH_json_get_array_item(ceilings,i);
-      int index = HLH_json_get_object_integer(ceiling,"coordId",0);
-      level_ceiling[index] = HLH_json_get_object_integer(ceiling,"v",0)-128;
-   }
-   //-------------------------------------
-
-   //Read floor height
-   for(int i = 0;i<HLH_json_get_array_size(floors);i++)
-   {
-      HLH_json5 *floor = HLH_json_get_array_item(floors,i);
-      int index = HLH_json_get_object_integer(floor,"coordId",0);
-      level_floor[index] = HLH_json_get_object_integer(floor,"v",0)-128;
-   }
-   //-------------------------------------
-
-   //Read entities
-   level_sprites = calloc(sizeof(*level_sprites),HLH_json_get_array_size(entities));
-   for(int i = 0;i<HLH_json_get_array_size(entities);i++)
-   {
-      HLH_json5 *entity = HLH_json_get_array_item(entities,i);
-
-      if(strcmp(HLH_json_get_object_string(entity,"__identifier","(NULL"),"Sprite")==0)
-      {
-         level_sprites[level_sprite_count].pos.x = HLH_json_get_array_integer(HLH_json_get_object(entity,"__grid"),0,0)*1024+512;
-         level_sprites[level_sprite_count].pos.y = HLH_json_get_array_integer(HLH_json_get_object(entity,"__grid"),1,0)*1024+512;
-
-         HLH_json5 *field_instances = HLH_json_get_object(entity,"fieldInstances");
-         for(int j = 0;j<HLH_json_get_array_size(field_instances);j++)
-         {
-            HLH_json5 *field_instance = HLH_json_get_array_item(field_instances,j);
-            if(strcmp(HLH_json_get_object_string(field_instance,"__identifier","(NULL)"),"z")==0)
-               level_sprites[level_sprite_count].pos.z = HLH_json_get_object_integer(field_instance,"__value",0);
-            else if(strcmp(HLH_json_get_object_string(field_instance,"__identifier","(NULL)"),"ai_type")==0)
-               level_sprites[level_sprite_count].type = HLH_json_get_object_integer(field_instance,"__value",0);
-         }
-
-         level_sprite_count++;
-      }
-   }
-   //-------------------------------------
-
-   //Write map file
-   if(path_out==NULL)
-      map_write("map_out.rvr");
-   else
-      map_write(path_out);
-   //-------------------------------------
-
-   free(level_wall_ftex);
-   free(level_wall_ctex);
-   free(level_floor_tex);
-   free(level_ceil_tex);
-   free(level_floor);
-   free(level_ceiling);
-   free(level_sprites);
-
-   HLH_json_free(json_data);*/
 
    return 0;
 }

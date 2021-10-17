@@ -477,9 +477,9 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
 
          p.hit.direction = 0;
          p.hit.texture_coord = 0;
-         p.hit.wall_ftex = 0;
-         p.hit.wall_ctex = 0;
-         //p.hit.floor_tex = 0;
+         p.hit.wall_ftex = RvR_ray_map_sky_tex();
+         p.hit.wall_ctex = RvR_ray_map_sky_tex();
+         p.hit.floor_tex = RvR_ray_map_sky_tex();
          p.hit.ceil_tex = RvR_ray_map_sky_tex();
       }
 

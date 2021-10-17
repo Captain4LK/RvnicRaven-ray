@@ -39,7 +39,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //RvnicRaven raycasting
 
 //Basically render distance
-#define RVR_RAY_MAX_STEPS 24
+#define RVR_RAY_MAX_STEPS 32
 
 //Field of view, 360deg is 1024
 #define RVR_RAY_HORIZONTAL_FOV 256
