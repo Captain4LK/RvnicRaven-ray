@@ -46,16 +46,18 @@ static AI_statenum shotgun_close(AI_ent *e);
 //Having this in a central place allows for easy tweaking of AI behaviour.
 static const AI_state _ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_NULL, .action = NULL, .ticks = 0},                                                    //STATE_NULL
-  { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun, .ticks = 0, .sprite = SPRITE_SHOTGUN_READY}, //STATE_SHOTGUN_READY
-  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD1, .action = NULL, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD0},   //STATE_SHOTGUN_LOAD0
-  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD2, .action = NULL, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD1},   //STATE_SHOTGUN_LOAD1
-  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD3, .action = NULL, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD2},   //STATE_SHOTGUN_LOAD2
-  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD4, .action = NULL, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD3},   //STATE_SHOTGUN_LOAD3
-  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD5, .action = shotgun_open, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD4},   //STATE_SHOTGUN_LOAD4
-  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD6, .action = NULL, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD5},   //STATE_SHOTGUN_LOAD5
-  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD7, .action = shotgun_load, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD6},   //STATE_SHOTGUN_LOAD6
-  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD8, .action = NULL, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD7},   //STATE_SHOTGUN_LOAD7
-  { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun_close, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD8},   //STATE_SHOTGUN_LOAD8
+  { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun, .ticks = 0, .sprite = SPRITE_TREE}, //STATE_SHOTGUN_READY
+  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD1, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD0
+  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD2, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD1
+  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD3, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD2
+  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD4, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD3
+  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD5, .action = shotgun_open, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD4
+  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD6, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD5
+  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD7, .action = shotgun_load, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD6
+  { .next = AI_STATE_PLAYER_SHOTGUN_LOAD8, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD7
+  { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun_close, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD8
+  { .next = AI_STATE_TREE, .action = NULL, .ticks = 0, .sprite = SPRITE_TREE},   //STATE_TREE
+  { .next = AI_STATE_LAMP, .action = NULL, .ticks = 0, .sprite = SPRITE_LAMP},   //STATE_LAMP
 };
 
 static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
@@ -65,6 +67,20 @@ static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
     .state_move = AI_STATE_NULL,
     .state_attack = AI_STATE_NULL,
     .state_death = AI_STATE_NULL,
+  },
+  //AI_TYPE_TREE
+  {
+    .state_idle = AI_STATE_TREE,
+    .state_move = AI_STATE_TREE,
+    .state_attack = AI_STATE_TREE,
+    .state_death = AI_STATE_TREE,
+  },
+  //AI_TYPE_LAMP
+  {
+    .state_idle = AI_STATE_LAMP,
+    .state_move = AI_STATE_LAMP,
+    .state_attack = AI_STATE_LAMP,
+    .state_death = AI_STATE_LAMP,
   },
 };
 
@@ -157,16 +173,13 @@ void sprite_load(AI_type t)
    switch(t)
    {
       case AI_TYPE_PLAYER:
-         sprite_load_sprite(SPRITE_SHOTGUN_READY);
-         sprite_load_sprite(SPRITE_SHOTGUN_LOAD0);
-         sprite_load_sprite(SPRITE_SHOTGUN_LOAD1);
-         sprite_load_sprite(SPRITE_SHOTGUN_LOAD2);
-         sprite_load_sprite(SPRITE_SHOTGUN_LOAD3);
-         sprite_load_sprite(SPRITE_SHOTGUN_LOAD4);
-         sprite_load_sprite(SPRITE_SHOTGUN_LOAD5);
-         sprite_load_sprite(SPRITE_SHOTGUN_LOAD6);
-         sprite_load_sprite(SPRITE_SHOTGUN_LOAD7);
-         sprite_load_sprite(SPRITE_SHOTGUN_LOAD8);
+         sprite_load_sprite(SPRITE_TREE);
+         break;
+      case AI_TYPE_TREE:
+         sprite_load_sprite(SPRITE_TREE);
+         break;
+      case AI_TYPE_LAMP:
+         sprite_load_sprite(SPRITE_LAMP);
          break;
       case AI_TYPE_MAX:
       break;

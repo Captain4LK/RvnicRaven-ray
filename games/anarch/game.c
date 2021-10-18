@@ -65,7 +65,7 @@ void game_map_load()
       e->next = ai_ents;
       ai_ents = e;
       ai_init(e,u16_to_type(s->type));
-      //sprite_load(u16_to_type(s->type));
+      sprite_load(u16_to_type(s->type));
       e->pos = s->pos;
       if(u16_to_type(s->type)==AI_TYPE_PLAYER)
          player.entity = e;
@@ -116,6 +116,8 @@ static AI_type u16_to_type(uint16_t type)
    switch(type)
    {
    case 0: return AI_TYPE_PLAYER;
+   case 1: return AI_TYPE_TREE;
+   case 2: return AI_TYPE_LAMP;
    }
 
    return AI_TYPE_MAX;
