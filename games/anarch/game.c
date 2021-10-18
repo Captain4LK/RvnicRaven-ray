@@ -116,19 +116,6 @@ static AI_type u16_to_type(uint16_t type)
    switch(type)
    {
    case 0: return AI_TYPE_PLAYER;
-   case 1: return AI_TYPE_TREE1;
-   case 2: return AI_TYPE_TREE2;
-   case 3: return AI_TYPE_ROCK0;
-   case 4: return AI_TYPE_ROCK1;
-   case 5: return AI_TYPE_CORPSE0;
-   case 6: return AI_TYPE_CORPSE1;
-   case 7: return AI_TYPE_CORPSE2;
-   case 8: return AI_TYPE_CORPSE3;
-   case 9: return AI_TYPE_CORPSE4;
-   case 10: return AI_TYPE_CORPSE5;
-   case 11: return AI_TYPE_CORPSE6;
-   case 12: return AI_TYPE_CORPSE7;
-   case 13: return AI_TYPE_GARGOYLE;
    }
 
    return AI_TYPE_MAX;

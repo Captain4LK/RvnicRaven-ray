@@ -46,20 +46,6 @@ static AI_statenum shotgun_close(AI_ent *e);
 //Having this in a central place allows for easy tweaking of AI behaviour.
 static const AI_state _ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_NULL, .action = NULL, .ticks = 0},                                                    //STATE_NULL
-  { .next = AI_STATE_TREE0_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_TREE0},                      //STATE_TREE0_IDLE
-  { .next = AI_STATE_TREE1_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_TREE1},                      //STATE_TREE1_IDLE
-  { .next = AI_STATE_TREE2_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_TREE2},                      //STATE_TREE2_IDLE
-  { .next = AI_STATE_ROCK0_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_ROCK0},                      //STATE_ROCK0_IDLE
-  { .next = AI_STATE_ROCK1_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_ROCK1},                      //STATE_ROCK1_IDLE
-  { .next = AI_STATE_CORPSE0_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_CORPSE0},                  //STATE_CORPSE0_IDLE
-  { .next = AI_STATE_CORPSE1_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_CORPSE1},                  //STATE_CORPSE1_IDLE
-  { .next = AI_STATE_CORPSE2_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_CORPSE2},                  //STATE_CORPSE2_IDLE
-  { .next = AI_STATE_CORPSE3_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_CORPSE3},                  //STATE_CORPSE3_IDLE
-  { .next = AI_STATE_CORPSE4_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_CORPSE4},                  //STATE_CORPSE4_IDLE
-  { .next = AI_STATE_CORPSE5_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_CORPSE5},                  //STATE_CORPSE5_IDLE
-  { .next = AI_STATE_CORPSE6_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_CORPSE6},                  //STATE_CORPSE6_IDLE
-  { .next = AI_STATE_CORPSE7_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_CORPSE7},                  //STATE_CORPSE7_IDLE
-  { .next = AI_STATE_GARGOYLE_IDLE, .action = NULL, .ticks = 0, .sprite = SPRITE_GARGOYLE},                //STATE_GARGOYLE_IDLE
   { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun, .ticks = 0, .sprite = SPRITE_SHOTGUN_READY}, //STATE_SHOTGUN_READY
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD1, .action = NULL, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD0},   //STATE_SHOTGUN_LOAD0
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD2, .action = NULL, .ticks = 4, .sprite = SPRITE_SHOTGUN_LOAD1},   //STATE_SHOTGUN_LOAD1
@@ -73,104 +59,6 @@ static const AI_state _ai_state[AI_STATE_MAX] = {
 };
 
 static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
-  //AI_TYPE_TREE0
-  {
-    .state_idle = AI_STATE_TREE0_IDLE,
-    .state_move = AI_STATE_TREE0_IDLE,
-    .state_attack = AI_STATE_TREE0_IDLE,
-    .state_death = AI_STATE_TREE0_IDLE,
-  },
-  //AI_TYPE_TREE1
-  {
-    .state_idle = AI_STATE_TREE1_IDLE,
-    .state_move = AI_STATE_TREE1_IDLE,
-    .state_attack = AI_STATE_TREE1_IDLE,
-    .state_death = AI_STATE_TREE1_IDLE,
-  },
-  //AI_TYPE_TREE2
-  {
-    .state_idle = AI_STATE_TREE2_IDLE,
-    .state_move = AI_STATE_TREE2_IDLE,
-    .state_attack = AI_STATE_TREE2_IDLE,
-    .state_death = AI_STATE_TREE2_IDLE,
-  },
-  //AI_TYPE_ROCK0
-  {
-    .state_idle = AI_STATE_ROCK0_IDLE,
-    .state_move = AI_STATE_ROCK0_IDLE,
-    .state_attack = AI_STATE_ROCK0_IDLE,
-    .state_death = AI_STATE_ROCK0_IDLE,
-  },
-  //AI_TYPE_ROCK1
-  {
-    .state_idle = AI_STATE_ROCK1_IDLE,
-    .state_move = AI_STATE_ROCK1_IDLE,
-    .state_attack = AI_STATE_ROCK1_IDLE,
-    .state_death = AI_STATE_ROCK1_IDLE,
-  },
-  //AI_TYPE_CORPSE0
-  {
-    .state_idle = AI_STATE_CORPSE0_IDLE,
-    .state_move = AI_STATE_CORPSE0_IDLE,
-    .state_attack = AI_STATE_CORPSE0_IDLE,
-    .state_death = AI_STATE_CORPSE0_IDLE,
-  },
-  //AI_TYPE_CORPSE1
-  {
-    .state_idle = AI_STATE_CORPSE1_IDLE,
-    .state_move = AI_STATE_CORPSE1_IDLE,
-    .state_attack = AI_STATE_CORPSE1_IDLE,
-    .state_death = AI_STATE_CORPSE1_IDLE,
-  },
-  //AI_TYPE_CORPSE2
-  {
-    .state_idle = AI_STATE_CORPSE2_IDLE,
-    .state_move = AI_STATE_CORPSE2_IDLE,
-    .state_attack = AI_STATE_CORPSE2_IDLE,
-    .state_death = AI_STATE_CORPSE2_IDLE,
-  },
-  //AI_TYPE_CORPSE3
-  {
-    .state_idle = AI_STATE_CORPSE3_IDLE,
-    .state_move = AI_STATE_CORPSE3_IDLE,
-    .state_attack = AI_STATE_CORPSE3_IDLE,
-    .state_death = AI_STATE_CORPSE3_IDLE,
-  },
-  //AI_TYPE_CORPSE4
-  {
-    .state_idle = AI_STATE_CORPSE4_IDLE,
-    .state_move = AI_STATE_CORPSE4_IDLE,
-    .state_attack = AI_STATE_CORPSE4_IDLE,
-    .state_death = AI_STATE_CORPSE4_IDLE,
-  },
-  //AI_TYPE_CORPSE5
-  {
-    .state_idle = AI_STATE_CORPSE5_IDLE,
-    .state_move = AI_STATE_CORPSE5_IDLE,
-    .state_attack = AI_STATE_CORPSE5_IDLE,
-    .state_death = AI_STATE_CORPSE5_IDLE,
-  },
-  //AI_TYPE_CORPSE6
-  {
-    .state_idle = AI_STATE_CORPSE6_IDLE,
-    .state_move = AI_STATE_CORPSE6_IDLE,
-    .state_attack = AI_STATE_CORPSE6_IDLE,
-    .state_death = AI_STATE_CORPSE6_IDLE,
-  },
-  //AI_TYPE_CORPSE7
-  {
-    .state_idle = AI_STATE_CORPSE7_IDLE,
-    .state_move = AI_STATE_CORPSE7_IDLE,
-    .state_attack = AI_STATE_CORPSE7_IDLE,
-    .state_death = AI_STATE_CORPSE7_IDLE,
-  },
-  //AI_TYPE_GARGOYLE
-  {
-    .state_idle = AI_STATE_GARGOYLE_IDLE,
-    .state_move = AI_STATE_GARGOYLE_IDLE,
-    .state_attack = AI_STATE_GARGOYLE_IDLE,
-    .state_death = AI_STATE_GARGOYLE_IDLE,
-  },
   //AI_TYPE_PLAYER
   {
     .state_idle = AI_STATE_PLAYER_SHOTGUN_READY,
@@ -214,7 +102,7 @@ void ai_damage(AI_ent *to, AI_index *source)
    if(target==NULL&&ai_index_try(*source)!=NULL)
    {
       to->ai.target = *source;
-      set_state(to,AI_STATE_TREE0_IDLE);
+      set_state(to,AI_STATE_NULL);
    }
 }
 
@@ -268,48 +156,6 @@ void sprite_load(AI_type t)
 {
    switch(t)
    {
-      case AI_TYPE_TREE0:
-         sprite_load_sprite(SPRITE_TREE0);
-         break;
-      case AI_TYPE_TREE1:
-         sprite_load_sprite(SPRITE_TREE1);
-         break;
-      case AI_TYPE_TREE2:
-         sprite_load_sprite(SPRITE_TREE2);
-         break;
-      case AI_TYPE_ROCK0:
-         sprite_load_sprite(SPRITE_ROCK0);
-         break;
-      case AI_TYPE_ROCK1:
-         sprite_load_sprite(SPRITE_ROCK1);
-         break;
-      case AI_TYPE_CORPSE0:
-         sprite_load_sprite(SPRITE_CORPSE0);
-         break;
-      case AI_TYPE_CORPSE1:
-         sprite_load_sprite(SPRITE_CORPSE1);
-         break;
-      case AI_TYPE_CORPSE2:
-         sprite_load_sprite(SPRITE_CORPSE2);
-         break;
-      case AI_TYPE_CORPSE3:
-         sprite_load_sprite(SPRITE_CORPSE3);
-         break;
-      case AI_TYPE_CORPSE4:
-         sprite_load_sprite(SPRITE_CORPSE4);
-         break;
-      case AI_TYPE_CORPSE5:
-         sprite_load_sprite(SPRITE_CORPSE5);
-         break;
-      case AI_TYPE_CORPSE6:
-         sprite_load_sprite(SPRITE_CORPSE6);
-         break;
-      case AI_TYPE_CORPSE7:
-         sprite_load_sprite(SPRITE_CORPSE7);
-         break;
-      case AI_TYPE_GARGOYLE:
-         sprite_load_sprite(SPRITE_GARGOYLE);
-         break;
       case AI_TYPE_PLAYER:
          sprite_load_sprite(SPRITE_SHOTGUN_READY);
          sprite_load_sprite(SPRITE_SHOTGUN_LOAD0);
