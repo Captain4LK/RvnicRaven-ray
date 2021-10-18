@@ -118,6 +118,8 @@ static AI_type u16_to_type(uint16_t type)
    case 0: return AI_TYPE_PLAYER;
    case 1: return AI_TYPE_TREE;
    case 2: return AI_TYPE_LAMP;
+   case 3: return AI_TYPE_RUIN;
+   case 4: return AI_TYPE_TERMINAL;
    }
 
    return AI_TYPE_MAX;

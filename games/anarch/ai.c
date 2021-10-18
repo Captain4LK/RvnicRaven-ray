@@ -58,6 +58,8 @@ static const AI_state _ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun_close, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD8
   { .next = AI_STATE_TREE, .action = NULL, .ticks = 0, .sprite = SPRITE_TREE},   //STATE_TREE
   { .next = AI_STATE_LAMP, .action = NULL, .ticks = 0, .sprite = SPRITE_LAMP},   //STATE_LAMP
+  { .next = AI_STATE_RUIN, .action = NULL, .ticks = 0, .sprite = SPRITE_RUIN},   //STATE_RUIN
+  { .next = AI_STATE_TERMINAL, .action = NULL, .ticks = 0, .sprite = SPRITE_TERMINAL},   //STATE_TERMINAL
 };
 
 static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
@@ -81,6 +83,20 @@ static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
     .state_move = AI_STATE_LAMP,
     .state_attack = AI_STATE_LAMP,
     .state_death = AI_STATE_LAMP,
+  },
+  //AI_TYPE_RUIN
+  {
+    .state_idle = AI_STATE_RUIN,
+    .state_move = AI_STATE_RUIN,
+    .state_attack = AI_STATE_RUIN,
+    .state_death = AI_STATE_RUIN,
+  },
+  //AI_TYPE_TERMINAL
+  {
+    .state_idle = AI_STATE_TERMINAL,
+    .state_move = AI_STATE_TERMINAL,
+    .state_attack = AI_STATE_TERMINAL,
+    .state_death = AI_STATE_TERMINAL,
   },
 };
 
@@ -180,6 +196,12 @@ void sprite_load(AI_type t)
          break;
       case AI_TYPE_LAMP:
          sprite_load_sprite(SPRITE_LAMP);
+         break;
+      case AI_TYPE_RUIN:
+         sprite_load_sprite(SPRITE_RUIN);
+         break;
+      case AI_TYPE_TERMINAL:
+         sprite_load_sprite(SPRITE_TERMINAL);
          break;
       case AI_TYPE_MAX:
       break;

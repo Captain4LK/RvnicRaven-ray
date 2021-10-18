@@ -29,6 +29,8 @@ typedef enum
    AI_STATE_PLAYER_SHOTGUN_LOAD8,
    AI_STATE_TREE,
    AI_STATE_LAMP,
+   AI_STATE_RUIN,
+   AI_STATE_TERMINAL,
    AI_STATE_MAX,
 }AI_statenum;
 
@@ -37,6 +39,8 @@ typedef enum
    AI_TYPE_PLAYER,
    AI_TYPE_TREE,
    AI_TYPE_LAMP,
+   AI_TYPE_RUIN,
+   AI_TYPE_TERMINAL,
    AI_TYPE_MAX,
 }AI_type;
 

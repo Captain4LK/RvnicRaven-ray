@@ -16,6 +16,8 @@ typedef enum
 {
    SPRITE_TREE,
    SPRITE_LAMP,
+   SPRITE_RUIN,
+   SPRITE_TERMINAL,
    SPRITE_MAX,
 }Sprite;
 
