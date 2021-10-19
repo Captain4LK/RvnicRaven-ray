@@ -32,8 +32,8 @@ static struct
    uint16_t *wall_ctex;
    uint16_t *floor_tex;
    uint16_t *ceil_tex;
-   int8_t *floor;
-   int8_t *ceiling;
+   int16_t *floor;
+   int16_t *ceiling;
    uint16_t width;
    uint16_t height;
    uint8_t floor_color;
@@ -181,8 +181,13 @@ void RvR_ray_map_reset()
    memcpy(ray_map.wall_ctex,ray_map_cache.wall_ctex,sizeof(*ray_map_cache.wall_ctex)*ray_map_cache.width*ray_map_cache.height);
    memcpy(ray_map.floor_tex,ray_map_cache.floor_tex,sizeof(*ray_map_cache.floor_tex)*ray_map_cache.width*ray_map_cache.height);
    memcpy(ray_map.ceil_tex,ray_map_cache.ceil_tex,sizeof(*ray_map_cache.ceil_tex)*ray_map_cache.width*ray_map_cache.height);
-   memcpy(ray_map.floor,ray_map_cache.floor,sizeof(*ray_map_cache.floor)*ray_map_cache.width*ray_map_cache.height);
-   memcpy(ray_map.ceiling,ray_map_cache.ceiling,sizeof(*ray_map_cache.ceiling)*ray_map_cache.width*ray_map_cache.height);
+   for(int i = 0;i<ray_map.width*ray_map.height;i++)
+   {
+      ray_map.floor[i] = (int16_t)ray_map_cache.floor[i]*128;
+      ray_map.ceiling[i] = (int16_t)ray_map_cache.ceiling[i]*128;
+   }
+   //memcpy(ray_map.floor,ray_map_cache.floor,sizeof(*ray_map_cache.floor)*ray_map_cache.width*ray_map_cache.height);
+   //memcpy(ray_map.ceiling,ray_map_cache.ceiling,sizeof(*ray_map_cache.ceiling)*ray_map_cache.width*ray_map_cache.height);
 
    //Textures
    RvR_texture_load_begin();
@@ -392,19 +397,19 @@ uint16_t RvR_ray_map_ceil_tex_at(int16_t x, int16_t y)
 RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y)
 {
    if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
-      return (ray_map.floor[y*ray_map.width+x]*1024)/8;
+      return ray_map.floor[y*ray_map.width+x];
 
    return 0;
 }
 
 RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y)
 {
-   int v = 127;
+   int v = 127*128;
 
    if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
       v = ray_map.ceiling[(y)*ray_map.width+x]; 
 
-   return (v*1024)/8;
+   return v;
 }
 
 uint16_t RvR_ray_map_wall_ftex_at_us(int16_t x, int16_t y)
@@ -429,13 +434,11 @@ uint16_t RvR_ray_map_ceil_tex_at_us(int16_t x, int16_t y)
 
 RvR_fix22 RvR_ray_map_floor_height_at_us(int16_t x, int16_t y)
 {
-   return (ray_map.floor[y*ray_map.width+x]*1024)/8;
+   return ray_map.floor[y*ray_map.width+x];
 }
 
 RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y)
 {
-   RvR_fix22 v = ray_map.ceiling[(y)*ray_map.width+x]; 
-
-   return (v*1024)/8;
+   return ray_map.ceiling[(y)*ray_map.width+x]; 
 }
 //-------------------------------------

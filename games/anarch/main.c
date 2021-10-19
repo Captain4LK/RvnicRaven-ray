@@ -48,7 +48,7 @@ int config_camera_shear_step = 8;
 int main()
 {
    //Init memory manager
-   //RvR_malloc_init(1<<25,1<<26);
+   RvR_malloc_init(1<<25,1<<26);
 
    //Init RvnicRaven core
    RvR_core_init("Anarch",0);
