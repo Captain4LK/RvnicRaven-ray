@@ -57,6 +57,8 @@ void game_map_load()
       ai_init(e,u16_to_type(s->type));
       sprite_load(u16_to_type(s->type));
       e->pos = s->pos;
+      e->extra0 = s->extra0;
+      e->extra1 = s->extra1;
       if(u16_to_type(s->type)==AI_TYPE_PLAYER)
          player.entity = e;
    }
@@ -91,10 +93,13 @@ void game_update()
       else
       {
          //TODO: calculate rotation
-         RvR_ray_draw_sprite(e->pos,sprite_rot(e->ai.state->sprite,0));
+         if(e->ai.state->sprite!=SPRITE_MAX)
+            RvR_ray_draw_sprite(e->pos,sprite_rot(e->ai.state->sprite,0));
       }
       e = e->next;
    }
+
+   //RvR_ray_map_floor_height_set(46,57,RvR_ray_map_floor_height_at(46,57)+4);
 
    //Graphics
    RvR_ray_draw((RvR_vec3){player.entity->pos.x,player.entity->pos.y,player.entity->pos.z},player.entity->direction,player.shear);
@@ -111,6 +116,7 @@ static AI_type u16_to_type(uint16_t type)
    case 2: return AI_TYPE_LAMP;
    case 3: return AI_TYPE_RUIN;
    case 4: return AI_TYPE_TERMINAL;
+   case 5: return AI_TYPE_ELEVATOR;
    }
 
    return AI_TYPE_MAX;

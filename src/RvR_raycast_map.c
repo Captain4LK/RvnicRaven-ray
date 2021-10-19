@@ -284,9 +284,11 @@ void RvR_ray_map_load_mem(uint8_t *mem, int len)
    for(unsigned i = 0;i<ray_map_cache.sprite_count;i++)
    {
       ray_map_cache.sprites[i].type = *(uint16_t *)(mem+pos); pos+=2;
-      ray_map_cache.sprites[i].pos.x = *(uint32_t *)(mem+pos); pos+=4;
-      ray_map_cache.sprites[i].pos.y = *(uint32_t *)(mem+pos); pos+=4;
-      ray_map_cache.sprites[i].pos.z = *(uint32_t *)(mem+pos); pos+=4;
+      ray_map_cache.sprites[i].pos.x = *(int32_t *)(mem+pos); pos+=4;
+      ray_map_cache.sprites[i].pos.y = *(int32_t *)(mem+pos); pos+=4;
+      ray_map_cache.sprites[i].pos.z = *(int32_t *)(mem+pos); pos+=4;
+      ray_map_cache.sprites[i].extra0 = *(int32_t *)(mem+pos); pos+=4;
+      ray_map_cache.sprites[i].extra1 = *(int32_t *)(mem+pos); pos+=4;
    }
 
    //Update actual map

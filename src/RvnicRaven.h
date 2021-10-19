@@ -325,6 +325,8 @@ typedef struct
 {
    uint16_t type;
    RvR_vec3 pos;
+   int32_t extra0;
+   int32_t extra1;
 }RvR_ray_map_sprite;
 
 typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);

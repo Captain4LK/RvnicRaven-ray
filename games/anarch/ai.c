@@ -38,6 +38,9 @@ static AI_statenum shotgun(AI_ent *e);
 static AI_statenum shotgun_open(AI_ent *e);
 static AI_statenum shotgun_load(AI_ent *e);
 static AI_statenum shotgun_close(AI_ent *e);
+
+static AI_statenum elevator_rise(AI_ent *e);
+static AI_statenum elevator_lower(AI_ent *e);
 //-------------------------------------
 
 //Variables
@@ -60,6 +63,10 @@ static const AI_state _ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_LAMP, .action = NULL, .ticks = 0, .sprite = SPRITE_LAMP},   //STATE_LAMP
   { .next = AI_STATE_RUIN, .action = NULL, .ticks = 0, .sprite = SPRITE_RUIN},   //STATE_RUIN
   { .next = AI_STATE_TERMINAL, .action = NULL, .ticks = 0, .sprite = SPRITE_TERMINAL},   //STATE_TERMINAL
+  { .next = AI_STATE_ELEVATOR_RISE, .action = elevator_rise, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_RISE
+  { .next = AI_STATE_ELEVATOR_LOWER, .action = elevator_lower, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_LOWER
+  { .next = AI_STATE_ELEVATOR_LOWER, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLR
+  { .next = AI_STATE_ELEVATOR_RISE, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLL
 };
 
 static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
@@ -97,6 +104,13 @@ static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
     .state_move = AI_STATE_TERMINAL,
     .state_attack = AI_STATE_TERMINAL,
     .state_death = AI_STATE_TERMINAL,
+  },
+  //AI_TYPE_ELEVATOR
+  {
+    .state_idle = AI_STATE_ELEVATOR_STILLR,
+    .state_move = AI_STATE_ELEVATOR_STILLR,
+    .state_attack = AI_STATE_ELEVATOR_STILLR,
+    .state_death = AI_STATE_ELEVATOR_STILLR,
   },
 };
 
@@ -203,6 +217,8 @@ void sprite_load(AI_type t)
       case AI_TYPE_TERMINAL:
          sprite_load_sprite(SPRITE_TERMINAL);
          break;
+      case AI_TYPE_ELEVATOR:
+         break;
       case AI_TYPE_MAX:
       break;
    }
@@ -268,6 +284,33 @@ static AI_statenum shotgun_close(AI_ent *e)
 
    sound_play(SOUND_DSG_CLOSE,1);
 
+   return AI_STATE_NULL;
+}
+
+static AI_statenum elevator_rise(AI_ent *e)
+{
+   *e = *e;
+
+   RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
+   if(z>=e->extra1)
+      return AI_STATE_ELEVATOR_STILLR;
+   z = RvR_min(e->extra1,z+48);
+   RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
+
+   return AI_STATE_NULL;
+}
+
+static AI_statenum elevator_lower(AI_ent *e)
+{
+   *e = *e;
+
+   RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
+   if(z<=e->extra0)
+      return AI_STATE_ELEVATOR_STILLL;
+
+   z = RvR_max(e->extra0,z-48);
+   RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
+   
    return AI_STATE_NULL;
 }
 //-------------------------------------

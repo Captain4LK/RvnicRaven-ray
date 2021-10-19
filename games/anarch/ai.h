@@ -31,6 +31,10 @@ typedef enum
    AI_STATE_LAMP,
    AI_STATE_RUIN,
    AI_STATE_TERMINAL,
+   AI_STATE_ELEVATOR_RISE,
+   AI_STATE_ELEVATOR_LOWER,
+   AI_STATE_ELEVATOR_STILLR,
+   AI_STATE_ELEVATOR_STILLL,
    AI_STATE_MAX,
 }AI_statenum;
 
@@ -41,6 +45,7 @@ typedef enum
    AI_TYPE_LAMP,
    AI_TYPE_RUIN,
    AI_TYPE_TERMINAL,
+   AI_TYPE_ELEVATOR,
    AI_TYPE_MAX,
 }AI_type;
 
@@ -78,8 +83,12 @@ typedef struct
 struct AI_ent
 {
    uint32_t generation;
+
    RvR_vec3 pos;
    RvR_fix22 direction;
+   int32_t extra0;
+   int32_t extra1;
+
    Sprite sprite;
    AI ai;
    AI_ent *next;

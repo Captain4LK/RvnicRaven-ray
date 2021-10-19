@@ -44,6 +44,8 @@ typedef struct
 {
    uint16_t type;
    vec3 pos;
+   int32_t extra0;
+   int32_t extra1;
 }Sprite;
 //-------------------------------------
 
@@ -206,6 +208,10 @@ int main(int argc, char **argv)
             level_sprites[i].pos.z = HLH_json_get_object_integer(ent_prop,"value",0);
          if(strcmp(name,"type")==0)
             level_sprites[i].type = HLH_json_get_object_integer(ent_prop,"value",0);
+         if(strcmp(name,"extra0")==0)
+            level_sprites[i].extra0 = HLH_json_get_object_integer(ent_prop,"value",0);
+         if(strcmp(name,"extra1")==0)
+            level_sprites[i].extra1 = HLH_json_get_object_integer(ent_prop,"value",0);
       }
    }
 
@@ -277,6 +283,8 @@ static void map_write(const char *path)
       *(int32_t *)(mem+pos) = level_sprites[i].pos.x; pos+=4;
       *(int32_t *)(mem+pos) = level_sprites[i].pos.y; pos+=4;
       *(int32_t *)(mem+pos) = level_sprites[i].pos.z; pos+=4;
+      *(int32_t *)(mem+pos) = level_sprites[i].extra0; pos+=4;
+      *(int32_t *)(mem+pos) = level_sprites[i].extra1; pos+=4;
    }
 
    //Compress and write to disk
