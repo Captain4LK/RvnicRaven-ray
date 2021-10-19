@@ -39,16 +39,6 @@ static AI_type u16_to_type(uint16_t type);
 
 //Function implementations
 
-void set_difficulty(int difficulty)
-{
-
-}
-
-void set_episode(int episode)
-{
-
-}
-
 void game_map_load()
 {
    //Free entities

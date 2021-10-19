@@ -404,12 +404,46 @@ RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y)
 
 RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y)
 {
-   int v = 127*128;
-
    if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
-      v = ray_map.ceiling[(y)*ray_map.width+x]; 
+      return ray_map.ceiling[y*ray_map.width+x]; 
 
-   return v;
+   return 127*128;
+}
+
+void RvR_ray_map_wall_ftex_set(int16_t x, int16_t y, uint16_t tex)
+{
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      ray_map.wall_ftex[y*ray_map.width+x] = tex;
+}
+
+void RvR_ray_map_wall_ctex_set(int16_t x, int16_t y, uint16_t tex)
+{
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      ray_map.wall_ctex[y*ray_map.width+x] = tex;
+}
+
+void RvR_ray_map_floor_tex_set(int16_t x, int16_t y, uint16_t tex)
+{
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      ray_map.floor_tex[y*ray_map.width+x] = tex;
+}
+
+void RvR_ray_map_ceil_tex_set(int16_t x, int16_t y, uint16_t tex)
+{
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      ray_map.ceil_tex[y*ray_map.width+x] = tex;
+}
+
+void RvR_ray_map_floor_height_set(int16_t x, int16_t y, int16_t height)
+{
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      ray_map.floor[y*ray_map.width+x] = height;
+}
+
+void RvR_ray_map_ceiling_height_set(int16_t x, int16_t y, int16_t height)
+{
+   if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
+      ray_map.ceiling[y*ray_map.width+x] = height;
 }
 
 uint16_t RvR_ray_map_wall_ftex_at_us(int16_t x, int16_t y)

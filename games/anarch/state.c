@@ -30,7 +30,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Typedefs
 typedef enum
 {
-   STATE_TITLE, STATE_CREDITS, STATE_EPSEL, STATE_DIFFSEL, STATE_GAME,
+   STATE_TITLE, STATE_CREDITS, STATE_GAME,
 }Game_state;
 //-------------------------------------
 
@@ -41,8 +41,6 @@ static Game_state mode = 0;
 //Function prototypes
 static void mode_title();
 static void mode_credits();
-static void mode_epsel();
-static void mode_diffsel();
 static void mode_game();
 //-------------------------------------
 
@@ -54,8 +52,6 @@ void mode_update()
    {
    case STATE_TITLE: mode_title(); break;
    case STATE_CREDITS: mode_credits(); break;
-   case STATE_EPSEL: mode_epsel(); break;
-   case STATE_DIFFSEL: mode_diffsel(); break;
    case STATE_GAME: mode_game(); break;
    }
 }
@@ -128,35 +124,6 @@ static void mode_credits()
    {
       mode = STATE_TITLE;
       sound_play(SOUND_SWITCH,0);
-   }
-}
-
-static void mode_epsel()
-{
-   static int selected = 0;
-
-   //Graphics
-
-   //Input
-   if(RvR_core_key_pressed(RVR_KEY_ENTER))
-   {
-      set_episode(selected);
-      mode = STATE_DIFFSEL;
-   }
-}
-
-static void mode_diffsel()
-{
-   static int selected = 0;
-
-   //Graphics
-
-   //Input
-   if(RvR_core_key_pressed(RVR_KEY_ENTER))
-   {
-      set_difficulty(selected);
-      game_map_load();
-      mode = STATE_GAME;      
    }
 }
 

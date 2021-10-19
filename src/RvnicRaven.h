@@ -367,6 +367,13 @@ uint16_t RvR_ray_map_ceil_tex_at(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y);
 
+void RvR_ray_map_wall_ftex_set(int16_t x, int16_t y, uint16_t tex);
+void RvR_ray_map_wall_ctex_set(int16_t x, int16_t y, uint16_t tex);
+void RvR_ray_map_floor_tex_set(int16_t x, int16_t y, uint16_t tex);
+void RvR_ray_map_ceil_tex_set(int16_t x, int16_t y, uint16_t tex);
+void RvR_ray_map_floor_height_set(int16_t x, int16_t y, int16_t height);
+void RvR_ray_map_ceiling_height_set(int16_t x, int16_t y, int16_t height);
+
 uint16_t RvR_ray_map_wall_ftex_at_us(int16_t x, int16_t y);
 uint16_t RvR_ray_map_wall_ctex_at_us(int16_t x, int16_t y);
 uint16_t RvR_ray_map_floor_tex_at_us(int16_t x, int16_t y);

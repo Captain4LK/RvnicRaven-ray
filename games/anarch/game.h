@@ -14,9 +14,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 extern uint32_t game_tick;
 
-void set_difficulty(int difficulty);
-void set_episode(int episode);
-
 void game_map_load();
 void game_update();
 
