@@ -296,6 +296,13 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
    ray_sprite_stack.data_used = 0;
 }
 
+void RvR_ray_draw_debug(uint8_t index)
+{
+   char tmp[128];
+   snprintf(tmp,128,"%03d Planes",ray_planes_used);
+   RvR_draw_string(2,2,1,tmp,index);
+}
+
 static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, ray_pixel_info *pixel_info)
 {
    int16_t limit = RvR_clamp(y_to,limit0,limit1);

@@ -376,6 +376,7 @@ RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y);
 
 void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex);
 void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear);
+void RvR_ray_draw_debug(uint8_t index);
 
 //RvnicRaven raycast functions end
 //-------------------------------------
