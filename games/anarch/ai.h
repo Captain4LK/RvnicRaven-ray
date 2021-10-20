@@ -35,6 +35,7 @@ typedef enum
    AI_STATE_ELEVATOR_LOWER,
    AI_STATE_ELEVATOR_STILLR,
    AI_STATE_ELEVATOR_STILLL,
+   AI_STATE_DOOR,
    AI_STATE_MAX,
 }AI_statenum;
 
@@ -46,6 +47,7 @@ typedef enum
    AI_TYPE_RUIN,
    AI_TYPE_TERMINAL,
    AI_TYPE_ELEVATOR,
+   AI_TYPE_DOOR,
    AI_TYPE_MAX,
 }AI_type;
 

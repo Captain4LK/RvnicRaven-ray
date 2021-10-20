@@ -20,6 +20,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "game.h"
 #include "sprite.h"
 #include "ai.h"
+#include "player.h"
 #include "sound.h"
 //-------------------------------------
 
@@ -41,6 +42,7 @@ static AI_statenum shotgun_close(AI_ent *e);
 
 static AI_statenum elevator_rise(AI_ent *e);
 static AI_statenum elevator_lower(AI_ent *e);
+static AI_statenum door(AI_ent *e);
 //-------------------------------------
 
 //Variables
@@ -67,6 +69,7 @@ static const AI_state _ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_ELEVATOR_LOWER, .action = elevator_lower, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_LOWER
   { .next = AI_STATE_ELEVATOR_LOWER, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLR
   { .next = AI_STATE_ELEVATOR_RISE, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLL
+  { .next = AI_STATE_DOOR, .action = door, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_DOOR
 };
 
 static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
@@ -111,6 +114,13 @@ static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
     .state_move = AI_STATE_ELEVATOR_STILLR,
     .state_attack = AI_STATE_ELEVATOR_STILLR,
     .state_death = AI_STATE_ELEVATOR_STILLR,
+  },
+  //AI_TYPE_DOOR
+  {
+    .state_idle = AI_STATE_DOOR,
+    .state_move = AI_STATE_DOOR,
+    .state_attack = AI_STATE_DOOR,
+    .state_death = AI_STATE_DOOR,
   },
 };
 
@@ -219,6 +229,8 @@ void sprite_load(AI_type t)
          break;
       case AI_TYPE_ELEVATOR:
          break;
+      case AI_TYPE_DOOR:
+         break;
       case AI_TYPE_MAX:
       break;
    }
@@ -311,6 +323,26 @@ static AI_statenum elevator_lower(AI_ent *e)
    z = RvR_max(e->extra0,z-48);
    RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
    
+   return AI_STATE_NULL;
+}
+
+static AI_statenum door(AI_ent *e)
+{
+   //Door lowers if the manhatten distance between the door and the player is smaller than 2048
+   RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
+   RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
+
+   if(dist>2048)
+   {
+      z = RvR_min(e->extra1,z+48);
+      RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
+   }
+   else
+   {
+      z = RvR_max(e->extra0,z-48);
+      RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
+   }
+
    return AI_STATE_NULL;
 }
 //-------------------------------------

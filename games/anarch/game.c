@@ -117,6 +117,7 @@ static AI_type u16_to_type(uint16_t type)
    case 3: return AI_TYPE_RUIN;
    case 4: return AI_TYPE_TERMINAL;
    case 5: return AI_TYPE_ELEVATOR;
+   case 6: return AI_TYPE_DOOR;
    }
 
    return AI_TYPE_MAX;
