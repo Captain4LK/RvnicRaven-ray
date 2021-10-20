@@ -46,6 +46,8 @@ typedef struct
    vec3 pos;
    int32_t extra0;
    int32_t extra1;
+   int32_t extra2;
+   int32_t extra3;
 }Sprite;
 //-------------------------------------
 
@@ -212,6 +214,10 @@ int main(int argc, char **argv)
             level_sprites[i].extra0 = HLH_json_get_object_integer(ent_prop,"value",0);
          if(strcmp(name,"extra1")==0)
             level_sprites[i].extra1 = HLH_json_get_object_integer(ent_prop,"value",0);
+         if(strcmp(name,"extra2")==0)
+            level_sprites[i].extra2 = HLH_json_get_object_integer(ent_prop,"value",0);
+         if(strcmp(name,"extra3")==0)
+            level_sprites[i].extra3 = HLH_json_get_object_integer(ent_prop,"value",0);
       }
    }
 
@@ -285,6 +291,8 @@ static void map_write(const char *path)
       *(int32_t *)(mem+pos) = level_sprites[i].pos.z; pos+=4;
       *(int32_t *)(mem+pos) = level_sprites[i].extra0; pos+=4;
       *(int32_t *)(mem+pos) = level_sprites[i].extra1; pos+=4;
+      *(int32_t *)(mem+pos) = level_sprites[i].extra2; pos+=4;
+      *(int32_t *)(mem+pos) = level_sprites[i].extra3; pos+=4;
    }
 
    //Compress and write to disk

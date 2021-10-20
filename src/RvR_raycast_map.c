@@ -289,6 +289,8 @@ void RvR_ray_map_load_mem(uint8_t *mem, int len)
       ray_map_cache.sprites[i].pos.z = *(int32_t *)(mem+pos); pos+=4;
       ray_map_cache.sprites[i].extra0 = *(int32_t *)(mem+pos); pos+=4;
       ray_map_cache.sprites[i].extra1 = *(int32_t *)(mem+pos); pos+=4;
+      ray_map_cache.sprites[i].extra2 = *(int32_t *)(mem+pos); pos+=4;
+      ray_map_cache.sprites[i].extra3 = *(int32_t *)(mem+pos); pos+=4;
    }
 
    //Update actual map
@@ -341,6 +343,10 @@ void RvR_ray_map_save(const char *path)
       *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.x; pos+=4;
       *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.y; pos+=4;
       *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.z; pos+=4;
+      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra0; pos+=4;
+      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra1; pos+=4;
+      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra2; pos+=4;
+      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra3; pos+=4;
    }
 
    //Compress and write to disk
