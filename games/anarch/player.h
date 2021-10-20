@@ -17,6 +17,7 @@ typedef struct
    AI_ent *entity;
    int16_t shear;
    RvR_fix22 vertical_speed;
+   uint8_t key;
 }Player;
 
 extern Player player;

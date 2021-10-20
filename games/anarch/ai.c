@@ -332,14 +332,17 @@ static AI_statenum door(AI_ent *e)
    RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
    RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
 
-   if(dist>2048)
+
+   int locked = (e->extra2&player.key)!=e->extra2;
+
+   if(dist<2048&&!locked)
    {
-      z = RvR_min(e->extra1,z+48);
+      z = RvR_max(e->extra0,z-48);
       RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
    }
    else
    {
-      z = RvR_max(e->extra0,z-48);
+      z = RvR_min(e->extra1,z+48);
       RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
    }
 

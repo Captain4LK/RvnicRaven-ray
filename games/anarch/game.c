@@ -59,8 +59,13 @@ void game_map_load()
       e->pos = s->pos;
       e->extra0 = s->extra0;
       e->extra1 = s->extra1;
+      e->extra2 = s->extra2;
+      e->extra3 = s->extra3;
       if(u16_to_type(s->type)==AI_TYPE_PLAYER)
+      {
          player.entity = e;
+         player.key = 0;
+      }
    }
 
    printf("%d %d\n",player.entity->pos.x,player.entity->pos.y);
