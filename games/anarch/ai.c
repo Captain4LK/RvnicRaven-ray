@@ -192,6 +192,7 @@ AI_ent *ai_ent_new()
    AI_ent *n = ai_ent_pool;
    ai_ent_pool = n->next;
    n->next = NULL;
+   n->prev = NULL;
 
    return n;
 }
@@ -201,7 +202,8 @@ void ai_ent_free(AI_ent *e)
    if(e==NULL)
       return;
 
-   ai_ent_free(e->next);
+   if(e->prev!=NULL)
+      e->prev->next = e->next;
 
    e->generation++;
    e->next = ai_ent_pool;

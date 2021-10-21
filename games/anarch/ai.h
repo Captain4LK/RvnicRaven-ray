@@ -96,6 +96,7 @@ struct AI_ent
    Sprite sprite;
    AI ai;
    AI_ent *next;
+   AI_ent *prev;
 };
 
 void ai_init(AI_ent *e, AI_type type);

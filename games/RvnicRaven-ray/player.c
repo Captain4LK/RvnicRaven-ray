@@ -109,6 +109,13 @@ void player_update()
    move_offset.z = player.vertical_speed;
    //-------------------------------------
 
+   //Update raycasting values
+   //needed by collision
+   RvR_ray_set_position(player.entity->pos);
+   RvR_ray_set_angle(player.entity->direction);
+   RvR_ray_set_shear(player.shear);
+   //-------------------------------------
+
    //Collision
    RvR_ray_set_position(player.entity->pos);
    RvR_fix22 last_z = player.entity->pos.z;
@@ -122,6 +129,13 @@ void player_update()
       player.vertical_speed = 0;
    }
    last_vertical_speed = player.vertical_speed;
+   //-------------------------------------
+
+   //Update raycasting values again
+   //might be changed by collision
+   RvR_ray_set_position(player.entity->pos);
+   RvR_ray_set_angle(player.entity->direction);
+   RvR_ray_set_shear(player.shear);
    //-------------------------------------
 }
 //-------------------------------------

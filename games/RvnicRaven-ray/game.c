@@ -107,7 +107,7 @@ void game_update()
    }
 
    //Graphics
-   RvR_ray_draw((RvR_vec3){player.entity->pos.x,player.entity->pos.y,player.entity->pos.z},player.entity->direction,player.shear);
+   RvR_ray_draw();
    RvR_draw_texture(player_sprite,(RVR_XRES-player_sprite->width)/2,RVR_YRES-player_sprite->height);
 }
 

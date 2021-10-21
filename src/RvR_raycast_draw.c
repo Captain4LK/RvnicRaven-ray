@@ -118,7 +118,7 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex)
    ray_sprite_stack_push(s);
 }
 
-void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
+void RvR_ray_draw()
 {
    //Clear depth buffer
    //but only to the depth needed for
@@ -135,13 +135,9 @@ void RvR_ray_draw(RvR_vec3 cpos, RvR_fix22 cangle, int16_t cshear)
    ray_planes_used = 0;
 
    //Render walls and fill plane data
-   RvR_ray_set_position(cpos);
-   RvR_ray_set_angle(cangle);
-   RvR_ray_set_shear(cshear);
-
-   ray_middle_row = (RVR_YRES/2)+cshear;
-   ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_div_round_down(cpos.x,1024),RvR_div_round_down(cpos.y,1024))-1*cpos.z;
-   ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_div_round_down(cpos.x,1024),RvR_div_round_down(cpos.y,1024))-1*cpos.z;
+   ray_middle_row = (RVR_YRES/2)+RvR_ray_get_shear();
+   ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_div_round_down(RvR_ray_get_position().x,1024),RvR_div_round_down(RvR_ray_get_position().y,1024))-1*RvR_ray_get_position().z;
+   ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_div_round_down(RvR_ray_get_position().x,1024),RvR_div_round_down(RvR_ray_get_position().y,1024))-1*RvR_ray_get_position().z;
 
    RvR_rays_cast_multi_hit(ray_draw_column);
    //-------------------------------------
