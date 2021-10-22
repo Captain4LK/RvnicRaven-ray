@@ -119,7 +119,7 @@ void player_update()
    //Collision
    RvR_ray_set_position(player.entity->pos);
    RvR_fix22 last_z = player.entity->pos.z;
-   RvR_ray_move_with_collision(move_offset,1,1);
+   RvR_ray_move_with_collision(move_offset,1,1,NULL,NULL);
    player.entity->pos = RvR_ray_get_position();
    on_ground = 0;
    if(last_z==player.entity->pos.z)

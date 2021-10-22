@@ -314,7 +314,7 @@ RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 dis
    return distance!=0?((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024)):0;
 }
 
-void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t force)
+void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t force, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height)
 {
    int8_t moves_in_plane = offset.x!=0||offset.y!=0;
 
@@ -489,6 +489,11 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
 
       if(x_square2!=x_square1&&y_square2!=y_square1)
          checkSquares(2,2)
+
+      if(floor_height!=NULL)
+         *floor_height = bottom_limit;
+      if(ceiling_height!=NULL)
+         *ceiling_height = top_limit;
 
       ray_cam_position.z = RvR_clamp(ray_cam_position.z,bottom_limit+CAMERA_COLL_HEIGHT_BELOW,top_limit-CAMERA_COLL_HEIGHT_ABOVE);
 

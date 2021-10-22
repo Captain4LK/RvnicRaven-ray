@@ -343,7 +343,9 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column);
 RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 distance);
 RvR_fix22 RvR_ray_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix22 sc_size);
 RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 distance);
-void      RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t force);
+
+//TODO: move out of RvnicRaven?
+void      RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t force, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height);
 
 void      RvR_ray_set_angle(RvR_fix22 angle);
 RvR_fix22 RvR_ray_get_angle();

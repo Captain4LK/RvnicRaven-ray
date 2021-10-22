@@ -101,7 +101,7 @@ void player_update()
       player.vertical_speed = step*100;
 
    //Jumping (hacky but works)
-   if(RvR_core_key_down(config_jump)&&player.vertical_speed<=0&&last_vertical_speed==0&&on_ground)
+   if(RvR_core_key_down(config_jump)&&on_ground)
       player.vertical_speed = JUMP_SPEED;
 
    //Cap player speed
@@ -117,16 +117,20 @@ void player_update()
    //-------------------------------------
 
    //Collision
-   RvR_fix22 last_z = player.entity->pos.z;
-   RvR_ray_move_with_collision(move_offset,1,1);
+   RvR_fix22 floor_height = 0;
+   RvR_fix22 ceiling_height = 0;
+   RvR_ray_move_with_collision(move_offset,1,1,&floor_height,&ceiling_height);
    player.entity->pos = RvR_ray_get_position();
    on_ground = 0;
-   if(last_z==player.entity->pos.z)
-   {
-      if(player.entity->pos.z>last_z+move_offset.z)
-         on_ground = 1;
+
+   //Reset verticall speed if ceiling was hit
+   if(player.entity->pos.z+CAMERA_COLL_HEIGHT_ABOVE==ceiling_height)
       player.vertical_speed = 0;
-   }
+
+   //Enable jumping if on ground
+   if(player.entity->pos.z-CAMERA_COLL_HEIGHT_BELOW==floor_height)
+      on_ground = 1;
+
    last_vertical_speed = player.vertical_speed;
    //-------------------------------------
 
