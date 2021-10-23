@@ -18,6 +18,10 @@ typedef struct
    int16_t shear;
    RvR_fix22 vertical_speed;
    uint8_t key;
+
+   int32_t ammo_bull;
+   int32_t ammo_rckt;
+   int32_t ammo_cell;
 }Player;
 
 extern Player player;

@@ -53,6 +53,9 @@ void game_map_load()
 
       AI_ent *e = ai_ent_new();
       e->next = ai_ents;
+      if(e->next!=NULL)
+         e->next->prev = e;
+      e->prev = NULL;
       ai_ents = e;
       ai_init(e,u16_to_type(s->type));
       sprite_load(u16_to_type(s->type));
@@ -61,6 +64,9 @@ void game_map_load()
       e->extra1 = s->extra1;
       e->extra2 = s->extra2;
       e->extra3 = s->extra3;
+
+      e->health = 100;
+
       if(u16_to_type(s->type)==AI_TYPE_PLAYER)
       {
          player.entity = e;
@@ -84,8 +90,9 @@ void game_update()
    AI_ent *e = ai_ents;
    while(e!=NULL)
    {
+      AI_ent *next = e->next;
       ai_run(e);
-      e = e->next;
+      e = next;
    }
 
    e = ai_ents;
@@ -108,6 +115,22 @@ void game_update()
    RvR_ray_draw();
    //RvR_draw_texture(player_sprite,(RVR_XRES-player_sprite->width)/2,RVR_YRES-player_sprite->height);
    RvR_ray_draw_debug(8);
+
+   RvR_draw_rectangle_fill(0,RVR_YRES-24,RVR_XRES,24,2);
+
+   char tmp[16];
+   snprintf(tmp,16,"%d",player.entity->health);
+   RvR_draw_string(96,RVR_YRES-16,2,tmp,176);
+   RvR_draw_string(RVR_XRES-96-30,RVR_YRES-16,2,tmp,144);
+   //RvR_draw_string(7,RVR_YRES-16,2,"Health",7);
+
+   //Draw ammo
+   snprintf(tmp,16,"BULL %03d/255",player.ammo_bull);
+   RvR_draw_string(RVR_XRES-13*5+3,RVR_YRES-20,1,tmp,7);
+   snprintf(tmp,16,"RCKT %03d/255",player.ammo_rckt);
+   RvR_draw_string(RVR_XRES-13*5+3,RVR_YRES-20+6,1,tmp,7);
+   snprintf(tmp,16,"CELL %03d/255",player.ammo_cell);
+   RvR_draw_string(RVR_XRES-13*5+3,RVR_YRES-20+12,1,tmp,7);
 }
 
 static AI_type u16_to_type(uint16_t type)

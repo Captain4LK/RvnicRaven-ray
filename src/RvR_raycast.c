@@ -176,7 +176,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
          switch(h.direction)
          {
          case 0:
-            h.texture_coord = RvR_wrap(-1*h.position.x,1024);
+            h.texture_coord = (-1*h.position.x)&1023;
             if(RvR_ray_map_inbounds(current_square.x,current_square.y+1))
             {
                h.fheight = RvR_ray_map_floor_height_at_us(current_square.x,current_square.y+1);
@@ -186,7 +186,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
             }
             break;
          case 1:
-            h.texture_coord = RvR_wrap(h.position.y,1024);
+            h.texture_coord = (h.position.y)&1023;
             if(RvR_ray_map_inbounds(current_square.x+1,current_square.y))
             {
                h.fheight = RvR_ray_map_floor_height_at_us(current_square.x+1,current_square.y);
@@ -196,7 +196,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
             }
             break;
          case 2:
-            h.texture_coord = RvR_wrap(h.position.x,1024);
+            h.texture_coord = (h.position.x)&1023;
             if(RvR_ray_map_inbounds(current_square.x,current_square.y-1))
             {
                h.fheight = RvR_ray_map_floor_height_at_us(current_square.x,current_square.y-1);
@@ -206,7 +206,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
             }
             break;
          case 3:
-            h.texture_coord = RvR_wrap(-1*h.position.y,1024);
+            h.texture_coord = (-1*h.position.y)&1023;
             if(RvR_ray_map_inbounds(current_square.x-1,current_square.y))
             {
                h.fheight = RvR_ray_map_floor_height_at_us(current_square.x-1,current_square.y);

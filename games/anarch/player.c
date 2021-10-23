@@ -129,7 +129,10 @@ void player_update()
 
    //Enable jumping if on ground
    if(player.entity->pos.z-CAMERA_COLL_HEIGHT_BELOW==floor_height)
+   {
       on_ground = 1;
+      player.vertical_speed = 0;
+   }
 
    last_vertical_speed = player.vertical_speed;
    //-------------------------------------

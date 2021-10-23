@@ -88,6 +88,7 @@ struct AI_ent
 
    RvR_vec3 pos;
    RvR_fix22 direction;
+   int32_t health;
    int32_t extra0;
    int32_t extra1;
    int32_t extra2;

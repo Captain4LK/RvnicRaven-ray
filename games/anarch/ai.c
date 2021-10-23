@@ -204,6 +204,8 @@ void ai_ent_free(AI_ent *e)
 
    if(e->prev!=NULL)
       e->prev->next = e->next;
+   if(e->next!=NULL)
+      e->next->prev = e->prev;
 
    e->generation++;
    e->next = ai_ent_pool;
