@@ -45,6 +45,8 @@ static int on_ground = 0;
 
 void player_update()
 {
+   player.key_needed = 0;
+
    //Input
    int x,y;
    RvR_core_mouse_relative_pos(&x,&y);

@@ -346,6 +346,8 @@ static AI_statenum door(AI_ent *e)
    }
    else
    {
+      if(dist<2048)
+         player.key_needed|=e->extra2;
       z = RvR_min(e->extra1,z+48);
       RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
    }

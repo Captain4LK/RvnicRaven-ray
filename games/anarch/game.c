@@ -119,18 +119,43 @@ void game_update()
    RvR_draw_rectangle_fill(0,RVR_YRES-24,RVR_XRES,24,2);
 
    char tmp[16];
-   snprintf(tmp,16,"%d",player.entity->health);
-   RvR_draw_string(96,RVR_YRES-16,2,tmp,176);
-   RvR_draw_string(RVR_XRES-96-30,RVR_YRES-16,2,tmp,144);
-   //RvR_draw_string(7,RVR_YRES-16,2,"Health",7);
+
+   //Draw health
+   snprintf(tmp,16,"%3d",player.entity->health);
+   RvR_draw_rectangle_fill(94,RVR_YRES-22,30,12,1);
+   RvR_draw_string(96,RVR_YRES-20,2,tmp,176);
+   RvR_draw_string(95,RVR_YRES-8,1,"Health",7);
 
    //Draw ammo
-   snprintf(tmp,16,"BULL %03d/255",player.ammo_bull);
+   switch(player.weapon)
+   {
+   case 0: snprintf(tmp,16,"%3d",0); break;
+   case 1: snprintf(tmp,16,"%3d",player.ammo_bull); break;
+   case 2: snprintf(tmp,16,"%3d",player.ammo_rckt); break;
+   case 3: snprintf(tmp,16,"%3d",player.ammo_cell); break;
+   case 4: snprintf(tmp,16,"%3d",player.ammo_cell); break;
+   }
+   RvR_draw_rectangle_fill(RVR_XRES-98-30,RVR_YRES-22,30,12,1);
+   RvR_draw_string(RVR_XRES-96-30,RVR_YRES-20,2,tmp,144);
+   RvR_draw_string(RVR_XRES-92-30,RVR_YRES-8,1,"Ammo",7);
+
+   //Draw ammo
+   snprintf(tmp,16,"BULL %3d/200",player.ammo_bull);
    RvR_draw_string(RVR_XRES-13*5+3,RVR_YRES-20,1,tmp,7);
-   snprintf(tmp,16,"RCKT %03d/255",player.ammo_rckt);
+   snprintf(tmp,16,"RCKT %3d/100",player.ammo_rckt);
    RvR_draw_string(RVR_XRES-13*5+3,RVR_YRES-20+6,1,tmp,7);
-   snprintf(tmp,16,"CELL %03d/255",player.ammo_cell);
+   snprintf(tmp,16,"CELL %3d/150",player.ammo_cell);
    RvR_draw_string(RVR_XRES-13*5+3,RVR_YRES-20+12,1,tmp,7);
+
+   //Draw keys
+   RvR_draw_string(96+30+23,RVR_YRES-14,1,"Keys",7);
+   tmp[1] = '\0';
+   tmp[0] = '1'; RvR_draw_string(96+30+16,RVR_YRES-20,1,tmp,(player.key_needed&1)?176:(player.key&1)?7:4);
+   tmp[0] = '2'; RvR_draw_string(96+30+16,RVR_YRES-20+6,1,tmp,(player.key_needed&2)?176:(player.key&2)?7:4);
+   tmp[0] = '3'; RvR_draw_string(96+30+16,RVR_YRES-20+12,1,tmp,(player.key_needed&4)?176:(player.key&4)?7:4);
+   tmp[0] = '4'; RvR_draw_string(RVR_XRES-96-30-23,RVR_YRES-20,1,tmp,(player.key_needed&8)?176:(player.key&8)?7:4);
+   tmp[0] = '5'; RvR_draw_string(RVR_XRES-96-30-23,RVR_YRES-20+6,1,tmp,(player.key_needed&16)?176:(player.key&16)?7:4);
+   tmp[0] = '6'; RvR_draw_string(RVR_XRES-96-30-23,RVR_YRES-20+12,1,tmp,(player.key_needed&32)?176:(player.key&32)?7:4);
 }
 
 static AI_type u16_to_type(uint16_t type)
