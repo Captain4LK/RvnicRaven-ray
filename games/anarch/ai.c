@@ -43,6 +43,8 @@ static AI_statenum shotgun_close(AI_ent *e);
 static AI_statenum elevator_rise(AI_ent *e);
 static AI_statenum elevator_lower(AI_ent *e);
 static AI_statenum door(AI_ent *e);
+
+static AI_statenum key(AI_ent *e);
 //-------------------------------------
 
 //Variables
@@ -70,6 +72,7 @@ static const AI_state _ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_ELEVATOR_LOWER, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLR
   { .next = AI_STATE_ELEVATOR_RISE, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLL
   { .next = AI_STATE_DOOR, .action = door, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_DOOR
+  { .next = AI_STATE_KEY, .action = key, .ticks = 0, .sprite = SPRITE_KEY},   //STATE_KEY
 };
 
 static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
@@ -122,9 +125,17 @@ static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
     .state_attack = AI_STATE_DOOR,
     .state_death = AI_STATE_DOOR,
   },
+  //AI_TYPE_KEY
+  {
+    .state_idle = AI_STATE_KEY,
+    .state_move = AI_STATE_KEY,
+    .state_attack = AI_STATE_KEY,
+    .state_death = AI_STATE_KEY,
+  },
 };
 
-AI_ent *ai_ent_pool = NULL;
+static AI_ent *ai_ent_pool = NULL;
+static AI_ent *ents = NULL;
 //-------------------------------------
 
 //Function implementations
@@ -192,9 +203,18 @@ AI_ent *ai_ent_new()
    AI_ent *n = ai_ent_pool;
    ai_ent_pool = n->next;
    n->next = NULL;
-   n->prev = NULL;
+   n->prev_next = NULL;
 
    return n;
+}
+
+void ai_ent_add(AI_ent *e)
+{
+   e->prev_next = &ents;
+   if(ents!=NULL)
+      ents->prev_next = &e->next;
+   e->next = ents;
+   ents = e;
 }
 
 void ai_ent_free(AI_ent *e)
@@ -202,14 +222,34 @@ void ai_ent_free(AI_ent *e)
    if(e==NULL)
       return;
 
-   if(e->prev!=NULL)
-      e->prev->next = e->next;
+   *e->prev_next = e->next;
    if(e->next!=NULL)
-      e->next->prev = e->prev;
+      e->next->prev_next = e->prev_next;
+   //if(e->prev!=NULL)
+      //e->prev->next = e->next;
+   //if(e->next!=NULL)
+      //e->next->prev = e->prev;
 
    e->generation++;
    e->next = ai_ent_pool;
    ai_ent_pool = e;
+}
+
+void ai_ent_clear()
+{
+   AI_ent *e = ents;
+   while(e!=NULL)
+   {
+      AI_ent *next = e->next;
+      ai_ent_free(e);
+      e = next;
+   }
+   ents = NULL;
+}
+
+AI_ent *ai_ents()
+{
+   return ents;
 }
 
 void sprite_load(AI_type t)
@@ -234,6 +274,9 @@ void sprite_load(AI_type t)
       case AI_TYPE_ELEVATOR:
          break;
       case AI_TYPE_DOOR:
+         break;
+      case AI_TYPE_KEY:
+         sprite_load_sprite(SPRITE_KEY);
          break;
       case AI_TYPE_MAX:
       break;
@@ -350,6 +393,19 @@ static AI_statenum door(AI_ent *e)
          player.key_needed|=e->extra2;
       z = RvR_min(e->extra1,z+48);
       RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
+   }
+
+   return AI_STATE_NULL;
+}
+
+static AI_statenum key(AI_ent *e)
+{
+   RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
+   if(dist<1024)
+   {
+      player.key|=e->extra0;
+      ai_ent_free(e);
+      return AI_STATE_NULL;
    }
 
    return AI_STATE_NULL;

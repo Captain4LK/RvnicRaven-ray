@@ -29,8 +29,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 uint32_t game_tick = 0;
-
-static AI_ent *ai_ents = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -42,8 +40,7 @@ static AI_type u16_to_type(uint16_t type);
 void game_map_load()
 {
    //Free entities
-   ai_ent_free(ai_ents);
-   ai_ents = NULL;
+   ai_ent_clear();
 
    RvR_ray_map_load(0);
 
@@ -52,11 +49,12 @@ void game_map_load()
       RvR_ray_map_sprite *s = RvR_ray_map_sprite_get(i);
 
       AI_ent *e = ai_ent_new();
-      e->next = ai_ents;
-      if(e->next!=NULL)
-         e->next->prev = e;
-      e->prev = NULL;
-      ai_ents = e;
+      ai_ent_add(e);
+      //e->next = ai_ents;
+      //if(e->next!=NULL)
+         //e->next->prev = e;
+      //e->prev = NULL;
+      //ai_ents = e;
       ai_init(e,u16_to_type(s->type));
       sprite_load(u16_to_type(s->type));
       e->pos = s->pos;
@@ -87,7 +85,7 @@ void game_update()
       RvR_malloc_report();
 
    //AI
-   AI_ent *e = ai_ents;
+   AI_ent *e = ai_ents();
    while(e!=NULL)
    {
       AI_ent *next = e->next;
@@ -95,7 +93,7 @@ void game_update()
       e = next;
    }
 
-   e = ai_ents;
+   e = ai_ents();
    while(e!=NULL)
    {
       if(e->ai.type==AI_TYPE_PLAYER)
@@ -169,6 +167,7 @@ static AI_type u16_to_type(uint16_t type)
    case 4: return AI_TYPE_TERMINAL;
    case 5: return AI_TYPE_ELEVATOR;
    case 6: return AI_TYPE_DOOR;
+   case 7: return AI_TYPE_KEY;
    }
 
    return AI_TYPE_MAX;

@@ -36,6 +36,7 @@ typedef enum
    AI_STATE_ELEVATOR_STILLR,
    AI_STATE_ELEVATOR_STILLL,
    AI_STATE_DOOR,
+   AI_STATE_KEY,
    AI_STATE_MAX,
 }AI_statenum;
 
@@ -48,6 +49,7 @@ typedef enum
    AI_TYPE_TERMINAL,
    AI_TYPE_ELEVATOR,
    AI_TYPE_DOOR,
+   AI_TYPE_KEY,
    AI_TYPE_MAX,
 }AI_type;
 
@@ -97,7 +99,7 @@ struct AI_ent
    Sprite sprite;
    AI ai;
    AI_ent *next;
-   AI_ent *prev;
+   AI_ent **prev_next;
 };
 
 void ai_init(AI_ent *e, AI_type type);
@@ -108,7 +110,10 @@ AI_index ai_index_get(AI_ent *e);
 AI_ent *ai_index_try(AI_index in);
 
 AI_ent *ai_ent_new();
+void    ai_ent_add(AI_ent *e);
 void    ai_ent_free(AI_ent *e);
+void    ai_ent_clear();
+AI_ent *ai_ents();
 
 void sprite_load(AI_type t);
 
