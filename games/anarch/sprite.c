@@ -36,7 +36,8 @@ uint16_t sprite_table[SPRITE_MAX][8] =
    {21258}, //SPRITE_LAMP
    {21261}, //SPRITE_RUIN
    {21263}, //SPRITE_TERMINAL
-   {21254}, //SPRITE_KEY
+   {21254}, //SPRITE_ITEM_KEY
+   {21253}, //SPRITE_ITEM_BULLET
 };
 //-------------------------------------
 

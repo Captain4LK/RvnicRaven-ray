@@ -44,7 +44,8 @@ static AI_statenum elevator_rise(AI_ent *e);
 static AI_statenum elevator_lower(AI_ent *e);
 static AI_statenum door(AI_ent *e);
 
-static AI_statenum key(AI_ent *e);
+static AI_statenum item_key(AI_ent *e);
+static AI_statenum item_bullet(AI_ent *e);
 //-------------------------------------
 
 //Variables
@@ -72,7 +73,8 @@ static const AI_state _ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_ELEVATOR_LOWER, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLR
   { .next = AI_STATE_ELEVATOR_RISE, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLL
   { .next = AI_STATE_DOOR, .action = door, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_DOOR
-  { .next = AI_STATE_KEY, .action = key, .ticks = 0, .sprite = SPRITE_KEY},   //STATE_KEY
+  { .next = AI_STATE_ITEM_KEY, .action = item_key, .ticks = 0, .sprite = SPRITE_ITEM_KEY},   //STATE_ITEM_KEY
+  { .next = AI_STATE_ITEM_BULLET, .action = item_bullet, .ticks = 0, .sprite = SPRITE_ITEM_BULLET},   //STATE_ITEM_BULLET
 };
 
 static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
@@ -125,12 +127,19 @@ static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
     .state_attack = AI_STATE_DOOR,
     .state_death = AI_STATE_DOOR,
   },
-  //AI_TYPE_KEY
+  //AI_TYPE_ITEM_KEY
   {
-    .state_idle = AI_STATE_KEY,
-    .state_move = AI_STATE_KEY,
-    .state_attack = AI_STATE_KEY,
-    .state_death = AI_STATE_KEY,
+    .state_idle = AI_STATE_ITEM_KEY,
+    .state_move = AI_STATE_ITEM_KEY,
+    .state_attack = AI_STATE_ITEM_KEY,
+    .state_death = AI_STATE_ITEM_KEY,
+  },
+  //AI_TYPE_ITEM_BULLET
+  {
+    .state_idle = AI_STATE_ITEM_BULLET,
+    .state_move = AI_STATE_ITEM_BULLET,
+    .state_attack = AI_STATE_ITEM_BULLET,
+    .state_death = AI_STATE_ITEM_BULLET,
   },
 };
 
@@ -275,8 +284,11 @@ void sprite_load(AI_type t)
          break;
       case AI_TYPE_DOOR:
          break;
-      case AI_TYPE_KEY:
-         sprite_load_sprite(SPRITE_KEY);
+      case AI_TYPE_ITEM_KEY:
+         sprite_load_sprite(SPRITE_ITEM_KEY);
+         break;
+      case AI_TYPE_ITEM_BULLET:
+         sprite_load_sprite(SPRITE_ITEM_BULLET);
          break;
       case AI_TYPE_MAX:
       break;
@@ -398,12 +410,25 @@ static AI_statenum door(AI_ent *e)
    return AI_STATE_NULL;
 }
 
-static AI_statenum key(AI_ent *e)
+static AI_statenum item_key(AI_ent *e)
 {
    RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
-   if(dist<1024)
+   if(dist<512)
    {
       player.key|=e->extra0;
+      ai_ent_free(e);
+      return AI_STATE_NULL;
+   }
+
+   return AI_STATE_NULL;
+}
+
+static AI_statenum item_bullet(AI_ent *e)
+{
+   RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
+   if(dist<512)
+   {
+      player.ammo_bull =  RvR_min(player.ammo_bull+10,200);
       ai_ent_free(e);
       return AI_STATE_NULL;
    }
