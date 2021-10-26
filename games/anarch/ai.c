@@ -46,6 +46,9 @@ static AI_statenum door(AI_ent *e);
 
 static AI_statenum item_key(AI_ent *e);
 static AI_statenum item_bullet(AI_ent *e);
+static AI_statenum item_rocket(AI_ent *e);
+static AI_statenum item_cell(AI_ent *e);
+static AI_statenum item_health(AI_ent *e);
 //-------------------------------------
 
 //Variables
@@ -75,6 +78,9 @@ static const AI_state _ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_DOOR, .action = door, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_DOOR
   { .next = AI_STATE_ITEM_KEY, .action = item_key, .ticks = 0, .sprite = SPRITE_ITEM_KEY},   //STATE_ITEM_KEY
   { .next = AI_STATE_ITEM_BULLET, .action = item_bullet, .ticks = 0, .sprite = SPRITE_ITEM_BULLET},   //STATE_ITEM_BULLET
+  { .next = AI_STATE_ITEM_ROCKET, .action = item_rocket, .ticks = 0, .sprite = SPRITE_ITEM_ROCKET},   //STATE_ITEM_ROCKET
+  { .next = AI_STATE_ITEM_CELL, .action = item_cell, .ticks = 0, .sprite = SPRITE_ITEM_CELL},   //STATE_ITEM_CELL
+  { .next = AI_STATE_ITEM_HEALTH, .action = item_health, .ticks = 0, .sprite = SPRITE_ITEM_HEALTH},   //STATE_ITEM_HEALTH
 };
 
 static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
@@ -140,6 +146,27 @@ static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
     .state_move = AI_STATE_ITEM_BULLET,
     .state_attack = AI_STATE_ITEM_BULLET,
     .state_death = AI_STATE_ITEM_BULLET,
+  },
+  //AI_TYPE_ITEM_ROCKET
+  {
+    .state_idle = AI_STATE_ITEM_ROCKET,
+    .state_move = AI_STATE_ITEM_ROCKET,
+    .state_attack = AI_STATE_ITEM_ROCKET,
+    .state_death = AI_STATE_ITEM_ROCKET,
+  },
+  //AI_TYPE_ITEM_CELL
+  {
+    .state_idle = AI_STATE_ITEM_CELL,
+    .state_move = AI_STATE_ITEM_CELL,
+    .state_attack = AI_STATE_ITEM_CELL,
+    .state_death = AI_STATE_ITEM_CELL,
+  },
+  //AI_TYPE_ITEM_HEALTH
+  {
+    .state_idle = AI_STATE_ITEM_HEALTH,
+    .state_move = AI_STATE_ITEM_HEALTH,
+    .state_attack = AI_STATE_ITEM_HEALTH,
+    .state_death = AI_STATE_ITEM_HEALTH,
   },
 };
 
@@ -290,6 +317,15 @@ void sprite_load(AI_type t)
       case AI_TYPE_ITEM_BULLET:
          sprite_load_sprite(SPRITE_ITEM_BULLET);
          break;
+      case AI_TYPE_ITEM_ROCKET:
+         sprite_load_sprite(SPRITE_ITEM_ROCKET);
+         break;
+      case AI_TYPE_ITEM_CELL:
+         sprite_load_sprite(SPRITE_ITEM_CELL);
+         break;
+      case AI_TYPE_ITEM_HEALTH:
+         sprite_load_sprite(SPRITE_ITEM_HEALTH);
+         break;
       case AI_TYPE_MAX:
       break;
    }
@@ -429,6 +465,45 @@ static AI_statenum item_bullet(AI_ent *e)
    if(dist<512)
    {
       player.ammo_bull =  RvR_min(player.ammo_bull+10,200);
+      ai_ent_free(e);
+      return AI_STATE_NULL;
+   }
+
+   return AI_STATE_NULL;
+}
+
+static AI_statenum item_rocket(AI_ent *e)
+{
+   RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
+   if(dist<512)
+   {
+      player.ammo_rckt =  RvR_min(player.ammo_rckt+5,100);
+      ai_ent_free(e);
+      return AI_STATE_NULL;
+   }
+
+   return AI_STATE_NULL;
+}
+
+static AI_statenum item_cell(AI_ent *e)
+{
+   RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
+   if(dist<512)
+   {
+      player.ammo_cell =  RvR_min(player.ammo_cell+8,150);
+      ai_ent_free(e);
+      return AI_STATE_NULL;
+   }
+
+   return AI_STATE_NULL;
+}
+
+static AI_statenum item_health(AI_ent *e)
+{
+   RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
+   if(dist<512)
+   {
+      player.entity->health =  RvR_min(player.entity->health+20,125);
       ai_ent_free(e);
       return AI_STATE_NULL;
    }

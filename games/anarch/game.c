@@ -160,15 +160,18 @@ static AI_type u16_to_type(uint16_t type)
 {
    switch(type)
    {
-   case 0: return AI_TYPE_PLAYER;
-   case 1: return AI_TYPE_TREE;
-   case 2: return AI_TYPE_LAMP;
-   case 3: return AI_TYPE_RUIN;
-   case 4: return AI_TYPE_TERMINAL;
-   case 5: return AI_TYPE_ELEVATOR;
-   case 6: return AI_TYPE_DOOR;
-   case 7: return AI_TYPE_ITEM_KEY;
-   case 8: return AI_TYPE_ITEM_BULLET;
+   case 0:  return AI_TYPE_PLAYER;
+   case 1:  return AI_TYPE_TREE;
+   case 2:  return AI_TYPE_LAMP;
+   case 3:  return AI_TYPE_RUIN;
+   case 4:  return AI_TYPE_TERMINAL;
+   case 5:  return AI_TYPE_ELEVATOR;
+   case 6:  return AI_TYPE_DOOR;
+   case 7:  return AI_TYPE_ITEM_KEY;
+   case 8:  return AI_TYPE_ITEM_BULLET;
+   case 9:  return AI_TYPE_ITEM_ROCKET;
+   case 10: return AI_TYPE_ITEM_CELL;
+   case 11: return AI_TYPE_ITEM_HEALTH;
    }
 
    return AI_TYPE_MAX;

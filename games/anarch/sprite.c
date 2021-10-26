@@ -38,6 +38,9 @@ uint16_t sprite_table[SPRITE_MAX][8] =
    {21263}, //SPRITE_TERMINAL
    {21254}, //SPRITE_ITEM_KEY
    {21253}, //SPRITE_ITEM_BULLET
+   {21260}, //SPRITE_ITEM_ROCKET
+   {21259}, //SPRITE_ITEM_CELL
+   {21257}, //SPRITE_ITEM_HEALTH
 };
 //-------------------------------------
 
