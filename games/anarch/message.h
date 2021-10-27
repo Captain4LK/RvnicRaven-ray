@@ -8,22 +8,11 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
 */
 
-#ifndef _CONFIG_H_
+#ifndef _MESSAGE_H_
 
-#define _CONFIG_H_
+#define _MESSAGE_H_
 
-extern int config_mouse_sensitivity;
-extern int config_mouse_sensitivity_vertical;
-extern RvR_key config_move_forward;
-extern RvR_key config_move_backward;
-extern RvR_key config_strafe_left;
-extern RvR_key config_strafe_right;
-extern RvR_key config_enable_freelook;
-extern RvR_key config_jump;
-extern int config_camera_max_shear;
-extern int config_camera_shear_step;
-
-#define MESSAGE_MAX 5
-#define MESSAGE_TIMEOUT (RVR_FPS*4)
+void message_queue(const char *msg);
+void message_draw(uint8_t index);
 
 #endif

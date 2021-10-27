@@ -22,6 +22,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "ai.h"
 #include "player.h"
 #include "sound.h"
+#include "message.h"
 //-------------------------------------
 
 //#defines
@@ -453,6 +454,7 @@ static AI_statenum item_key(AI_ent *e)
    {
       player.key|=e->extra0;
       ai_ent_free(e);
+      message_queue("Picked up key");
       return AI_STATE_NULL;
    }
 
@@ -466,6 +468,7 @@ static AI_statenum item_bullet(AI_ent *e)
    {
       player.ammo_bull =  RvR_min(player.ammo_bull+10,200);
       ai_ent_free(e);
+      message_queue("Picked up bullets");
       return AI_STATE_NULL;
    }
 
@@ -479,6 +482,7 @@ static AI_statenum item_rocket(AI_ent *e)
    {
       player.ammo_rckt =  RvR_min(player.ammo_rckt+5,100);
       ai_ent_free(e);
+      message_queue("Picked up rockets");
       return AI_STATE_NULL;
    }
 
@@ -492,6 +496,7 @@ static AI_statenum item_cell(AI_ent *e)
    {
       player.ammo_cell =  RvR_min(player.ammo_cell+8,150);
       ai_ent_free(e);
+      message_queue("Picked up cells");
       return AI_STATE_NULL;
    }
 
@@ -505,6 +510,7 @@ static AI_statenum item_health(AI_ent *e)
    {
       player.entity->health =  RvR_min(player.entity->health+20,125);
       ai_ent_free(e);
+      message_queue("Picked up health");
       return AI_STATE_NULL;
    }
 

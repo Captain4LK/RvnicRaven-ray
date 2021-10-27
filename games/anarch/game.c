@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "sprite.h"
 #include "ai.h"
 #include "player.h"
+#include "message.h"
 //-------------------------------------
 
 //#defines
@@ -112,7 +113,7 @@ void game_update()
    //Graphics
    RvR_ray_draw();
    //RvR_draw_texture(player_sprite,(RVR_XRES-player_sprite->width)/2,RVR_YRES-player_sprite->height);
-   RvR_ray_draw_debug(8);
+   //RvR_ray_draw_debug(8);
 
    RvR_draw_rectangle_fill(0,RVR_YRES-24,RVR_XRES,24,2);
 
@@ -154,6 +155,9 @@ void game_update()
    tmp[0] = '4'; RvR_draw_string(RVR_XRES-96-30-23,RVR_YRES-20,1,tmp,(player.key_needed&8)?176:(player.key&8)?7:4);
    tmp[0] = '5'; RvR_draw_string(RVR_XRES-96-30-23,RVR_YRES-20+6,1,tmp,(player.key_needed&16)?176:(player.key&16)?7:4);
    tmp[0] = '6'; RvR_draw_string(RVR_XRES-96-30-23,RVR_YRES-20+12,1,tmp,(player.key_needed&32)?176:(player.key&32)?7:4);
+
+   //Draw messages
+   message_draw(7);
 }
 
 static AI_type u16_to_type(uint16_t type)
