@@ -41,6 +41,12 @@ uint16_t sprite_table[SPRITE_MAX][8] =
    {21260}, //SPRITE_ITEM_ROCKET
    {21259}, //SPRITE_ITEM_CELL
    {21257}, //SPRITE_ITEM_HEALTH
+   {21285}, //SPRITE_KNIFE
+   {21286}, //SPRITE_MACHINE_GUN
+   {21289}, //SPRITE_SHOTGUN
+   {21288}, //SPRITE_ROCKET_LAUNCHER
+   {21287}, //SPRITE_PLASMA_GUN
+   {21290}, //SPRITE_SOLUTION
 };
 //-------------------------------------
 

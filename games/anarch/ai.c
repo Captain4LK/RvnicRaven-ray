@@ -58,7 +58,7 @@ static AI_statenum item_health(AI_ent *e);
 //Having this in a central place allows for easy tweaking of AI behaviour.
 static const AI_state _ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_NULL, .action = NULL, .ticks = 0},                                                    //STATE_NULL
-  { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun, .ticks = 0, .sprite = SPRITE_TREE}, //STATE_SHOTGUN_READY
+  { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun, .ticks = 0, .sprite = SPRITE_KNIFE}, //STATE_SHOTGUN_READY
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD1, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD0
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD2, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD1
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD3, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD2
@@ -294,7 +294,12 @@ void sprite_load(AI_type t)
    switch(t)
    {
       case AI_TYPE_PLAYER:
-         sprite_load_sprite(SPRITE_TREE);
+         sprite_load_sprite(SPRITE_KNIFE);
+         sprite_load_sprite(SPRITE_MACHINE_GUN);
+         sprite_load_sprite(SPRITE_SHOTGUN);
+         sprite_load_sprite(SPRITE_ROCKET_LAUNCHER);
+         sprite_load_sprite(SPRITE_PLASMA_GUN);
+         sprite_load_sprite(SPRITE_SOLUTION);
          break;
       case AI_TYPE_TREE:
          sprite_load_sprite(SPRITE_TREE);

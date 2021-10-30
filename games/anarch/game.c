@@ -112,7 +112,7 @@ void game_update()
 
    //Graphics
    RvR_ray_draw();
-   //RvR_draw_texture(player_sprite,(RVR_XRES-player_sprite->width)/2,RVR_YRES-player_sprite->height);
+   RvR_draw_texture(player_sprite,(RVR_XRES-player_sprite->width)/2,RVR_YRES-player_sprite->height);
    //RvR_ray_draw_debug(8);
 
    RvR_draw_rectangle_fill(0,RVR_YRES-24,RVR_XRES,24,2);
