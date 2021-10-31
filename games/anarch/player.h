@@ -29,5 +29,8 @@ typedef struct
 extern Player player;
 
 void player_update();
+int32_t player_weapon_ammo(int32_t weapon);
+void player_weapon_rotate(int direction);
+void player_weapon_switch(int32_t weapon);
 
 #endif

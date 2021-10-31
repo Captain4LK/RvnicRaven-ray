@@ -146,4 +146,47 @@ void player_update()
    RvR_ray_set_shear(player.shear);
    //-------------------------------------
 }
+
+int32_t player_weapon_ammo(int32_t weapon)
+{
+   switch(weapon)
+   {
+   case 0: return -1;
+   case 1: return player.ammo_bull; //Machine gun
+   case 2: return player.ammo_bull; //Shotgun
+   case 3: return player.ammo_rckt; //Rocket launcher
+   case 4: return player.ammo_cell; //Plasma gun
+   case 5: return player.ammo_cell; //Solution
+   }
+
+   return 0;
+}
+
+void player_weapon_rotate(int direction)
+{
+   int32_t weapon_start = player.weapon;
+   int dir = direction>0?1:-1;
+
+   for(;;)
+   {
+      player.weapon = (player.weapon+dir)%6;
+      if(player.weapon==weapon_start)
+         break;
+
+      if(player_weapon_ammo(player.weapon)!=0)
+         break;
+   }
+}
+
+void player_weapon_switch(int32_t weapon)
+{
+   if(weapon<0||weapon>5)
+      return;
+
+   int32_t ammo = player_weapon_ammo(weapon);
+   if(ammo==0)
+      return;
+
+   player.weapon = weapon;
+}
 //-------------------------------------

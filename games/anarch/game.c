@@ -126,14 +126,8 @@ void game_update()
    RvR_draw_string(95,RVR_YRES-8,1,"Health",7);
 
    //Draw ammo
-   switch(player.weapon)
-   {
-   case 0: snprintf(tmp,16,"%3d",0); break;
-   case 1: snprintf(tmp,16,"%3d",player.ammo_bull); break;
-   case 2: snprintf(tmp,16,"%3d",player.ammo_rckt); break;
-   case 3: snprintf(tmp,16,"%3d",player.ammo_cell); break;
-   case 4: snprintf(tmp,16,"%3d",player.ammo_cell); break;
-   }
+   int32_t ammo = player_weapon_ammo(player.weapon);
+   snprintf(tmp,16,"%3d",ammo==-1?0:ammo);
    RvR_draw_rectangle_fill(RVR_XRES-98-30,RVR_YRES-22,30,12,1);
    RvR_draw_string(RVR_XRES-96-30,RVR_YRES-20,2,tmp,144);
    RvR_draw_string(RVR_XRES-92-30,RVR_YRES-8,1,"Ammo",7);
