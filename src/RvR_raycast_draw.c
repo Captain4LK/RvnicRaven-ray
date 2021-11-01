@@ -699,27 +699,20 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
 
 #if RVR_UNROLL
 
-   unsigned len = x1-x0;
-   unsigned n = (len+7)/8;
-   unsigned s = len&7;
-   if(s!=0)
-      n--;
-
-   for(unsigned i = 0;i<s;i++)
+   int count = x1-x0;
+   int n = (count+7)/8;
+   switch(count%8)
    {
-      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
-   }
-
-   for(unsigned i = 0;i<n;i++)
-   {
-      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
-      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
-      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
-      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
-      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
-      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
-      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
-      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++;
+   case 0: do {
+           *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 7: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 6: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 5: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 4: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 3: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 2: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 1: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+           }while(--n>0);
    }
 
 #else
