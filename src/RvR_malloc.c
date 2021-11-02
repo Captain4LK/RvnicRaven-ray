@@ -44,19 +44,19 @@ static Malloc_block_manager malloc_bmanage = {0};
 //-------------------------------------
 
 //Function prototypes
-static void malloc_block_init(Malloc_block_manager *b, void *block, long block_size);
+static void  malloc_block_init(Malloc_block_manager *b, void *block, long block_size);
 static void *malloc_block_alloc(Malloc_block_manager *b, int32_t size);
-static void malloc_block_free(Malloc_block_manager *b, void *ptr);
-static long malloc_block_pointer_size(void *ptr);
-static void malloc_block_report(Malloc_block_manager *b);
+static void  malloc_block_free(Malloc_block_manager *b, void *ptr);
+static long  malloc_block_pointer_size(void *ptr);
+static void  malloc_block_report(Malloc_block_manager *b);
 //-------------------------------------
 
 //Function implementations
 
-void RvR_malloc_init(int min, int max)
+void RvR_malloc_init(size_t min, size_t max)
 {
    void *mem = NULL;
-   int32_t size = max;
+   size_t size = max;
 
    if(malloc_bmanage_total)
    {
@@ -64,9 +64,15 @@ void RvR_malloc_init(int min, int max)
       return;
    }
 
-   for(mem = NULL;!mem&&size>=min;)
+   //Clamp min to a minimun value to prevent underflow of size_t
+   min = RvR_max(0x100,min);
+
+   //This won't work on operating systems where malloc cannont fail
+   //and the programm instead just gets killed.
+   for(mem = NULL;mem==NULL&&size>=min;)
    {
       mem = malloc(size);
+
       if(mem==NULL) 
          size-=0x100;        
    }

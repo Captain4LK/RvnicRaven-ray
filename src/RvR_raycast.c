@@ -248,12 +248,9 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
 {
    RvR_vec2 dir0 = RvR_vec2_rot(ray_cam_angle-(RVR_RAY_HORIZONTAL_FOV/2));
    RvR_vec2 dir1 = RvR_vec2_rot(ray_cam_angle+(RVR_RAY_HORIZONTAL_FOV/2));
-
    RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RVR_RAY_HORIZONTAL_FOV/2));
-
    dir0.x = (dir0.x*1024)/cos;
    dir0.y = (dir0.y*1024)/cos;
-
    dir1.x = (dir1.x*1024)/cos;
    dir1.y = (dir1.y*1024)/cos;
 

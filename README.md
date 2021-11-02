@@ -38,6 +38,8 @@ Rvnic Raven incorporates code from multiple different sources. Here is a list of
    * cute_path (RvR_pak.c), unlicense/zlib
 * [Miloslav Číž](https://gitlab.com/drummyfish), for
    * raycastlib (RvR_raycast.c, RvR_raycast_draw.c), CC0
+* [Landon Curt Noll](http://www.isthe.com/chongo/index.html), Glenn Fowler, Phong Vo, for
+   * Fowler/Noll/Vo hash (RvR_hash.c), public domain
 
 # License
 
