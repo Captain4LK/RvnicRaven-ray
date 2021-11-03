@@ -20,6 +20,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
+#define TEX_AND ((1<<RVR_RAY_TEXTURE)-1)
+#define TEX_MUL (1<<RVR_RAY_TEXTURE)
+#define TEX_HIGH_AND ((1<<RVR_RAY_TEXTURE_HIGH)-1)
+#define TEX_HIGH_MUL (1<<RVR_RAY_TEXTURE_HIGH)
+#define TEX_SKYW_AND ((1<<RVR_RAY_TEXTURE_SKY_W)-1)
+#define TEX_SKYW_MUL (1<<RVR_RAY_TEXTURE_SKY_W)
+#define TEX_SKYH_MUL (1<<RVR_RAY_TEXTURE_SKY_H)
 //-------------------------------------
 
 //Typedefs
@@ -161,8 +168,8 @@ void RvR_ray_draw()
       //Sky texture is rendered differently (vertical collumns instead of horizontal ones)
       if(pl->tex==RvR_ray_map_sky_tex())
       {
-         RvR_fix22 angle_step = (256*1024)/RVR_XRES;
-         RvR_fix22 tex_step = (1024*128-1)/RVR_YRES;
+         RvR_fix22 angle_step = (TEX_SKYW_MUL*1024)/RVR_XRES;
+         RvR_fix22 tex_step = (1024*TEX_SKYH_MUL-1)/RVR_YRES;
 
          RvR_texture *texture = RvR_texture_get(RvR_ray_map_sky_tex());
          RvR_fix22 angle = (RvR_ray_get_angle())*1024;
@@ -173,7 +180,7 @@ void RvR_ray_draw()
             //Sky is rendered fullbright, no lut needed
             RvR_fix22 texture_coord = pl->start[x]*tex_step;
             uint8_t * restrict pix = &RvR_core_framebuffer()[(pl->start[x])*RVR_XRES+x-1];
-            const uint8_t * restrict tex = &texture->data[((angle>>10)&255)*texture->height];
+            const uint8_t * restrict tex = &texture->data[((angle>>10)&TEX_SKYW_AND)*TEX_SKYH_MUL];
 
             for(int y = pl->start[x];y<pl->end[x]+1;y++)
             {
@@ -351,12 +358,12 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
 
    if(increment==-1)
    {
-      if(texture->height==128)
+      if(texture->height==TEX_HIGH_MUL)
       {
          for(RvR_fix22 i = y_current+increment;i>=limit;i--)
          {
             texture_coord_scaled+=coord_step_scaled;
-            *pix = col[tex[(texture_coord_scaled>>14)&127]];
+            *pix = col[tex[(texture_coord_scaled>>14)&TEX_HIGH_AND]];
             pix-=RVR_XRES;
          }
       }
@@ -365,19 +372,19 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
          for(RvR_fix22 i = y_current+increment;i>=limit;i--)
          {
             texture_coord_scaled+=coord_step_scaled;
-            *pix = col[tex[(texture_coord_scaled>>14)&63]];
+            *pix = col[tex[(texture_coord_scaled>>14)&TEX_AND]];
             pix-=RVR_XRES;
          }
       }
    }
    else if(increment==1)
    {
-      if(texture->height==128)
+      if(texture->height==TEX_HIGH_MUL)
       {
          for(RvR_fix22 i = y_current+increment;i<=limit;i++)
          {
             texture_coord_scaled+=coord_step_scaled;
-            *pix = col[tex[(texture_coord_scaled>>14)&127]];
+            *pix = col[tex[(texture_coord_scaled>>14)&TEX_HIGH_AND]];
             pix+=RVR_XRES;
          }
       }
@@ -386,7 +393,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
          for(RvR_fix22 i = y_current+increment;i<=limit;i++)
          {
             texture_coord_scaled+=coord_step_scaled;
-            *pix = col[tex[(texture_coord_scaled>>14)&63]];
+            *pix = col[tex[(texture_coord_scaled>>14)&TEX_AND]];
             pix+=RVR_XRES;
          }
       }
@@ -704,14 +711,14 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
    switch(count%8)
    {
    case 0: do {
-           *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 7: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 6: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 5: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 4: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 3: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 2: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 1: *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+           *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 7: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 6: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 5: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 4: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 3: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 2: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 1: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
            }while(--n>0);
    }
 
@@ -719,7 +726,7 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
 
    for(int x = x0;x<x1;x++)
    {
-      *pix = col[tex[((tx>>14)&63)*64+((ty>>14)&63)]];
+      *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]];
       tx+=step_x;
       ty+=step_y;
       pix++;
@@ -754,3 +761,11 @@ static int ray_sort(const void *a, const void *b)
    return ((ray_sprite *)b)->s_depth-((ray_sprite *)a)->s_depth;
 }
 //-------------------------------------
+
+#undef TEX_AND
+#undef TEX_MUL
+#undef TEX_HIGH_MUL
+#undef TEX_HIGH_AND
+#undef TEX_SKYW_AND
+#undef TEX_SKYW_MUL
+#undef TEX_SKYH_MUL

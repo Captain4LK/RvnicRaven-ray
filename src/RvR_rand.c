@@ -25,7 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static int rand_seed = 0;
+static unsigned rand_seed = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -58,7 +58,7 @@ int RvR_rand_get_state()
    return rand_seed;
 }
 
-void RvR_rand_set_state(int state)
+void RvR_rand_set_state(unsigned state)
 {
    rand_seed = state%RVR_RNG_TABLE_SIZE;
 }

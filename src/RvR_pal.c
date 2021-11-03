@@ -49,17 +49,17 @@ void RvR_palette_load(uint16_t id)
    uint8_t *mem_pak = NULL;
    char tmp[64] = "";
 
-   sprintf(tmp,"PAL%05d",id);
-   mem_pak = RvR_lump_get(tmp,RVR_LUMP_PAL,&size_in);
-   if(mem_pak==NULL)
-      RvR_error_check(0,0x000);
-
+   //Allocate palette if it isn't yet
    if(palette==NULL)
    {
       palette = RvR_malloc(sizeof(*palette)*256);
       RvR_error_check(palette!=NULL,0x001);
    }
 
+   snprintf(tmp,64,"PAL%05d",id);
+   mem_pak = RvR_lump_get(tmp,RVR_LUMP_PAL,&size_in);
+   if(mem_pak==NULL)
+      RvR_error_check(0,0x000);
    for(unsigned i = 0;i<256;i++)
    {
       READ(palette[i].r,mem_pak,pos,size_in,uint8_t);
@@ -67,10 +67,9 @@ void RvR_palette_load(uint16_t id)
       READ(palette[i].b,mem_pak,pos,size_in,uint8_t);
       palette[i].a = 255;
    }
+   RvR_free(mem_pak);
 
    pal_calculate_colormap();
-
-   RvR_free(mem_pak);
 
    return;
 
@@ -82,6 +81,8 @@ RvR_err:
    RvR_log("RvR error %s\n",RvR_error_get_string());
 }
 
+//Taken from: https://quakewiki.org/wiki/Quake_palette (public domain), original note:
+//The following C code will generate a colormap.lmp that is nearly (but not exactly) identical to the Quake colormap. Written by metlslime who placed it in the public domain.
 static void pal_calculate_colormap()
 {
    for(int x = 0;x<256;x++)
@@ -90,13 +91,12 @@ static void pal_calculate_colormap()
       {
          if(x<256)
          {
-            int r,g,b;
-            r = RvR_min(255,((int)palette[x].r*(63-y)+16)>>5);
-            g = RvR_min(255,((int)palette[x].g*(63-y)+16)>>5);
-            b = RvR_min(255,((int)palette[x].b*(63-y)+16)>>5);
-
+            int r = RvR_min(255,((int)palette[x].r*(63-y)+16)>>5);
+            int g = RvR_min(255,((int)palette[x].g*(63-y)+16)>>5);
+            int b = RvR_min(255,((int)palette[x].b*(63-y)+16)>>5);
             int best_index = -1;
             int best_dist = 0;
+
             for(int i = 0;i<256;i++)
             {
                int dist = 0;
@@ -110,6 +110,7 @@ static void pal_calculate_colormap()
                   best_dist = dist;
                }
             }
+
             shade_table[y][x] = (uint8_t)best_index;
          }
          else

@@ -47,6 +47,18 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Depth buffer precision is (1<<RVR_RAY_DEPTH_BUFFER_PRECISION), lower value means higher precision, range: [0,10]
 #define RVR_RAY_DEPTH_BUFFER_PRECISION 9
+
+//Texture resolution for walls/ceilings/floors, calculated as 1<<RVR_RAY_TEXTURE
+#define RVR_RAY_TEXTURE 6
+
+//Alternative texture resolution for textures higher than 1 block (8 units), calculated as 1<<RVR_RAY_TEXTURE_HIGH
+#define RVR_RAY_TEXTURE_HIGH 7
+
+//Width of sky texture, calculated as 1<<RVR_RAY_TEXTURE_SKY_W
+#define RVR_RAY_TEXTURE_SKY_W 8
+
+//HEIGHT of sky texture, calculated as 1<<RVR_RAY_TEXTURE_SKY_H
+#define RVR_RAY_TEXTURE_SKY_H 7
 //-------------------------------------
 
 //Config end
@@ -269,6 +281,16 @@ void  RvR_free(void *ptr);
 void *RvR_realloc(void *ptr, size_t size);
 void  RvR_malloc_report();
 
+//RvnicRaven stores its palette in a binary format, with the
+//colors just being dumped (768 bytes --> 256 colors --> 1 byte r,g,b each)
+void       RvR_palette_load(uint16_t id);
+RvR_color *RvR_palette();
+uint8_t   *RvR_shade_table(uint8_t light);
+
+unsigned RvR_rand();
+int      RvR_rand_get_state();
+void     RvR_rand_set_state(unsigned state);
+
 RvR_fix22 RvR_fix22_from_int(int a);
 int       RvR_fix22_to_int(RvR_fix22 a);
 RvR_fix22 RvR_fix22_mul(RvR_fix22 a, RvR_fix22 b);
@@ -298,14 +320,6 @@ void RvR_pak_flush();
 void RvR_lump_add(const char *name, const char *path, RvR_lump type);
 void *RvR_lump_get(const char *name, RvR_lump type, unsigned *size);
 const char *RvR_lump_get_path(const char *name, RvR_lump type);
-
-void RvR_palette_load(uint16_t id);
-RvR_color *RvR_palette();
-uint8_t *RvR_shade_table(uint8_t light);
-
-unsigned RvR_rand();
-int RvR_rand_get_state();
-void RvR_rand_set_state(int state);
 
 RvR_texture *RvR_texture_get(uint16_t id);
 void RvR_texture_load_begin();
