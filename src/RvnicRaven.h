@@ -254,9 +254,9 @@ void RvR_log(const char *w, ...);
 #define RvR_error_check(X,Y) do { if(!(X)) RvR_error_fail(Y); } while(0)
 
 //Different versions of the Fowler/Noll/Vo hash
-//the basic versions (e.g RvR_fnv64a) perform the hash on a string using their specifc init values as the hashval
-//the _str versions (e.g RvR_fnv64a_str) perform the hash on a string, but allow specifying a custom hashval
-//the _buf versions (e.g RvR_fnv64a_buf) perform the hash on an arbitrary buffer and allow specifying a custom hashval
+//the basic versions (e.g. RvR_fnv64a) perform the hash on a string using their specifc init values as the hashval
+//the _str versions (e.g. RvR_fnv64a_str) perform the hash on a string, but allow specifying a custom hashval
+//the _buf versions (e.g. RvR_fnv64a_buf) perform the hash on an arbitrary buffer and allow specifying a custom hashval
 uint64_t RvR_fnv64a(const char *str);
 uint64_t RvR_fnv64a_str(const char *str, uint64_t hval);
 uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval);
