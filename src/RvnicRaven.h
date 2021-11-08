@@ -293,11 +293,6 @@ unsigned RvR_rand();
 int      RvR_rand_get_state();
 void     RvR_rand_set_state(unsigned state);
 
-RvR_fix22 RvR_fix22_from_int(int a);
-int       RvR_fix22_to_int(RvR_fix22 a);
-RvR_fix22 RvR_fix22_mul(RvR_fix22 a, RvR_fix22 b);
-RvR_fix22 RvR_fix22_div(RvR_fix22 a, RvR_fix22 b);
-
 RvR_fix22 RvR_fix22_cos(RvR_fix22 a);
 RvR_fix22 RvR_fix22_sin(RvR_fix22 a);
 RvR_fix22 RvR_fix22_tan(RvR_fix22 a);
@@ -308,11 +303,25 @@ RvR_fix16 RvR_fix16_from_int(int a);
 int       RvR_fix16_to_int(RvR_fix16 a);
 RvR_fix16 RvR_fix16_mul(RvR_fix16 a, RvR_fix16 b);
 RvR_fix16 RvR_fix16_div(RvR_fix16 a, RvR_fix16 b);
+RvR_fix16 RvR_fix16_round(RvR_fix16 a);
+RvR_fix16 RvR_fix16_floor(RvR_fix16 a);
+RvR_fix16 RvR_fix16_ceil(RvR_fix16 a);
+
+RvR_fix22 RvR_fix22_from_int(int a);
+int       RvR_fix22_to_int(RvR_fix22 a);
+RvR_fix22 RvR_fix22_mul(RvR_fix22 a, RvR_fix22 b);
+RvR_fix22 RvR_fix22_div(RvR_fix22 a, RvR_fix22 b);
+RvR_fix22 RvR_fix22_round(RvR_fix22 a);
+RvR_fix22 RvR_fix22_floor(RvR_fix22 a);
+RvR_fix22 RvR_fix22_ceil(RvR_fix22 a);
 
 RvR_fix24 RvR_fix24_from_int(int a);
 int       RvR_fix24_to_int(RvR_fix24 a);
 RvR_fix24 RvR_fix24_mul(RvR_fix24 a, RvR_fix24 b);
 RvR_fix24 RvR_fix24_div(RvR_fix24 a, RvR_fix24 b);
+RvR_fix24 RvR_fix24_round(RvR_fix24 a);
+RvR_fix24 RvR_fix24_floor(RvR_fix24 a);
+RvR_fix24 RvR_fix24_ceil(RvR_fix24 a);
 
 RvR_vec2  RvR_vec2_rot(RvR_fix22 angle);
 RvR_fix22 RvR_dist2(RvR_vec2 p0, RvR_vec2 p1);
@@ -327,6 +336,7 @@ int32_t RvR_clamp(int32_t a, int32_t min, int32_t max);
 #define RvR_zero_clamp(x) ((x)*((x)>=0))
 #define RvR_min(a,b) ((a)<(b)?(a):(b))
 #define RvR_max(a,b) ((a)>(b)?(a):(b))
+#define RvR_sign(a) (a<0?-1:1)
 
 void RvR_pak_add(const char *path);
 void RvR_pak_flush();
