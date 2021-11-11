@@ -158,7 +158,7 @@ size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
    return 0;
 }
 
-int8_t RvR_rw_read_8(RvR_rw *rw)
+int8_t RvR_rw_read_i8(RvR_rw *rw)
 {
    int8_t out = 0;
    if(RvR_rw_read(rw,&out,1,1)!=1)
@@ -175,7 +175,7 @@ uint8_t RvR_rw_read_u8(RvR_rw *rw)
 }
 
 //TODO: endiannes byte swapping in all functions > 8
-int16_t RvR_rw_read_16(RvR_rw *rw)
+int16_t RvR_rw_read_i16(RvR_rw *rw)
 {
    int16_t out = 0;
    if(RvR_rw_read(rw,&out,2,1)!=1)
@@ -191,7 +191,7 @@ uint16_t RvR_rw_read_u16(RvR_rw *rw)
    return out;
 }
 
-int32_t RvR_rw_read_32(RvR_rw *rw)
+int32_t RvR_rw_read_i32(RvR_rw *rw)
 {
    int32_t out = 0;
    if(RvR_rw_read(rw,&out,4,1)!=1)
@@ -207,7 +207,7 @@ uint32_t RvR_rw_read_u32(RvR_rw *rw)
    return out;
 }
 
-int64_t RvR_rw_read_64(RvR_rw *rw)
+int64_t RvR_rw_read_i64(RvR_rw *rw)
 {
    int64_t out = 0;
    if(RvR_rw_read(rw,&out,8,1)!=1)

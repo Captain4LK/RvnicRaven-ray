@@ -129,8 +129,8 @@ static RvR_texture *texture_load(const uint8_t *mem, unsigned len)
    RvR_rw_init_const_mem(&rw,mem,len);
 
    p = RvR_malloc(sizeof(*p));
-   p->width = RvR_rw_read_32(&rw);
-   p->height = RvR_rw_read_32(&rw);
+   p->width = RvR_rw_read_i32(&rw);
+   p->height = RvR_rw_read_i32(&rw);
    p->data = RvR_malloc(sizeof(*p->data)*p->width*p->height);
    RvR_error_check(p!=NULL,0x001);
    RvR_error_check(p->data!=NULL,0x001);

@@ -241,13 +241,13 @@ void RvR_rw_seek(RvR_rw *rw, long offset, int origin);
 long RvR_rw_tell(RvR_rw *rw);
 size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count);
 
-int8_t   RvR_rw_read_8  (RvR_rw *rw);
+int8_t   RvR_rw_read_i8 (RvR_rw *rw);
 uint8_t  RvR_rw_read_u8 (RvR_rw *rw);
-int16_t  RvR_rw_read_16 (RvR_rw *rw);
+int16_t  RvR_rw_read_i16(RvR_rw *rw);
 uint16_t RvR_rw_read_u16(RvR_rw *rw);
-int32_t  RvR_rw_read_32 (RvR_rw *rw);
+int32_t  RvR_rw_read_i32(RvR_rw *rw);
 uint32_t RvR_rw_read_u32(RvR_rw *rw);
-int64_t  RvR_rw_read_64 (RvR_rw *rw);
+int64_t  RvR_rw_read_i64(RvR_rw *rw);
 uint64_t RvR_rw_read_u64(RvR_rw *rw);
 
 void  RvR_compress(FILE *in, FILE *out);
