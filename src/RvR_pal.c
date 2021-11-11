@@ -39,8 +39,7 @@ void RvR_palette_load(uint16_t id)
 {
    unsigned size_in = 0;
    uint8_t *mem_pak = NULL;
-   char tmp[64] = "";
-   RvR_rw pak = {0};
+   RvR_rw rw = {0};
 
    //Allocate palette if it isn't yet
    if(palette==NULL)
@@ -49,25 +48,28 @@ void RvR_palette_load(uint16_t id)
       RvR_error_check(palette!=NULL,0x001);
    }
 
-   //Read palette from lump and create rw stream
+   //Format lump name
+   //Palettes must be named in this exact way (e.g. PAL00000)
+   char tmp[64];
    snprintf(tmp,64,"PAL%05d",id);
-   mem_pak = RvR_lump_get(tmp,RVR_LUMP_PAL,&size_in);
-   if(mem_pak==NULL)
-      RvR_error_check(0,0x000);
-   RvR_rw_init_mem(&pak,mem_pak,size_in);
 
-   //Read palette and perform postprocessing
+   //Read palette from lump and create rw stream
+   if((mem_pak = RvR_lump_get(tmp,RVR_LUMP_PAL,&size_in))==NULL)
+      RvR_error_check(0,0x000);
+   RvR_rw_init_mem(&rw,mem_pak,size_in);
+
+   //Read palette and perform post processing
    for(unsigned i = 0;i<256;i++)
    {
-      palette[i].r = RvR_rw_read_u8(&pak);
-      palette[i].g = RvR_rw_read_u8(&pak);
-      palette[i].b = RvR_rw_read_u8(&pak);
+      palette[i].r = RvR_rw_read_u8(&rw);
+      palette[i].g = RvR_rw_read_u8(&rw);
+      palette[i].b = RvR_rw_read_u8(&rw);
       palette[i].a = 255;
    }
    pal_calculate_colormap();
 
    //Cleanup
-   RvR_rw_close(&pak);
+   RvR_rw_close(&rw);
    RvR_free(mem_pak);
 
    return;

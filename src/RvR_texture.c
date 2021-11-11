@@ -20,14 +20,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //#defines
 #define PERMANENT INT8_MAX
-
-#define READ(v,m,p,l,t) \
-   do\
-   {\
-      RvR_error_check((p)+sizeof(t)<=(l),0x200);\
-      (v) = (*((t *)((m)+(p))));\
-      (p)+=sizeof(t);\
-   }while(0)
 //-------------------------------------
 
 //Typedefs
@@ -96,6 +88,8 @@ void RvR_texture_load(uint16_t id)
    if(textures[id]!=NULL)
       return;
 
+   //Format lump name
+   //Textures must be named in this exact way (e.g. TEX00000)
    char tmp[64];
    sprintf(tmp,"TEX%05d",id);
 
@@ -130,22 +124,21 @@ void RvR_font_unload(uint16_t id)
 static RvR_texture *texture_load(const uint8_t *mem, unsigned len)
 {
    RvR_texture *p = NULL;
-   int32_t width = 0;
-   int32_t height = 0;
-   unsigned pos = 0;
+   RvR_rw rw = {0};
 
-   READ(width,mem,pos,len,int32_t);
-   READ(height,mem,pos,len,int32_t);
+   RvR_rw_init_const_mem(&rw,mem,len);
 
    p = RvR_malloc(sizeof(*p));
-   p->data = RvR_malloc(sizeof(*p->data)*width*height);
-   p->width = width;
-   p->height = height;
+   p->width = RvR_rw_read_32(&rw);
+   p->height = RvR_rw_read_32(&rw);
+   p->data = RvR_malloc(sizeof(*p->data)*p->width*p->height);
    RvR_error_check(p!=NULL,0x001);
    RvR_error_check(p->data!=NULL,0x001);
 
-   for(int i = 0;i<width*height;i++)
-      READ(p->data[i],mem,pos,len,uint8_t);
+   for(int i = 0;i<p->width*p->height;i++)
+      p->data[i] = RvR_rw_read_u8(&rw);
+
+   RvR_rw_close(&rw);
 
    return p;
 
@@ -156,6 +149,5 @@ RvR_err:
    return NULL;
 }
 
-#undef READ
 #undef PERMANENT
 //-------------------------------------

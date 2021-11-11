@@ -52,6 +52,14 @@ void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len)
    rw->file.mem.pos = 0;
 }
 
+void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len)
+{
+   rw->type = 3;
+   rw->file.cmem.mem = mem;
+   rw->file.cmem.size = len;
+   rw->file.cmem.pos = 0;
+}
+
 void RvR_rw_close(RvR_rw *rw)
 {
    if(rw->type==1)
@@ -79,6 +87,15 @@ void RvR_rw_seek(RvR_rw *rw, long offset, int origin)
       else if(origin==SEEK_END)
          rw->file.mem.pos = rw->file.mem.size-offset;
    }
+   else if(rw->type==3)
+   {
+      if(origin==SEEK_SET)
+         rw->file.cmem.pos = offset;
+      else if(origin==SEEK_CUR)
+         rw->file.cmem.pos+=offset;
+      else if(origin==SEEK_END)
+         rw->file.cmem.pos = rw->file.cmem.size-offset;
+   }
 }
 
 long RvR_rw_tell(RvR_rw *rw)
@@ -90,6 +107,10 @@ long RvR_rw_tell(RvR_rw *rw)
    else if(rw->type==2)
    {
       return rw->file.mem.pos;
+   }
+   else if(rw->type==3)
+   {
+      return rw->file.cmem.pos;
    }
 
    return -1;
@@ -113,6 +134,22 @@ size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
 
          memcpy(buff_out+(i*size),buff_in+rw->file.mem.pos,size);
          rw->file.mem.pos+=size;
+      }
+
+      return count;
+   }
+   else if(rw->type==3)
+   {
+      uint8_t *buff_out = buffer;
+      const uint8_t *buff_in = rw->file.cmem.mem;
+
+      for(size_t i = 0;i<count;i++)
+      {
+         if(rw->file.cmem.pos+size>rw->file.cmem.size)
+            return i;
+
+         memcpy(buff_out+(i*size),buff_in+rw->file.cmem.pos,size);
+         rw->file.cmem.pos+=size;
       }
 
       return count;
