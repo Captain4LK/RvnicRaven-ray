@@ -163,6 +163,21 @@ typedef struct
    RvR_fix22 z;
 }RvR_vec3;
 
+typedef struct
+{
+   int type;
+   union
+   {
+      FILE *fp;
+      struct
+      {
+         void *mem;
+         size_t size;
+         size_t pos;
+      }mem;
+   }file;
+}RvR_rw;
+
 //RvnicRaven core types end
 //-------------------------------------
 
@@ -209,6 +224,24 @@ void RvR_core_text_input_start(char *text, int max_length);
 void RvR_core_text_input_end();
 
 uint8_t *RvR_core_framebuffer();
+
+void RvR_rw_init_file(RvR_rw *rw, FILE *f);
+void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode);
+void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len);
+void RvR_rw_close(RvR_rw *rw); //Does not free memory/close file pointers!
+void RvR_rw_flush(RvR_rw *rw);
+void RvR_rw_seek(RvR_rw *rw, long offset, int origin);
+long RvR_rw_tell(RvR_rw *rw);
+size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count);
+
+int8_t   RvR_rw_read_8  (RvR_rw *rw);
+uint8_t  RvR_rw_read_u8 (RvR_rw *rw);
+int16_t  RvR_rw_read_16 (RvR_rw *rw);
+uint16_t RvR_rw_read_u16(RvR_rw *rw);
+int32_t  RvR_rw_read_32 (RvR_rw *rw);
+uint32_t RvR_rw_read_u32(RvR_rw *rw);
+int64_t  RvR_rw_read_64 (RvR_rw *rw);
+uint64_t RvR_rw_read_u64(RvR_rw *rw);
 
 void  RvR_compress(FILE *in, FILE *out);
 void  RvR_compress_path(const char *path_in, const char *path_out);

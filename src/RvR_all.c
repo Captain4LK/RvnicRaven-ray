@@ -36,6 +36,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR_pak.c"
 #include "RvR_compress.c"
 
+#include "RvR_rw.c"
+
 #include "RvR_pal.c"
 #include "RvR_rand.c"
 #include "RvR_hash.c"
