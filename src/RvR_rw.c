@@ -49,6 +49,7 @@ void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len)
    rw->type = 2;
    rw->file.mem.mem = mem;
    rw->file.mem.size = len;
+   rw->file.mem.pos = 0;
 }
 
 void RvR_rw_close(RvR_rw *rw)

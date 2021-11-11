@@ -19,13 +19,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
-#define READ(v,m,p,l,t) \
-   do\
-   {\
-      RvR_error_check((p)+sizeof(t)<=(l),0x200);\
-      (v) = (*((t *)((m)+(p))));\
-      (p)+=sizeof(t);\
-   }while(0)
 //-------------------------------------
 
 //Typedefs
@@ -45,9 +38,9 @@ static void pal_calculate_colormap();
 void RvR_palette_load(uint16_t id)
 {
    unsigned size_in = 0;
-   unsigned pos = 0;
    uint8_t *mem_pak = NULL;
    char tmp[64] = "";
+   RvR_rw pak = {0};
 
    //Allocate palette if it isn't yet
    if(palette==NULL)
@@ -56,20 +49,26 @@ void RvR_palette_load(uint16_t id)
       RvR_error_check(palette!=NULL,0x001);
    }
 
+   //Read palette from lump and create rw stream
    snprintf(tmp,64,"PAL%05d",id);
    mem_pak = RvR_lump_get(tmp,RVR_LUMP_PAL,&size_in);
    if(mem_pak==NULL)
       RvR_error_check(0,0x000);
+   RvR_rw_init_mem(&pak,mem_pak,size_in);
+
+   //Read palette and perform postprocessing
    for(unsigned i = 0;i<256;i++)
    {
-      READ(palette[i].r,mem_pak,pos,size_in,uint8_t);
-      READ(palette[i].g,mem_pak,pos,size_in,uint8_t);
-      READ(palette[i].b,mem_pak,pos,size_in,uint8_t);
+      palette[i].r = RvR_rw_read_u8(&pak);
+      palette[i].g = RvR_rw_read_u8(&pak);
+      palette[i].b = RvR_rw_read_u8(&pak);
       palette[i].a = 255;
    }
-   RvR_free(mem_pak);
-
    pal_calculate_colormap();
+
+   //Cleanup
+   RvR_rw_close(&pak);
+   RvR_free(mem_pak);
 
    return;
 
@@ -130,6 +129,4 @@ uint8_t *RvR_shade_table(uint8_t light)
 {
    return shade_table[light];
 }
-
-#undef READ
 //-------------------------------------
