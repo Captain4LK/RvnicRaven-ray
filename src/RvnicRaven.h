@@ -173,13 +173,13 @@ typedef struct
       {
          void *mem;
          size_t size;
-         size_t pos;
+         long pos;
       }mem;
       struct
       {
          const void *mem;
          size_t size;
-         size_t pos;
+         long pos;
       }cmem;
    }file;
 }RvR_rw;
@@ -235,7 +235,7 @@ void RvR_rw_init_file(RvR_rw *rw, FILE *f);
 void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode);
 void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len);
 void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len);
-void RvR_rw_close(RvR_rw *rw); //Does not free memory/close file pointers!
+void RvR_rw_close(RvR_rw *rw);
 void RvR_rw_flush(RvR_rw *rw);
 void RvR_rw_seek(RvR_rw *rw, long offset, int origin);
 long RvR_rw_tell(RvR_rw *rw);

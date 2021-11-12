@@ -31,7 +31,7 @@ static int8_t *textures_timeout = NULL;
 //-------------------------------------
 
 //Function prototypes
-static RvR_texture *texture_load(const uint8_t *mem, unsigned len);
+static RvR_texture *texture_load(RvR_rw *rw);
 //-------------------------------------
 
 //Function implementations
@@ -98,7 +98,11 @@ void RvR_texture_load(uint16_t id)
    uint8_t *mem_pak, *mem_decomp;
    mem_pak = RvR_lump_get(tmp,RVR_LUMP_TEX,&size_in);
    mem_decomp = RvR_mem_decompress(mem_pak,size_in,&size_out);
-   textures[id] = texture_load(mem_decomp,size_out);
+
+   RvR_rw rw;
+   RvR_rw_init_const_mem(&rw,mem_decomp,size_out);
+   textures[id] = texture_load(&rw);
+   RvR_rw_close(&rw);
 
    RvR_free(mem_pak);
    RvR_free(mem_decomp);
@@ -121,24 +125,19 @@ void RvR_font_unload(uint16_t id)
       textures_timeout[id] = 0;
 }
 
-static RvR_texture *texture_load(const uint8_t *mem, unsigned len)
+static RvR_texture *texture_load(RvR_rw *rw)
 {
    RvR_texture *p = NULL;
-   RvR_rw rw = {0};
-
-   RvR_rw_init_const_mem(&rw,mem,len);
 
    p = RvR_malloc(sizeof(*p));
-   p->width = RvR_rw_read_i32(&rw);
-   p->height = RvR_rw_read_i32(&rw);
+   p->width = RvR_rw_read_i32(rw);
+   p->height = RvR_rw_read_i32(rw);
    p->data = RvR_malloc(sizeof(*p->data)*p->width*p->height);
    RvR_error_check(p!=NULL,0x001);
    RvR_error_check(p->data!=NULL,0x001);
 
    for(int i = 0;i<p->width*p->height;i++)
-      p->data[i] = RvR_rw_read_u8(&rw);
-
-   RvR_rw_close(&rw);
+      p->data[i] = RvR_rw_read_u8(rw);
 
    return p;
 

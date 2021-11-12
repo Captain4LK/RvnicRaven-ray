@@ -34,36 +34,80 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void RvR_rw_init_file(RvR_rw *rw, FILE *f)
 {
+   RvR_error_check(rw!=NULL,0x101);
+   RvR_error_check(f!=NULL,0x101);
+
    rw->type = 0;
    rw->file.fp = f;
+
+   return;
+
+RvR_err:
+
+   RvR_log("RvR error %s\n",RvR_error_get_string());
 }
 
 void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode)
 {
+   RvR_error_check(rw!=NULL,0x101);
+   RvR_error_check(path!=NULL,0x101);
+   RvR_error_check(mode!=NULL,0x101);
+
    rw->type = 1;
    rw->file.fp = fopen(path,mode);
+   RvR_error_check(rw->file.fp!=NULL,0x006);
+
+   return;
+
+RvR_err:
+
+   RvR_log("RvR error %s\n",RvR_error_get_string());
 }
 
 void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len)
 {
+   RvR_error_check(rw!=NULL,0x101);
+   RvR_error_check(mem!=NULL,0x101);
+
    rw->type = 2;
    rw->file.mem.mem = mem;
    rw->file.mem.size = len;
    rw->file.mem.pos = 0;
+
+   return;
+
+RvR_err:
+
+   RvR_log("RvR error %s\n",RvR_error_get_string());
 }
 
 void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len)
 {
+   RvR_error_check(rw!=NULL,0x101);
+   RvR_error_check(mem!=NULL,0x101);
+
    rw->type = 3;
    rw->file.cmem.mem = mem;
    rw->file.cmem.size = len;
    rw->file.cmem.pos = 0;
+
+   return;
+
+RvR_err:
+
+   RvR_log("RvR error %s\n",RvR_error_get_string());
 }
 
 void RvR_rw_close(RvR_rw *rw)
 {
    if(rw->type==1)
-      fclose(rw->file.fp);
+      RvR_error_check(fclose(rw->file.fp)!=EOF,0x007);
+
+   return;
+
+RvR_err:
+
+   RvR_log("RvR error %s\n",RvR_error_get_string());
 }
 
 void RvR_rw_flush(RvR_rw *rw)
@@ -162,7 +206,7 @@ int8_t RvR_rw_read_i8(RvR_rw *rw)
 {
    int8_t out = 0;
    if(RvR_rw_read(rw,&out,1,1)!=1)
-      RvR_log("RvR_rw_read_8: read failed, end of file reached?\n");
+      RvR_log("RvR_rw_read_i8: read failed, end of file reached?\n");
    return out;
 }
 
@@ -179,7 +223,7 @@ int16_t RvR_rw_read_i16(RvR_rw *rw)
 {
    int16_t out = 0;
    if(RvR_rw_read(rw,&out,2,1)!=1)
-      RvR_log("RvR_rw_read_16: read failed, end of file reached?\n");
+      RvR_log("RvR_rw_read_i16: read failed, end of file reached?\n");
    return out;
 }
 
@@ -195,7 +239,7 @@ int32_t RvR_rw_read_i32(RvR_rw *rw)
 {
    int32_t out = 0;
    if(RvR_rw_read(rw,&out,4,1)!=1)
-      RvR_log("RvR_rw_read_32: read failed, end of file reached?\n");
+      RvR_log("RvR_rw_read_i32: read failed, end of file reached?\n");
    return out;
 }
 
@@ -211,7 +255,7 @@ int64_t RvR_rw_read_i64(RvR_rw *rw)
 {
    int64_t out = 0;
    if(RvR_rw_read(rw,&out,8,1)!=1)
-      RvR_log("RvR_rw_read_64: read failed, end of file reached?\n");
+      RvR_log("RvR_rw_read_i64: read failed, end of file reached?\n");
    return out;
 }
 
