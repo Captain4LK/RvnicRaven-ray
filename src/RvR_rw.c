@@ -140,13 +140,19 @@ void RvR_rw_seek(RvR_rw *rw, long offset, int origin)
       else if(origin==SEEK_END)
          rw->file.cmem.pos = rw->file.cmem.size-offset;
    }
+   else
+   {
+      RvR_log_line("RvR_rw_seek ", "invalid RvR_rw type, handle might be corrupt\n");
+   }
 }
 
 long RvR_rw_tell(RvR_rw *rw)
 {
    if(rw->type==0||rw->type==1)
    {
-      return ftell(rw->file.fp);
+      long size = ftell(rw->file.fp);
+      RvR_error_check(size!=EOF,0x005);
+      return size;
    }
    else if(rw->type==2)
    {
@@ -157,7 +163,15 @@ long RvR_rw_tell(RvR_rw *rw)
       return rw->file.cmem.pos;
    }
 
-   return -1;
+   RvR_log_line("RvR_rw_tell", "invalid RvR_rw type, handle might be corrupt\n");
+
+   return EOF;
+
+RvR_err:
+
+   RvR_log("RvR error %s\n",RvR_error_get_string());
+
+   return EOF;
 }
 
 size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
@@ -198,6 +212,8 @@ size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
 
       return count;
    }
+
+   RvR_log_line("RvR_rw_read", "invalid RvR_rw type, handle might be corrupt\n");
 
    return 0;
 }
