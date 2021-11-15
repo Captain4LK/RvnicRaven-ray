@@ -229,9 +229,13 @@ void RvR_ray_map_reset_full()
 void RvR_ray_map_load_path(const char *path)
 {
    int size = 0;
-   uint8_t *mem = RvR_decompress_path(path,&size);
+   uint8_t endian;
+   uint8_t *mem = RvR_decompress_path(path,&size,&endian);
 
-   RvR_ray_map_load_mem(mem,size);
+   RvR_rw rw;
+   RvR_rw_init_const_mem(&rw,mem,size);
+   RvR_rw_endian(&rw,endian);
+   RvR_ray_map_load_rw(&rw);
    RvR_free(mem);
 }
 
@@ -243,32 +247,36 @@ void RvR_ray_map_load(uint16_t id)
    unsigned size_in;
    int32_t size_out;
    uint8_t *mem_pak, *mem_decomp;
+   uint8_t endian;
    mem_pak = RvR_lump_get(tmp,RVR_LUMP_MAP,&size_in);
-   mem_decomp = RvR_mem_decompress(mem_pak,size_in,&size_out);
+   mem_decomp = RvR_mem_decompress(mem_pak,size_in,&size_out,&endian);
 
    RvR_free(mem_pak);
-   RvR_ray_map_load_mem(mem_decomp,size_out);
+
+   RvR_rw rw;
+   RvR_rw_init_const_mem(&rw,mem_decomp,size_out);
+   RvR_rw_endian(&rw,endian);
+   RvR_ray_map_load_rw(&rw);
+   RvR_rw_close(&rw);
+
    RvR_free(mem_decomp);
 }
 
-void RvR_ray_map_load_mem(uint8_t *mem, int len)
+void RvR_ray_map_load_rw(RvR_rw *rw)
 {
-   RvR_rw rw;
-   RvR_rw_init_mem(&rw,mem,len);
-
    //Read level width and height
-   ray_map_cache.width = RvR_rw_read_u16(&rw);
-   ray_map_cache.height = RvR_rw_read_u16(&rw);
+   ray_map_cache.width = RvR_rw_read_u16(rw);
+   ray_map_cache.height = RvR_rw_read_u16(rw);
 
    //Read sprite count
-   ray_map_cache.sprite_count = RvR_rw_read_u32(&rw);
+   ray_map_cache.sprite_count = RvR_rw_read_u32(rw);
    ray_map_cache.sprites = RvR_malloc(sizeof(*ray_map_cache.sprites)*ray_map_cache.sprite_count);
 
    //Read floor color
-   ray_map_cache.floor_color = RvR_rw_read_u8(&rw);
+   ray_map_cache.floor_color = RvR_rw_read_u8(rw);
 
    //Read sky texture
-   ray_map_cache.sky_tex = RvR_rw_read_u16(&rw);
+   ray_map_cache.sky_tex = RvR_rw_read_u16(rw);
 
    //Read texture, floor and ceiling
    int32_t tile_count = ray_map_cache.width*ray_map_cache.height;
@@ -279,27 +287,25 @@ void RvR_ray_map_load_mem(uint8_t *mem, int len)
    ray_map_cache.floor = RvR_malloc(tile_count*sizeof(*ray_map_cache.floor));
    ray_map_cache.ceiling = RvR_malloc(tile_count*sizeof(*ray_map_cache.ceiling));
 
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.wall_ftex[i] = RvR_rw_read_u16(&rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.wall_ctex[i] = RvR_rw_read_u16(&rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.floor_tex[i] = RvR_rw_read_u16(&rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.ceil_tex[i] = RvR_rw_read_u16(&rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.floor[i] = RvR_rw_read_i8(&rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.ceiling[i] = RvR_rw_read_i8(&rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.wall_ftex[i] = RvR_rw_read_u16(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.wall_ctex[i] = RvR_rw_read_u16(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.floor_tex[i] = RvR_rw_read_u16(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.ceil_tex[i] = RvR_rw_read_u16(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.floor[i] = RvR_rw_read_i8(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.ceiling[i] = RvR_rw_read_i8(rw);
 
    //Read sprites
    for(unsigned i = 0;i<ray_map_cache.sprite_count;i++)
    {
-      ray_map_cache.sprites[i].type = RvR_rw_read_u16(&rw);
-      ray_map_cache.sprites[i].pos.x = RvR_rw_read_i32(&rw);
-      ray_map_cache.sprites[i].pos.y = RvR_rw_read_i32(&rw);
-      ray_map_cache.sprites[i].pos.z = RvR_rw_read_i32(&rw);
-      ray_map_cache.sprites[i].extra0 = RvR_rw_read_i32(&rw);
-      ray_map_cache.sprites[i].extra1 = RvR_rw_read_i32(&rw);
-      ray_map_cache.sprites[i].extra2 = RvR_rw_read_i32(&rw);
-      ray_map_cache.sprites[i].extra3 = RvR_rw_read_i32(&rw);
+      ray_map_cache.sprites[i].type = RvR_rw_read_u16(rw);
+      ray_map_cache.sprites[i].pos.x = RvR_rw_read_i32(rw);
+      ray_map_cache.sprites[i].pos.y = RvR_rw_read_i32(rw);
+      ray_map_cache.sprites[i].pos.z = RvR_rw_read_i32(rw);
+      ray_map_cache.sprites[i].extra0 = RvR_rw_read_i32(rw);
+      ray_map_cache.sprites[i].extra1 = RvR_rw_read_i32(rw);
+      ray_map_cache.sprites[i].extra2 = RvR_rw_read_i32(rw);
+      ray_map_cache.sprites[i].extra3 = RvR_rw_read_i32(rw);
    }
-
-   RvR_rw_close(&rw);
 
    //Update actual map
    RvR_ray_map_reset_full();

@@ -169,6 +169,8 @@ typedef struct
 typedef struct
 {
    int type;
+   uint8_t endian;
+
    union
    {
       FILE *fp;
@@ -238,6 +240,7 @@ void RvR_rw_init_file(RvR_rw *rw, FILE *f);
 void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode);
 void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len);
 void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len);
+void RvR_rw_endian(RvR_rw *rw, uint8_t endian);
 void RvR_rw_close(RvR_rw *rw);
 void RvR_rw_flush(RvR_rw *rw);
 void RvR_rw_seek(RvR_rw *rw, long offset, int origin);
@@ -253,12 +256,16 @@ uint32_t RvR_rw_read_u32(RvR_rw *rw);
 int64_t  RvR_rw_read_i64(RvR_rw *rw);
 uint64_t RvR_rw_read_u64(RvR_rw *rw);
 
+uint16_t RvR_endian_swap16(uint16_t n, uint8_t endian);
+uint32_t RvR_endian_swap32(uint32_t n, uint8_t endian);
+uint64_t RvR_endian_swap64(uint64_t n, uint8_t endian);
+
 void  RvR_compress(FILE *in, FILE *out);
 void  RvR_compress_path(const char *path_in, const char *path_out);
 void  RvR_mem_compress(void *mem, int32_t length, FILE *out);
-void *RvR_decompress(FILE *in, int32_t *length);
-void *RvR_decompress_path(const char *path, int32_t *length);
-void *RvR_mem_decompress(void *mem, int32_t length_in, int32_t *length_out);
+void *RvR_decompress(FILE *in, int32_t *length, uint8_t *endian);
+void *RvR_decompress_path(const char *path, int32_t *length, uint8_t *endian);
+void *RvR_mem_decompress(void *mem, int32_t length_in, int32_t *length_out, uint8_t *endian);
 
 void RvR_draw_clear(uint8_t index);
 void RvR_draw_texture(RvR_texture *t, int x, int y);
@@ -458,7 +465,7 @@ void RvR_ray_map_reset();
 void RvR_ray_map_reset_full();
 void RvR_ray_map_load_path(const char *path);
 void RvR_ray_map_load(uint16_t id);
-void RvR_ray_map_load_mem(uint8_t *mem, int len);
+void RvR_ray_map_load_rw(RvR_rw *rw);
 void RvR_ray_map_save(const char *path);
 int RvR_ray_map_sprite_count();
 RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index);

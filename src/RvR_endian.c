@@ -9,9 +9,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <stdio.h>
+#include <stdint.h>
 //-------------------------------------
 
 //Internal includes
+#include "RvnicRaven.h"
 //-------------------------------------
 
 //#defines
@@ -27,25 +30,33 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function implementations
-#include "RvR_config.c"
-#include "RvR_core.c"
-#include "RvR_error.c"
-#include "RvR_malloc.c"
-#include "RvR_math.c"
 
-#include "RvR_pak.c"
-#include "RvR_compress.c"
+uint16_t RvR_endian_swap16(uint16_t n, uint8_t endian)
+{
+   if(endian!=RVR_ENDIAN)
+      return (n>>8)|(n<<8);
+   return n;
+}
 
-#include "RvR_rw.c"
+uint32_t RvR_endian_swap32(uint32_t n, uint8_t endian)
+{
+   if(endian!=RVR_ENDIAN)
+      return (n>>24)|(n<<24)|((n>>8)&0xff00)|((n&0xff00)<<8);
+   return n;
+}
 
-#include "RvR_pal.c"
-#include "RvR_rand.c"
-#include "RvR_hash.c"
-#include "RvR_draw.c"
-#include "RvR_texture.c"
-#include "RvR_endian.c"
-#include "RvR_raycast.c"
-#include "RvR_raycast_draw.c"
-#include "RvR_raycast_map.c"
-#include "backend/RvR_backend_sdl2.c"
+uint64_t RvR_endian_swap64(uint64_t n, uint8_t endian)
+{
+   if(endian!=RVR_ENDIAN)
+   {
+      uint32_t lo = n&0xFFFFFFFF;
+      uint32_t hi = (n>>32);
+      n = RvR_endian_swap32(lo,endian);
+      n<<=32;
+      n|=RvR_endian_swap32(hi,endian);
+
+      return n;
+   }
+   return n;
+}
 //-------------------------------------

@@ -129,15 +129,14 @@ void RvR_mem_compress(void *mem, int32_t length, FILE *out)
    RvR_free(buffer_out);
 }
 
-void *RvR_decompress(FILE *in, int *length)
+void *RvR_decompress(FILE *in, int32_t *length, uint8_t *endian)
 {
    fread(length,4,1,in);
-   uint8_t end;
-   fread(&end,1,1,in);
+   fread(endian,1,1,in);
    uint8_t *buffer_in = NULL;
    int size = 0;
    fseek(in,0,SEEK_END);
-   size = ftell(in)-4;
+   size = ftell(in)-5;
    fseek(in,4,SEEK_SET);
    buffer_in = RvR_malloc(size+1);
    uint8_t *buffer_out = RvR_malloc((*length)+1);
@@ -151,18 +150,19 @@ void *RvR_decompress(FILE *in, int *length)
    return buffer_out;
 }
 
-void *RvR_decompress_path(const char *path, int32_t *length)
+void *RvR_decompress_path(const char *path, int32_t *length, uint8_t *endian)
 {
    FILE *f = fopen(path,"rb");
-   void *data = RvR_decompress(f,length);
+   void *data = RvR_decompress(f,length,endian);
    fclose(f);
 
    return data;
 }
 
-void *RvR_mem_decompress(void *mem, int32_t length_in, int32_t *length_out)
+void *RvR_mem_decompress(void *mem, int32_t length_in, int32_t *length_out, uint8_t *endian)
 {
    *length_out = *((int32_t *)mem);
+   *endian = *(((uint8_t *)mem)+4);
    uint8_t *buffer_out  = RvR_malloc((*length_out)+1);
    crush_decompress(((uint8_t *)mem)+5,length_in-5,buffer_out,*length_out);
    

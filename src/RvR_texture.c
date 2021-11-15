@@ -96,11 +96,13 @@ void RvR_texture_load(uint16_t id)
    unsigned size_in;
    int32_t size_out;
    uint8_t *mem_pak, *mem_decomp;
+   uint8_t endian;
    mem_pak = RvR_lump_get(tmp,RVR_LUMP_TEX,&size_in);
-   mem_decomp = RvR_mem_decompress(mem_pak,size_in,&size_out);
+   mem_decomp = RvR_mem_decompress(mem_pak,size_in,&size_out,&endian);
 
    RvR_rw rw;
    RvR_rw_init_const_mem(&rw,mem_decomp,size_out);
+   RvR_rw_endian(&rw,endian);
    textures[id] = texture_load(&rw);
    RvR_rw_close(&rw);
 

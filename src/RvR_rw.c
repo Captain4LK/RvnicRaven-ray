@@ -38,6 +38,7 @@ void RvR_rw_init_file(RvR_rw *rw, FILE *f)
    RvR_error_check(f!=NULL,0x101);
 
    rw->type = 0;
+   rw->endian = RVR_ENDIAN;
    rw->file.fp = f;
 
    return;
@@ -54,6 +55,7 @@ void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode)
    RvR_error_check(mode!=NULL,0x101);
 
    rw->type = 1;
+   rw->endian = RVR_ENDIAN;
    rw->file.fp = fopen(path,mode);
    RvR_error_check(rw->file.fp!=NULL,0x006);
 
@@ -70,6 +72,7 @@ void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len)
    RvR_error_check(mem!=NULL,0x101);
 
    rw->type = 2;
+   rw->endian = RVR_ENDIAN;
    rw->file.mem.mem = mem;
    rw->file.mem.size = len;
    rw->file.mem.pos = 0;
@@ -87,6 +90,7 @@ void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len)
    RvR_error_check(mem!=NULL,0x101);
 
    rw->type = 3;
+   rw->endian = RVR_ENDIAN;
    rw->file.cmem.mem = mem;
    rw->file.cmem.size = len;
    rw->file.cmem.pos = 0;
@@ -96,6 +100,11 @@ void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len)
 RvR_err:
 
    RvR_log("RvR error %s\n",RvR_error_get_string());
+}
+
+void RvR_rw_endian(RvR_rw *rw, uint8_t endian)
+{
+   rw->endian = endian;
 }
 
 void RvR_rw_close(RvR_rw *rw)
@@ -240,7 +249,7 @@ int16_t RvR_rw_read_i16(RvR_rw *rw)
    int16_t out = 0;
    if(RvR_rw_read(rw,&out,2,1)!=1)
       RvR_log("RvR_rw_read_i16: read failed, end of file reached?\n");
-   return out;
+   return RvR_endian_swap16(out,rw->endian);
 }
 
 uint16_t RvR_rw_read_u16(RvR_rw *rw)
@@ -248,7 +257,7 @@ uint16_t RvR_rw_read_u16(RvR_rw *rw)
    uint16_t out = 0;
    if(RvR_rw_read(rw,&out,2,1)!=1)
       RvR_log("RvR_rw_read_u16: read failed, end of file reached?\n");
-   return out;
+   return RvR_endian_swap16(out,rw->endian);
 }
 
 int32_t RvR_rw_read_i32(RvR_rw *rw)
@@ -256,7 +265,7 @@ int32_t RvR_rw_read_i32(RvR_rw *rw)
    int32_t out = 0;
    if(RvR_rw_read(rw,&out,4,1)!=1)
       RvR_log("RvR_rw_read_i32: read failed, end of file reached?\n");
-   return out;
+   return RvR_endian_swap32(out,rw->endian);
 }
 
 uint32_t RvR_rw_read_u32(RvR_rw *rw)
@@ -264,7 +273,7 @@ uint32_t RvR_rw_read_u32(RvR_rw *rw)
    uint32_t out = 0;
    if(RvR_rw_read(rw,&out,4,1)!=1)
       RvR_log("RvR_rw_read_u32: read failed, end of file reached?\n");
-   return out;
+   return RvR_endian_swap32(out,rw->endian);
 }
 
 int64_t RvR_rw_read_i64(RvR_rw *rw)
@@ -272,7 +281,7 @@ int64_t RvR_rw_read_i64(RvR_rw *rw)
    int64_t out = 0;
    if(RvR_rw_read(rw,&out,8,1)!=1)
       RvR_log("RvR_rw_read_i64: read failed, end of file reached?\n");
-   return out;
+   return RvR_endian_swap64(out,rw->endian);
 }
 
 uint64_t RvR_rw_read_u64(RvR_rw *rw)
@@ -280,6 +289,6 @@ uint64_t RvR_rw_read_u64(RvR_rw *rw)
    uint64_t out = 0;
    if(RvR_rw_read(rw,&out,8,1)!=1)
       RvR_log("RvR_rw_read_u64: read failed, end of file reached?\n");
-   return out;
+   return RvR_endian_swap64(out,rw->endian);
 }
 //-------------------------------------
