@@ -132,6 +132,8 @@ void RvR_mem_compress(void *mem, int32_t length, FILE *out)
 void *RvR_decompress(FILE *in, int *length)
 {
    fread(length,4,1,in);
+   uint8_t end;
+   fread(&end,1,1,in);
    uint8_t *buffer_in = NULL;
    int size = 0;
    fseek(in,0,SEEK_END);
@@ -162,7 +164,7 @@ void *RvR_mem_decompress(void *mem, int32_t length_in, int32_t *length_out)
 {
    *length_out = *((int32_t *)mem);
    uint8_t *buffer_out  = RvR_malloc((*length_out)+1);
-   crush_decompress(((uint8_t *)mem)+4,length_in-4,buffer_out,*length_out);
+   crush_decompress(((uint8_t *)mem)+5,length_in-5,buffer_out,*length_out);
    
    return buffer_out;
 }
