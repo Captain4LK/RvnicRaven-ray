@@ -30,6 +30,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Unroll some loops
 #define RVR_UNROLL 1
+
+//0 for little, 1 for big endian machine
+#define RVR_ENDIAN 0
 //-------------------------------------
 
 //Constants
@@ -215,16 +218,16 @@ int RvR_core_running();
 void RvR_core_update();
 void RvR_core_render_present();
 
-int RvR_core_key_down(RvR_key key);
-int RvR_core_key_pressed(RvR_key key);
-int RvR_core_key_released(RvR_key key);
-int RvR_core_mouse_down(RvR_mouse_button button);
-int RvR_core_mouse_pressed(RvR_mouse_button button);
-int RvR_core_mouse_released(RvR_mouse_button button);
-int RvR_core_mouse_wheel_scroll();
-int RvR_core_gamepad_down(int index, RvR_gamepad_button button);
-int RvR_core_gamepad_pressed(int index, RvR_gamepad_button button);
-int RvR_core_gamepad_released(int index, RvR_gamepad_button button);
+int  RvR_core_key_down(RvR_key key);
+int  RvR_core_key_pressed(RvR_key key);
+int  RvR_core_key_released(RvR_key key);
+int  RvR_core_mouse_down(RvR_mouse_button button);
+int  RvR_core_mouse_pressed(RvR_mouse_button button);
+int  RvR_core_mouse_released(RvR_mouse_button button);
+int  RvR_core_mouse_wheel_scroll();
+int  RvR_core_gamepad_down(int index, RvR_gamepad_button button);
+int  RvR_core_gamepad_pressed(int index, RvR_gamepad_button button);
+int  RvR_core_gamepad_released(int index, RvR_gamepad_button button);
 void RvR_core_mouse_relative_pos(int *x, int *y);
 void RvR_core_text_input_start(char *text, int max_length);
 void RvR_core_text_input_end();
