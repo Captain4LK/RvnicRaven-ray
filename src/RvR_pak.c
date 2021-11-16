@@ -177,6 +177,7 @@ static uint32_t pak_swap32(uint32_t t);
 static void *pak_extract(Pak *p, unsigned index);
 static int pak_find(Pak *p, const char *filename);
 static Pak *pak_open(const char *fname, const char *mode);
+static int pak_append_file(Pak *p, const char *filename, FILE *in, RvR_lump type);
 //-------------------------------------
 
 //Function implementations
@@ -192,10 +193,47 @@ void RvR_pak_add(const char *path)
       add_pak_path(path);
 }
 
+void RvR_pak_create_from_json(const char *path_json, const char *path_pak)
+{
+   Pak *pak = pak_open(path_pak,"w");
+
+   char base_path[256] = {0};
+   char tmp[256] = {0};
+   path_pop(path_json,base_path,NULL);
+   strcat(base_path,"/");
+
+   Json5_root *root = json_parse_file(path_json);
+
+   Json5 *array = json_get_object(&root->root,"lumps");
+   if(array==NULL)
+      RvR_log("RvR_pak: no 'lumps' array in json\n");
+
+   int count = json_get_array_size(array);
+   for(int i = 0;i<count;i++)
+   {
+      Json5 *el = json_get_array_item(array,i);
+      int type = string_to_lump(json_get_object_string(el,"type","NULL"));
+      if(type==RVR_LUMP_ERROR)
+         RvR_log("RvR_pak: invalid lump type\n");
+
+      strcpy(tmp,base_path);
+      strcat(tmp,json_get_object_string(el,"path","NULL"));
+
+      FILE *f = fopen(tmp,"rb");
+      pak_append_file(pak,json_get_object_string(el,"name","NULL"),f,type);
+      fclose(f);
+   }
+
+   pak_close(pak);
+
+   json_free(root);
+}
+
 void RvR_pak_flush()
 {
    Pak_buffer *b = pak_buffer;
-   while(b)
+
+   while(b!=NULL)
    {
       Pak_buffer *next = b->next;
       pak_close(b->pak);
@@ -211,8 +249,10 @@ void RvR_lump_add(const char *name, const char *path, RvR_lump type)
 {
    if(strlen(name)>8)
       RvR_log("RvR_pak: lump name too long (max 8 characters)\n");
-   char ext[33] = {0};
+
+   char ext[33] = "";
    path_pop_ext(path,NULL,ext);
+
    if(strncmp(ext,"json",32)==0)
    {
       add_json_path(path);
@@ -1066,7 +1106,7 @@ static char *json5__parse_object(Json5 *obj, char *p, char **err_code)
 }
 //tinyjson5 END
 
-//pak_size, pak_count, pak_type, pak_name, pak_close, pak_swap32, pak_extract, pak_find, pak_open
+//pak_size, pak_count, pak_type, pak_name, pak_close, pak_swap32, pak_extract, pak_find, pak_open, pak_append_file
 //by r-lyeh(https://github.com/r-lyeh), stdarc.c (https://github.com/r-lyeh/stdarc.c/blob/master/src/pak.c)
 //Original license info (File layout information inaccurate since slightly changed in RvnicRaven):
 //// pak file reading/writing/appending.
@@ -1092,7 +1132,7 @@ static unsigned pak_size(Pak *p, unsigned index)
 
 static unsigned pak_count(Pak *p)
 {
-   return p->in?p->count:0;
+   return (p->in!=NULL)?p->count:0;
 }
 
 static unsigned pak_type(Pak *p,unsigned index)
@@ -1185,7 +1225,7 @@ static void *pak_extract(Pak *p, unsigned index)
 
 static int pak_find(Pak *p, const char *filename)
 {
-   if(p->in)
+   if(p->in!=NULL)
    {
       for(int i = p->count;--i>=0;)
       {
@@ -1203,11 +1243,11 @@ static Pak *pak_open(const char *fname, const char *mode)
       return NULL;
 
    FILE *fp = fopen(fname,mode[0] =='w'?"wb":mode[0]=='r'?"rb":"r+b");
-   if(!fp)
+   if(fp==NULL)
       return NULL;
 
    Pak *p = RvR_malloc(sizeof(*p)), zero = {0};
-   if(!p)
+   if(p==NULL)
       return fclose(fp), NULL;
    *p = zero;
 
@@ -1270,14 +1310,38 @@ static Pak *pak_open(const char *fname, const char *mode)
    }
 
    fail:;
-   if(fp)
+   if(fp!=NULL)
       fclose(fp);
-   if(p->entries)
+   if(p->entries!=NULL)
       RvR_free(p->entries);
-   if(p)
+   if(p!=NULL)
       RvR_free(p);
 
    return NULL;
 }
+
+static int pak_append_file(Pak *p, const char *filename, FILE *in, RvR_lump type)
+{
+   //index meta
+   unsigned index = p->count++;
+   p->entries = RvR_realloc(p->entries, p->count*sizeof(Pak_file));
+   Pak_file *e = &p->entries[index], zero = {0};
+   *e = zero;
+   snprintf(e->name, 51, "%s", filename); // @todo: verify 52 chars limit
+   e->offset = ftell(p->out);
+   e->type = type;
+
+   char buf[1<<15];
+   while(!feof(in) && !ferror(in))
+   {
+      size_t bytes = fread(buf, 1, sizeof(buf), in);
+      fwrite(buf, 1, bytes, p->out);
+   }
+
+   e->size = ftell(p->out) - e->offset;
+
+   return !ferror(p->out);
+}
+
 //pak.c END
 //-------------------------------------

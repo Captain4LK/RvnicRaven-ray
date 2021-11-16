@@ -388,10 +388,11 @@ int32_t RvR_clamp(int32_t a, int32_t min, int32_t max);
 #define RvR_max(a,b) ((a)>(b)?(a):(b))
 #define RvR_sign(a) (a<0?-1:1)
 
-void RvR_pak_add(const char *path);
-void RvR_pak_flush();
-void RvR_lump_add(const char *name, const char *path, RvR_lump type);
-void *RvR_lump_get(const char *name, RvR_lump type, unsigned *size);
+void        RvR_pak_add(const char *path);
+void        RvR_pak_create_from_json(const char *path_json, const char *path_pak);
+void        RvR_pak_flush();
+void        RvR_lump_add(const char *name, const char *path, RvR_lump type);
+void       *RvR_lump_get(const char *name, RvR_lump type, unsigned *size);
 const char *RvR_lump_get_path(const char *name, RvR_lump type);
 
 RvR_texture *RvR_texture_get(uint16_t id);
