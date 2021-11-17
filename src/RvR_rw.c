@@ -125,11 +125,11 @@ void RvR_rw_flush(RvR_rw *rw)
       fflush(rw->file.fp);
 }
 
-void RvR_rw_seek(RvR_rw *rw, long offset, int origin)
+int RvR_rw_seek(RvR_rw *rw, long offset, int origin)
 {
    if(rw->type==0||rw->type==1)
    {
-      fseek(rw->file.fp,offset,origin);
+      return fseek(rw->file.fp,offset,origin);
    }
    else if(rw->type==2)
    {
@@ -139,6 +139,12 @@ void RvR_rw_seek(RvR_rw *rw, long offset, int origin)
          rw->file.mem.pos+=offset;
       else if(origin==SEEK_END)
          rw->file.mem.pos = rw->file.mem.size-offset;
+
+      if(rw->file.mem.pos<0)
+      {
+         rw->file.mem.pos = 0;
+         return 1;
+      }
    }
    else if(rw->type==3)
    {
@@ -148,11 +154,16 @@ void RvR_rw_seek(RvR_rw *rw, long offset, int origin)
          rw->file.cmem.pos+=offset;
       else if(origin==SEEK_END)
          rw->file.cmem.pos = rw->file.cmem.size-offset;
+
+      if(rw->file.mem.pos<0)
+      {
+         rw->file.mem.pos = 0;
+         return 1;
+      }
    }
-   else
-   {
-      RvR_log_line("RvR_rw_seek ", "invalid RvR_rw type, handle might be corrupt\n");
-   }
+
+   RvR_log_line("RvR_rw_seek ", "invalid RvR_rw type, handle might be corrupt\n");
+   return 1;
 }
 
 long RvR_rw_tell(RvR_rw *rw)
@@ -227,6 +238,40 @@ size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
    return 0;
 }
 
+size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
+{
+   if(rw->type==0||rw->type==1)
+   {
+      return fwrite(buffer,size,count,rw->file.fp);
+   }
+   else if(rw->type==2)
+   {
+      uint8_t *buff_out = rw->file.mem.mem;
+      const uint8_t *buff_in = buffer;
+
+      for(size_t i = 0;i<count;i++)
+      {
+         if(rw->file.mem.pos+size>rw->file.mem.size)
+            return i;
+
+         memcpy(buff_out+rw->file.mem.pos,buff_in+(i*size),size);
+         rw->file.mem.pos+=size;
+      }
+
+      return count;
+   }
+   else if(rw->type==3)
+   {
+      RvR_log_line("RvR_rw_write","writing to const RvR_rw stream is not supported\n");
+
+      return 0;
+   }
+
+   RvR_log_line("RvR_rw_write","invalid RvR_rw type, handle might be corrupt\n");
+
+   return 0;
+}
+
 int8_t RvR_rw_read_i8(RvR_rw *rw)
 {
    int8_t out = 0;
@@ -290,5 +335,59 @@ uint64_t RvR_rw_read_u64(RvR_rw *rw)
    if(RvR_rw_read(rw,&out,8,1)!=1)
       RvR_log("RvR_rw_read_u64: read failed, end of file reached?\n");
    return RvR_endian_swap64(out,rw->endian);
+}
+
+void RvR_rw_write_i8 (RvR_rw *rw, int8_t val)
+{
+   if(RvR_rw_write(rw,&val,1,1)!=1)
+      RvR_log("RvR_rw_write_i8: write failed, end of buffer reached/no more disk space?\n");
+}
+
+void RvR_rw_write_u8 (RvR_rw *rw, uint8_t val)
+{
+   if(RvR_rw_write(rw,&val,1,1)!=1)
+      RvR_log("RvR_rw_write_u8: write failed, end of buffer reached/no more disk space?\n");
+}
+
+void RvR_rw_write_i16(RvR_rw *rw, int16_t val)
+{
+   int16_t v = RvR_endian_swap16(val,rw->endian);
+   if(RvR_rw_write(rw,&v,2,1)!=1)
+      RvR_log("RvR_rw_write_i16: write failed, end of buffer reached/no more disk space?\n");
+}
+
+void RvR_rw_write_u16(RvR_rw *rw, uint16_t val)
+{
+   uint16_t v = RvR_endian_swap16(val,rw->endian);
+   if(RvR_rw_write(rw,&v,2,1)!=1)
+      RvR_log("RvR_rw_write_u16: write failed, end of buffer reached/no more disk space?\n");
+}
+
+void RvR_rw_write_i32(RvR_rw *rw, int32_t val)
+{
+   int32_t v = RvR_endian_swap32(val,rw->endian);
+   if(RvR_rw_write(rw,&v,4,1)!=1)
+      RvR_log("RvR_rw_write_i32: write failed, end of buffer reached/no more disk space?\n");
+}
+
+void RvR_rw_write_u32(RvR_rw *rw, uint32_t val)
+{
+   uint32_t v = RvR_endian_swap32(val,rw->endian);
+   if(RvR_rw_write(rw,&v,4,1)!=1)
+      RvR_log("RvR_rw_write_u32: write failed, end of buffer reached/no more disk space?\n");
+}
+
+void RvR_rw_write_i64(RvR_rw *rw, int64_t val)
+{
+   int64_t v = RvR_endian_swap64(val,rw->endian);
+   if(RvR_rw_write(rw,&v,8,1)!=1)
+      RvR_log("RvR_rw_write_i64: write failed, end of buffer reached/no more disk space?\n");
+}
+
+void RvR_rw_write_u64(RvR_rw *rw, uint64_t val)
+{
+   uint64_t v = RvR_endian_swap64(val,rw->endian);
+   if(RvR_rw_write(rw,&v,8,1)!=1)
+      RvR_log("RvR_rw_write_u64: write failed, end of buffer reached/no more disk space?\n");
 }
 //-------------------------------------

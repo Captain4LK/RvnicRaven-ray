@@ -27,23 +27,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define CUTE_PATH_MAX_PATH 1024
 #define CUTE_PATH_MAX_EXT 32
 #define JSON5_ASSERT do { RvR_log("RvR_pak: error L%d while parsing '%c' in '%.16s'\n", __LINE__, p[0], p); assert(0); } while(0)
-
-#if defined(_M_IX86) || defined(_M_X64) // #ifdef LITTLE
-#define htob32(x) pak_swap32(x)
-#define btoh32(x) pak_swap32(x)
-#define htol32(x) (x)
-#define ltoh32(x) (x)
-#else
-#define htob32(x) (x)
-#define btoh32(x) (x)
-#define htol32(x) pak_swap32(x)
-#define ltoh32(x) pak_swap32(x)
-#endif
 //-------------------------------------
 
 //Typedefs
-
-#pragma pack(push,1)
 
 typedef struct Pak_header
 {
@@ -60,11 +46,9 @@ typedef struct Pak_file
    uint32_t size;
 }Pak_file;
 
-#pragma pack(pop)
-
 typedef struct Pak
 {
-    FILE *in, *out;
+    RvR_rw *in, *out;
     int dummy;
     Pak_file *entries;
     unsigned count;
@@ -173,11 +157,10 @@ static unsigned pak_count(Pak *p);
 static unsigned pak_type(Pak *p,unsigned index);
 static char *pak_name(Pak *p, unsigned index);
 static void pak_close(Pak *p);
-static uint32_t pak_swap32(uint32_t t);
 static void *pak_extract(Pak *p, unsigned index);
 static int pak_find(Pak *p, const char *filename);
 static Pak *pak_open(const char *fname, const char *mode);
-static int pak_append_file(Pak *p, const char *filename, FILE *in, RvR_lump type);
+static void pak_append_file(Pak *p, const char *filename, FILE *in, RvR_lump type);
 //-------------------------------------
 
 //Function implementations
@@ -1106,7 +1089,7 @@ static char *json5__parse_object(Json5 *obj, char *p, char **err_code)
 }
 //tinyjson5 END
 
-//pak_size, pak_count, pak_type, pak_name, pak_close, pak_swap32, pak_extract, pak_find, pak_open, pak_append_file
+//pak_size, pak_count, pak_type, pak_name, pak_close, pak_extract, pak_find, pak_open, pak_append_file
 //by r-lyeh(https://github.com/r-lyeh), stdarc.c (https://github.com/r-lyeh/stdarc.c/blob/master/src/pak.c)
 //Original license info (File layout information inaccurate since slightly changed in RvnicRaven):
 //// pak file reading/writing/appending.
@@ -1127,7 +1110,7 @@ static char *json5__parse_object(Json5 *obj, char *p, char **err_code)
 
 static unsigned pak_size(Pak *p, unsigned index)
 {
-    return p->in&&index<p->count?p->entries[index].size:0;
+    return (p->in!=NULL)&&index<p->count?p->entries[index].size:0;
 }
 
 static unsigned pak_count(Pak *p)
@@ -1137,54 +1120,49 @@ static unsigned pak_count(Pak *p)
 
 static unsigned pak_type(Pak *p,unsigned index)
 {
-    return p->in&&index<p->count?p->entries[index].type:0;
+    return (p->in!=NULL)&&index<p->count?p->entries[index].type:0;
 }
 
 static char *pak_name(Pak *p, unsigned index)
 {
-    return p->in&&index<p->count?p->entries[index].name:NULL;
+    return (p->in!=NULL)&&index<p->count?p->entries[index].name:NULL;
 }
 
 static void pak_close(Pak *p)
 {
-   if(p->out)
+   if(p->out!=NULL)
    {
-      // write toc
-      uint32_t seek = 0+12, dirpos = (uint32_t)ftell(p->out), dirlen = p->count*64;
+      //write toc
+      uint32_t seek = 0+12, dirpos = (uint32_t)RvR_rw_tell(p->out), dirlen = p->count*64;
       for(unsigned i = 0;i<p->count;++i)
       {
          Pak_file *e = &p->entries[i];
+
          // write name (truncated if needed), and trailing zeros
          char zero[52] = {0};
          int namelen = strlen(e->name);
-         fwrite(e->name,1,namelen>=52?51:namelen,p->out);
-         fwrite(zero,1,namelen>=52?1:52-namelen,p->out);
-         // write offset + length pair
-         uint32_t ptype = htol32(e->type); fwrite(&ptype,1,4,p->out);
-         uint32_t pseek = htol32(seek);    fwrite(&pseek,1,4,p->out);
-         uint32_t psize = htol32(e->size); fwrite(&psize,1,4,p->out);
+         RvR_rw_write(p->out,e->name,1,namelen>=52?51:namelen);
+         RvR_rw_write(p->out,zero,1,namelen>=52?1:52-namelen);
+
+         //write offset + length pair
+         RvR_rw_write_u32(p->out,e->type);
+         RvR_rw_write_u32(p->out,seek);
+         RvR_rw_write_u32(p->out,e->size);
          seek+=e->size;
       }
 
       // patch header
-      fseek(p->out,0L,SEEK_SET);
-      fwrite("PACK",1,4,p->out);
-      dirpos = htol32(dirpos); fwrite(&dirpos,1,4,p->out);
-      dirlen = htol32(dirlen); fwrite(&dirlen,1,4,p->out);
+      RvR_rw_seek(p->out,0L,SEEK_SET);
+      RvR_rw_write(p->out,"PACK",1,4);
+      RvR_rw_write_u32(p->out,dirpos);
+      RvR_rw_write_u32(p->out,dirlen);
    }
 
    // close streams
    if(p->in)
-      fclose(p->in);
+      RvR_rw_close(p->in);
    if(p->out)
-      fclose(p->out);
-
-   // clean up
-   //What? Why?
-   //for(unsigned i = 0;i<p->count;++i)
-   //{
-      //HLH_pak_file *e = &p->entries[i];
-   //}
+      RvR_rw_close(p->out);
 
    RvR_free(p->entries);
 
@@ -1194,30 +1172,24 @@ static void pak_close(Pak *p)
    RvR_free(p);
 }
 
-static uint32_t pak_swap32(uint32_t t)
-{
-   return (t>>24)|(t<<24)|((t>>8)&0xff00)|((t&0xff00)<<8);
-}
-
 static void *pak_extract(Pak *p, unsigned index)
 {
-   if(p->in&&index<p->count )
+   if((p->in!=NULL)&&index<p->count )
    {
       Pak_file *e = &p->entries[index];
-      if(fseek(p->in,e->offset,SEEK_SET)!=0)
-      {
+      if(RvR_rw_seek(p->in,e->offset,SEEK_SET)!=0)
          return NULL;
-      }
+
       void *buffer = RvR_malloc(e->size);
-      if(!buffer)
-      {
+      if(buffer==NULL)
          return NULL;
-      }
-      if(fread(buffer,1,e->size,p->in)!=e->size)
+
+      if(RvR_rw_read(p->in,buffer,1,e->size)!=e->size)
       {
          RvR_free(buffer);
          return NULL;
       }
+
       return buffer;
    }
    return NULL;
@@ -1239,59 +1211,54 @@ static int pak_find(Pak *p, const char *filename)
 
 static Pak *pak_open(const char *fname, const char *mode)
 {
+   Pak *p = NULL;
+   RvR_rw *rw = NULL;
+
    if(mode[0]!='w'&&mode[0]!='r')
+   {
+      RvR_log("RvR_pak: invalid pak_open mode, must be either \"r\" or \"w\"\n");
       return NULL;
+   }
 
-   FILE *fp = fopen(fname,mode[0] =='w'?"wb":mode[0]=='r'?"rb":"r+b");
-   if(fp==NULL)
-      return NULL;
+   rw = RvR_malloc(sizeof(*rw));
+   RvR_error_check(rw!=NULL,0x001);
+   RvR_rw_init_path(rw,fname,mode[0]=='w'?"wb":mode[0]=='r'?"rb":"rb+");
 
-   Pak *p = RvR_malloc(sizeof(*p)), zero = {0};
-   if(p==NULL)
-      return fclose(fp), NULL;
-   *p = zero;
+   p = RvR_malloc(sizeof(*p));
+   RvR_error_check(p!=NULL,0x001);
+   memset(p,0,sizeof(*p));
 
    if(mode[0]=='r')
    {
       Pak_header header = {0};
 
-      if(fread(&header,1,sizeof(header),fp)!=sizeof(header))
-      {
-         return fclose(fp), NULL;
-      }
+      RvR_rw_read(rw,header.id,1,4);
+      header.offset = RvR_rw_read_u32(rw);
+      header.size = RvR_rw_read_u32(rw);
 
       if(memcmp(header.id,"PACK",4))
       {
-         return fclose(fp), NULL;
+         RvR_log("RvR_pak: pak header identifier mismatch, expected \"PACK\"\n");
+         goto err;
       }
-
-      header.offset = ltoh32(header.offset);
-      header.size = ltoh32(header.size);
 
       unsigned num_files = header.size/sizeof(Pak_file);
 
-      if(fseek(fp,header.offset,SEEK_SET)!=0)
-      {
-         return fclose(fp), NULL;
-      }
+      if(RvR_rw_seek(rw,header.offset,SEEK_SET)!=0)
+         goto err;
 
       p->count = num_files;
       p->entries = RvR_malloc(num_files*sizeof(Pak_file));
 
-      if(fread(p->entries,num_files,sizeof(Pak_file),fp)!=sizeof(Pak_file))
+      for(unsigned i = 0;i<num_files;i++)
       {
-         goto fail;
+         RvR_rw_read(rw,p->entries[i].name,1,52);
+         p->entries[i].type = RvR_rw_read_u32(rw);
+         p->entries[i].offset = RvR_rw_read_u32(rw);
+         p->entries[i].size = RvR_rw_read_u32(rw);
       }
 
-      for(unsigned i = 0;i<num_files;++i)
-      {
-         Pak_file *e = &p->entries[i];
-         e->offset = ltoh32(e->offset);
-         e->size = ltoh32(e->size);
-         e->type = ltoh32(e->type);
-      }
-
-      p->in = fp;
+      p->in = rw;
 
       return p;
    }
@@ -1299,48 +1266,56 @@ static Pak *pak_open(const char *fname, const char *mode)
 
    if(mode[0]=='w')
    {
-      p->out = fp;
+      p->out = rw;
 
-      // write temporary header
-      char header[12] = {0};
-      if( fwrite(header,1,12,p->out)!=12)
-         goto fail;
+      //write temporary header
+      uint8_t header[sizeof(Pak_header)] = {0};
+      RvR_rw_write(rw,header,sizeof(header),1);
 
       return p;
    }
 
-   fail:;
-   if(fp!=NULL)
-      fclose(fp);
-   if(p->entries!=NULL)
-      RvR_free(p->entries);
+RvR_err:
+
+   RvR_log("RvR error %s\n",RvR_error_get_string());
+
+err:
+
    if(p!=NULL)
+   {
+      if(p->entries!=NULL)
+         RvR_free(p->entries);
       RvR_free(p);
+   }
+
+   if(rw!=NULL)
+   {
+      RvR_rw_close(rw);
+      RvR_free(rw);
+   }
 
    return NULL;
 }
 
-static int pak_append_file(Pak *p, const char *filename, FILE *in, RvR_lump type)
+static void pak_append_file(Pak *p, const char *filename, FILE *in, RvR_lump type)
 {
    //index meta
    unsigned index = p->count++;
    p->entries = RvR_realloc(p->entries, p->count*sizeof(Pak_file));
-   Pak_file *e = &p->entries[index], zero = {0};
-   *e = zero;
-   snprintf(e->name, 51, "%s", filename); // @todo: verify 52 chars limit
-   e->offset = ftell(p->out);
+   Pak_file *e = &p->entries[index];
+   memset(e,0,sizeof(*e));
+   snprintf(e->name, 51, "%s", filename); //TODO: verify 52 chars limit
+   e->offset = RvR_rw_tell(p->out);
    e->type = type;
 
    char buf[1<<15];
-   while(!feof(in) && !ferror(in))
+   while(!feof(in)&&!ferror(in))
    {
-      size_t bytes = fread(buf, 1, sizeof(buf), in);
-      fwrite(buf, 1, bytes, p->out);
+      size_t bytes = fread(buf,1,sizeof(buf),in);
+      RvR_rw_write(p->out,buf,1,bytes);
    }
 
-   e->size = ftell(p->out) - e->offset;
-
-   return !ferror(p->out);
+   e->size = RvR_rw_tell(p->out) - e->offset;
 }
 
 //pak.c END
