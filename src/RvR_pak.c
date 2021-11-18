@@ -33,7 +33,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 typedef struct Pak_header
 {
-   char id[4];
+   char id[3];
+   uint8_t endian;
    uint32_t offset;
    uint32_t size;
 }Pak_header;
@@ -253,6 +254,7 @@ void RvR_lump_add(const char *name, const char *path, RvR_lump type)
    l.name[8] = '\0';
    strncpy(l.path,path,255);
    l.path[255] = '\0';
+
    lumps_push(l);
 }
 
@@ -456,6 +458,16 @@ static void lumps_push(Lump l)
       lumps.data = RvR_malloc(sizeof(*lumps.data)*lumps.size);
    }
   
+   //Override existing entry
+   for(uint32_t i = 0;i<lumps.used;i++)
+   {
+      if(strncmp(lumps.data[i].path,l.name,8)==0)
+      {
+         memcpy(&lumps.data[i],&l,sizeof(l));
+         return;
+      }
+   }
+
    lumps.data[lumps.used++] = l;
    if(lumps.used==lumps.size)
    {
@@ -1089,7 +1101,7 @@ static char *json5__parse_object(Json5 *obj, char *p, char **err_code)
 }
 //tinyjson5 END
 
-//pak_size, pak_count, pak_type, pak_name, pak_close, pak_extract, pak_find, pak_open, pak_append_file
+//pak_size, pak_count, pak_name, pak_close, pak_extract, pak_find, pak_open, pak_append_file
 //by r-lyeh(https://github.com/r-lyeh), stdarc.c (https://github.com/r-lyeh/stdarc.c/blob/master/src/pak.c)
 //Original license info (File layout information inaccurate since slightly changed in RvnicRaven):
 //// pak file reading/writing/appending.
@@ -1110,7 +1122,7 @@ static char *json5__parse_object(Json5 *obj, char *p, char **err_code)
 
 static unsigned pak_size(Pak *p, unsigned index)
 {
-    return (p->in!=NULL)&&index<p->count?p->entries[index].size:0;
+   return (p->in!=NULL)&&index<p->count?p->entries[index].size:0;
 }
 
 static unsigned pak_count(Pak *p)
@@ -1133,12 +1145,14 @@ static void pak_close(Pak *p)
    if(p->out!=NULL)
    {
       //write toc
-      uint32_t seek = 0+12, dirpos = (uint32_t)RvR_rw_tell(p->out), dirlen = p->count*64;
-      for(unsigned i = 0;i<p->count;++i)
+      uint32_t seek = 12;
+      uint32_t dirpos = (uint32_t)RvR_rw_tell(p->out);
+      uint32_t dirlen = p->count*64;
+      for(unsigned i = 0;i<p->count;i++)
       {
          Pak_file *e = &p->entries[i];
 
-         // write name (truncated if needed), and trailing zeros
+         //write name (truncated if needed), and trailing zeros
          char zero[52] = {0};
          int namelen = strlen(e->name);
          RvR_rw_write(p->out,e->name,1,namelen>=52?51:namelen);
@@ -1151,24 +1165,28 @@ static void pak_close(Pak *p)
          seek+=e->size;
       }
 
-      // patch header
+      //patch header
       RvR_rw_seek(p->out,0L,SEEK_SET);
-      RvR_rw_write(p->out,"PACK",1,4);
+      RvR_rw_write(p->out,"PAK",1,3);
+      RvR_rw_write_u8(p->out,RVR_ENDIAN);
       RvR_rw_write_u32(p->out,dirpos);
       RvR_rw_write_u32(p->out,dirlen);
    }
 
-   // close streams
-   if(p->in)
+   //close streams
+   if(p->in!=NULL)
+   {
       RvR_rw_close(p->in);
-   if(p->out)
+      RvR_free(p->in);
+   }
+   if(p->out!=NULL)
+   {
       RvR_rw_close(p->out);
+      RvR_free(p->out);
+   }
 
+   //delete
    RvR_free(p->entries);
-
-   // delete
-   Pak zero = {0};
-   *p = zero;
    RvR_free(p);
 }
 
@@ -1198,13 +1216,9 @@ static void *pak_extract(Pak *p, unsigned index)
 static int pak_find(Pak *p, const char *filename)
 {
    if(p->in!=NULL)
-   {
       for(int i = p->count;--i>=0;)
-      {
          if(!strcmp(p->entries[i].name,filename))
             return i;
-      }
-   }
 
    return -1;
 }
@@ -1232,17 +1246,19 @@ static Pak *pak_open(const char *fname, const char *mode)
    {
       Pak_header header = {0};
 
-      RvR_rw_read(rw,header.id,1,4);
+      RvR_rw_read(rw,header.id,1,3);
+      header.endian = RvR_rw_read_u8(rw);
+      RvR_rw_endian(rw,header.endian);
       header.offset = RvR_rw_read_u32(rw);
       header.size = RvR_rw_read_u32(rw);
 
-      if(memcmp(header.id,"PACK",4))
+      if(memcmp(header.id,"PAK",3))
       {
-         RvR_log("RvR_pak: pak header identifier mismatch, expected \"PACK\"\n");
+         RvR_log("RvR_pak: pak header identifier mismatch, expected \"PAK\"\n");
          goto err;
       }
 
-      unsigned num_files = header.size/sizeof(Pak_file);
+      unsigned num_files = header.size/64;
 
       if(RvR_rw_seek(rw,header.offset,SEEK_SET)!=0)
          goto err;
@@ -1269,7 +1285,7 @@ static Pak *pak_open(const char *fname, const char *mode)
       p->out = rw;
 
       //write temporary header
-      uint8_t header[sizeof(Pak_header)] = {0};
+      uint8_t header[12] = {0};
       RvR_rw_write(rw,header,sizeof(header),1);
 
       return p;
@@ -1304,7 +1320,7 @@ static void pak_append_file(Pak *p, const char *filename, FILE *in, RvR_lump typ
    p->entries = RvR_realloc(p->entries, p->count*sizeof(Pak_file));
    Pak_file *e = &p->entries[index];
    memset(e,0,sizeof(*e));
-   snprintf(e->name, 51, "%s", filename); //TODO: verify 52 chars limit
+   snprintf(e->name,51,"%s",filename); //TODO: verify 52 chars limit
    e->offset = RvR_rw_tell(p->out);
    e->type = type;
 
