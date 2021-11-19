@@ -54,7 +54,7 @@ void RvR_palette_load(uint16_t id)
    snprintf(tmp,64,"PAL%05d",id);
 
    //Read palette from lump and create rw stream
-   if((mem_pak = RvR_lump_get(tmp,RVR_LUMP_PAL,&size_in))==NULL)
+   if((mem_pak = RvR_lump_get(tmp,&size_in))==NULL)
       RvR_error_check(0,0x000);
    RvR_rw_init_mem(&rw,mem_pak,size_in);
 

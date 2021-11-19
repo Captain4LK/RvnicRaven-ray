@@ -128,11 +128,6 @@ typedef enum
 
 typedef enum
 {
-   RVR_LUMP_ERROR, RVR_LUMP_PAL, RVR_LUMP_MUS, RVR_LUMP_JSON, RVR_LUMP_PAK, RVR_LUMP_TEX, RVR_LUMP_WAV, RVR_LUMP_MAP,
-}RvR_lump;
-
-typedef enum
-{
    RVR_CONFIG_INT, RVR_CONFIG_KEY,
 }RvR_config_type;
 
@@ -401,9 +396,9 @@ int32_t RvR_clamp(int32_t a, int32_t min, int32_t max);
 void        RvR_pak_add(const char *path);
 void        RvR_pak_create_from_json(const char *path_json, const char *path_pak);
 void        RvR_pak_flush();
-void        RvR_lump_add(const char *name, const char *path, RvR_lump type);
-void       *RvR_lump_get(const char *name, RvR_lump type, unsigned *size);
-const char *RvR_lump_get_path(const char *name, RvR_lump type);
+void        RvR_lump_add(const char *name, const char *path);
+void       *RvR_lump_get(const char *name, unsigned *size);
+const char *RvR_lump_get_path(const char *name);
 
 RvR_texture *RvR_texture_get(uint16_t id);
 void RvR_texture_load_begin();

@@ -248,7 +248,7 @@ void RvR_ray_map_load(uint16_t id)
    int32_t size_out;
    uint8_t *mem_pak, *mem_decomp;
    uint8_t endian;
-   mem_pak = RvR_lump_get(tmp,RVR_LUMP_MAP,&size_in);
+   mem_pak = RvR_lump_get(tmp,&size_in);
    mem_decomp = RvR_mem_decompress(mem_pak,size_in,&size_out,&endian);
 
    RvR_free(mem_pak);

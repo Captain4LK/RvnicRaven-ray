@@ -41,8 +41,7 @@ typedef struct Pak_header
 
 typedef struct Pak_file
 {
-   char name[52];
-   uint32_t type;
+   char name[56];
    uint32_t offset;
    uint32_t size;
 }Pak_file;
@@ -50,16 +49,14 @@ typedef struct Pak_file
 typedef struct Pak
 {
     RvR_rw *in, *out;
-    int dummy;
     Pak_file *entries;
     unsigned count;
 }Pak;
 
 typedef struct
 {
-   char name[9];
-   char path[256];
-   RvR_lump type;
+   char name[8];
+   uint32_t path;
 }Lump;
 
 typedef struct Pak_buffer
@@ -113,21 +110,27 @@ typedef struct
 //-------------------------------------
 
 //Variables
-struct
+static struct
 {
    uint32_t used;
    uint32_t size;
    Lump *data;
 }lumps = {0};
 
-Pak_buffer *pak_buffer = NULL;
+static struct
+{
+   uint32_t used;
+   uint32_t size;
+   char (*data)[256];
+}pak_paths;
+
+static Pak_buffer *pak_buffer = NULL;
 //-------------------------------------
 
 //Function prototypes
-static RvR_lump string_to_lump(const char *t);
 static void lumps_push(Lump l);
+static uint32_t pak_paths_push(const char *path);
 static void add_json_path(const char *path);
-static void add_json_mem(const char *path, const void *mem, int size);
 static void add_pak_path(const char *path);
 
 //cute_path
@@ -155,13 +158,12 @@ static char *json_get_object_string(Json5 *json, const char *name, char *fallbac
 //stdarc.c
 static unsigned pak_size(Pak *p, unsigned index);
 static unsigned pak_count(Pak *p);
-static unsigned pak_type(Pak *p,unsigned index);
-static char *pak_name(Pak *p, unsigned index);
-static void pak_close(Pak *p);
-static void *pak_extract(Pak *p, unsigned index);
-static int pak_find(Pak *p, const char *filename);
-static Pak *pak_open(const char *fname, const char *mode);
-static void pak_append_file(Pak *p, const char *filename, FILE *in, RvR_lump type);
+static char    *pak_name(Pak *p, unsigned index);
+static void     pak_close(Pak *p);
+static void    *pak_extract(Pak *p, unsigned index);
+static int      pak_find(Pak *p, const char *filename);
+static Pak     *pak_open(const char *fname, const char *mode);
+static void     pak_append_file(Pak *p, const char *filename, FILE *in);
 //-------------------------------------
 
 //Function implementations
@@ -196,15 +198,12 @@ void RvR_pak_create_from_json(const char *path_json, const char *path_pak)
    for(int i = 0;i<count;i++)
    {
       Json5 *el = json_get_array_item(array,i);
-      int type = string_to_lump(json_get_object_string(el,"type","NULL"));
-      if(type==RVR_LUMP_ERROR)
-         RvR_log("RvR_pak: invalid lump type\n");
 
       strcpy(tmp,base_path);
       strcat(tmp,json_get_object_string(el,"path","NULL"));
 
       FILE *f = fopen(tmp,"rb");
-      pak_append_file(pak,json_get_object_string(el,"name","NULL"),f,type);
+      pak_append_file(pak,json_get_object_string(el,"name","NULL"),f);
       fclose(f);
    }
 
@@ -229,7 +228,7 @@ void RvR_pak_flush()
    pak_buffer = NULL;
 }
 
-void RvR_lump_add(const char *name, const char *path, RvR_lump type)
+void RvR_lump_add(const char *name, const char *path)
 {
    if(strlen(name)>8)
       RvR_log("RvR_pak: lump name too long (max 8 characters)\n");
@@ -237,54 +236,37 @@ void RvR_lump_add(const char *name, const char *path, RvR_lump type)
    char ext[33] = "";
    path_pop_ext(path,NULL,ext);
 
-   if(strncmp(ext,"json",32)==0)
-   {
-      add_json_path(path);
-      return;
-   }
-   if(strncmp(ext,"pak",32)==0&&type==RVR_LUMP_PAK)
-   {
-      add_pak_path(path);
-      return;
-   }
-
    Lump l;
-   l.type = type;
    strncpy(l.name,name,8);
-   l.name[8] = '\0';
-   strncpy(l.path,path,255);
-   l.path[255] = '\0';
+   l.path = pak_paths_push(path);
 
    lumps_push(l);
 }
 
-void *RvR_lump_get(const char *name, RvR_lump type, unsigned *size)
+void *RvR_lump_get(const char *name, unsigned *size)
 {
    for(int i = lumps.used-1;i>=0;i--)
    {
       if(strncmp(name,lumps.data[i].name,8)==0)
       {
-         if(lumps.data[i].type!=type)
-            RvR_log("RvR_pak: types do not match for lump %s\n",name);
-
          //Check for pak file
          char ext[33] = {0};
-         path_pop_ext(lumps.data[i].path,NULL,ext);
+         path_pop_ext(pak_paths.data[lumps.data[i].path],NULL,ext);
          if(strncmp(ext,"pak",32)==0)
          {
             //Check if pak already opened
             Pak_buffer *b = pak_buffer;
             while(b)
             {
-               if(strcmp(b->path,lumps.data[i].path)==0)
+               if(strcmp(b->path,pak_paths.data[lumps.data[i].path])==0)
                   break;
                b = b->next;
             }
             if(b==NULL)
             {
                b = RvR_malloc(sizeof(*b));
-               b->pak = pak_open(lumps.data[i].path,"r");
-               strncpy(b->path,lumps.data[i].path,255);
+               b->pak = pak_open(pak_paths.data[lumps.data[i].path],"r");
+               strncpy(b->path,pak_paths.data[lumps.data[i].path],255);
                b->path[255] = '\0';
                b->next = pak_buffer;
                pak_buffer = b;
@@ -296,7 +278,7 @@ void *RvR_lump_get(const char *name, RvR_lump type, unsigned *size)
          }
 
          //Raw reading
-         FILE *f = fopen(lumps.data[i].path,"rb");
+         FILE *f = fopen(pak_paths.data[lumps.data[i].path],"rb");
          if(!f)
          {
             RvR_log("RvR_pak: failed to open %s\n",lumps.data[i].path);
@@ -319,18 +301,11 @@ void *RvR_lump_get(const char *name, RvR_lump type, unsigned *size)
    return NULL;
 }
 
-const char *RvR_lump_get_path(const char *name, RvR_lump type)
+const char *RvR_lump_get_path(const char *name)
 {
    for(int i = lumps.used-1;i>=0;i--)
-   {
       if(strncmp(name,lumps.data[i].name,8)==0)
-      {
-         if(lumps.data[i].type!=type)
-            RvR_log("RvR_pak: types do not match for lump %s\n",name);
-         
-         return lumps.data[i].path;
-      }
-   }
+         return pak_paths.data[lumps.data[i].path];
 
    RvR_log("RvR_pak: lump %s not found\n",name);
    return NULL;
@@ -354,42 +329,9 @@ static void add_json_path(const char *path)
    for(int i = 0;i<count;i++)
    {
       Json5 *el = json_get_array_item(array,i);
-      int type = string_to_lump(json_get_object_string(el,"type","NULL"));
-      if(type==RVR_LUMP_ERROR)
-         RvR_log("RvR_pak: invalid lump type\n");
 
       strcpy(tmp,base_path);
-      RvR_lump_add(json_get_object_string(el,"name","NULL"),strcat(tmp,json_get_object_string(el,"path","NULL")),type);
-   }
-
-   json_free(root);
-}
-
-//Same as add_json_path, but operates on memory
-//instead of file
-static void add_json_mem(const char *path, const void *mem, int size)
-{
-   char base_path[256] = {0};
-   char tmp[256] = {0};
-   path_pop(path,base_path,NULL);
-   strcat(base_path,"/");
-
-   Json5_root *root = json_parse_char_buffer(mem,size);
-
-   Json5 *array = json_get_object(&root->root,"lumps");
-   if(array==NULL)
-      RvR_log("RvR_pak: no 'lumps' array in json\n");
-
-   int count = json_get_array_size(array);
-   for(int i = 0;i<count;i++)
-   {
-      Json5 *el = json_get_array_item(array,i);
-      int type = string_to_lump(json_get_object_string(el,"type","NULL"));
-      if(type==RVR_LUMP_ERROR)
-         RvR_log("RvR_pak: invalid lump type\n");
-
-      strcpy(tmp,base_path);
-      RvR_lump_add(json_get_object_string(el,"name","NULL"),strcat(tmp,json_get_object_string(el,"path","NULL")),type);
+      RvR_lump_add(json_get_object_string(el,"name","NULL"),strcat(tmp,json_get_object_string(el,"path","NULL")));
    }
 
    json_free(root);
@@ -409,40 +351,7 @@ static void add_pak_path(const char *path)
    //Add all files in pak to lump array
    int count = pak_count(b->pak);
    for(int i = 0;i<count;i++)
-   {
-      //Parse json files seperately
-      if(pak_type(b->pak,i)==RVR_LUMP_JSON)
-      {
-         void *mem = pak_extract(b->pak,i);
-         int size = pak_size(b->pak,i);
-         add_json_mem(path,mem,size);
-         RvR_free(mem);
-      }
-      else
-      {
-         RvR_lump_add(pak_name(b->pak,i),path,pak_type(b->pak,i));
-      }
-   }
-}
-
-//Convert a string to the matching
-//Elump type.
-//Hashing for better performance
-static RvR_lump string_to_lump(const char *t)
-{
-   uint64_t hash = RvR_fnv64a(t);
-   //printf("%s %lu\n",t,hash);
-
-   switch(hash)
-   {
-   case 10188928075460420658U: return RVR_LUMP_PAL;
-   case  2187779760063523436U: return RVR_LUMP_MUS;
-   case  3806790633606677507U: return RVR_LUMP_JSON;
-   case  7818530539252466654U: return RVR_LUMP_TEX;
-   case  8440912394771940537U: return RVR_LUMP_WAV;
-   case  2199261959994660209U: return RVR_LUMP_MAP;
-   default:                    return RVR_LUMP_ERROR;
-   }
+      RvR_lump_add(pak_name(b->pak,i),path);
 }
 
 //Add a lump to the lump array.
@@ -461,7 +370,7 @@ static void lumps_push(Lump l)
    //Override existing entry
    for(uint32_t i = 0;i<lumps.used;i++)
    {
-      if(strncmp(lumps.data[i].path,l.name,8)==0)
+      if(strncmp(pak_paths.data[lumps.data[i].path],l.name,8)==0)
       {
          memcpy(&lumps.data[i],&l,sizeof(l));
          return;
@@ -474,6 +383,33 @@ static void lumps_push(Lump l)
       lumps.size+=16;
       lumps.data = RvR_realloc(lumps.data,sizeof(*lumps.data)*lumps.size);
    }
+}
+
+static uint32_t pak_paths_push(const char *path)
+{
+   //Allocate memory for list
+   if(pak_paths.data==NULL)
+   {
+      pak_paths.size = 16;
+      pak_paths.used = 0;
+      pak_paths.data = RvR_malloc(sizeof(*pak_paths.data)*pak_paths.size);
+   }
+  
+   //Check if already added
+   for(uint32_t i = 0;i<pak_paths.used;i++)
+      if(strncmp(pak_paths.data[i],path,255)==0)
+         return i;
+
+   strcpy(pak_paths.data[pak_paths.used],path);
+   pak_paths.used++;
+
+   if(pak_paths.used==pak_paths.size)
+   {
+      pak_paths.size+=16;
+      pak_paths.data = RvR_realloc(pak_paths.data,sizeof(*pak_paths.data)*pak_paths.size);
+   }
+
+   return pak_paths.used-1;
 }
 
 //path_pop, path_pop_ext, path_is_slash
@@ -1130,11 +1066,6 @@ static unsigned pak_count(Pak *p)
    return (p->in!=NULL)?p->count:0;
 }
 
-static unsigned pak_type(Pak *p,unsigned index)
-{
-    return (p->in!=NULL)&&index<p->count?p->entries[index].type:0;
-}
-
 static char *pak_name(Pak *p, unsigned index)
 {
     return (p->in!=NULL)&&index<p->count?p->entries[index].name:NULL;
@@ -1153,13 +1084,12 @@ static void pak_close(Pak *p)
          Pak_file *e = &p->entries[i];
 
          //write name (truncated if needed), and trailing zeros
-         char zero[52] = {0};
+         char zero[56] = {0};
          int namelen = strlen(e->name);
-         RvR_rw_write(p->out,e->name,1,namelen>=52?51:namelen);
-         RvR_rw_write(p->out,zero,1,namelen>=52?1:52-namelen);
+         RvR_rw_write(p->out,e->name,1,namelen>=56?55:namelen);
+         RvR_rw_write(p->out,zero,1,namelen>=56?1:56-namelen);
 
          //write offset + length pair
-         RvR_rw_write_u32(p->out,e->type);
          RvR_rw_write_u32(p->out,seek);
          RvR_rw_write_u32(p->out,e->size);
          seek+=e->size;
@@ -1268,8 +1198,7 @@ static Pak *pak_open(const char *fname, const char *mode)
 
       for(unsigned i = 0;i<num_files;i++)
       {
-         RvR_rw_read(rw,p->entries[i].name,1,52);
-         p->entries[i].type = RvR_rw_read_u32(rw);
+         RvR_rw_read(rw,p->entries[i].name,1,56);
          p->entries[i].offset = RvR_rw_read_u32(rw);
          p->entries[i].size = RvR_rw_read_u32(rw);
       }
@@ -1313,16 +1242,15 @@ err:
    return NULL;
 }
 
-static void pak_append_file(Pak *p, const char *filename, FILE *in, RvR_lump type)
+static void pak_append_file(Pak *p, const char *filename, FILE *in)
 {
    //index meta
    unsigned index = p->count++;
    p->entries = RvR_realloc(p->entries, p->count*sizeof(Pak_file));
    Pak_file *e = &p->entries[index];
    memset(e,0,sizeof(*e));
-   snprintf(e->name,51,"%s",filename); //TODO: verify 52 chars limit
+   snprintf(e->name,55,"%s",filename); //TODO: verify 56 chars limit
    e->offset = RvR_rw_tell(p->out);
-   e->type = type;
 
    char buf[1<<15];
    while(!feof(in)&&!ferror(in))
@@ -1336,3 +1264,7 @@ static void pak_append_file(Pak *p, const char *filename, FILE *in, RvR_lump typ
 
 //pak.c END
 //-------------------------------------
+
+#undef CUTE_PATH_MAX_PATH
+#undef CUTE_PATH_MAX_EXT
+#undef JSON5_ASSERT
