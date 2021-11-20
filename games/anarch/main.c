@@ -68,9 +68,9 @@ int main()
    RvR_ini_read(config,&config_camera_shear_step,RVR_CONFIG_INT,"camera_shear_step");
    RvR_ini_free(config);
 
-   RvR_pak_create_from_json("data_anarch/main.json","test.pak");
+   RvR_pak_create_from_json("data_anarch/main.csv","test.pak");
    RvR_pak_add("test.pak");
-   //RvR_pak_add("data_anarch/main.json");
+   //RvR_pak_add("data_anarch/main.csv");
    RvR_palette_load(0);
    RvR_font_load(0xF000);
 

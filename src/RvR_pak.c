@@ -12,10 +12,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <ctype.h>
-#include <math.h>
-#include <assert.h>
-#include <inttypes.h>
 #include <string.h>
 //-------------------------------------
 
@@ -26,7 +22,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //#defines
 #define CUTE_PATH_MAX_PATH 1024
 #define CUTE_PATH_MAX_EXT 32
-#define JSON5_ASSERT do { RvR_log("RvR_pak: error L%d while parsing '%c' in '%.16s'\n", __LINE__, p[0], p); assert(0); } while(0)
 //-------------------------------------
 
 //Typedefs
@@ -65,48 +60,6 @@ typedef struct Pak_buffer
    Pak *pak;
    struct Pak_buffer *next;
 }Pak_buffer;
-
-typedef enum Json5_type 
-{
-   Json5_undefined,
-   Json5_null,
-   Json5_bool,
-   Json5_object,
-   Json5_string,
-   Json5_array,
-   Json5_integer,
-   Json5_real,
-}Json5_type;
-
-typedef struct 
-{
-   uint32_t used;
-   uint32_t size;
-   void *data;
-}Json5_dyn_array;
-
-typedef struct Json5
-{
-   char *name;
-   unsigned type:3;
-   unsigned count:29;
-   union 
-   {
-      Json5_dyn_array array;
-      Json5_dyn_array nodes;
-      int64_t integer;
-      double real;
-      char *string;
-      int boolean;
-   }content;
-}Json5;
-
-typedef struct
-{
-   char *data;
-   size_t data_size;
-   Json5 root;
-}Json5_root;
 //-------------------------------------
 
 //Variables
@@ -138,23 +91,6 @@ static int path_pop_ext(const char *path, char *out, char *ext);
 static int path_pop(const char *path, char *out, char *pop);
 static int path_is_slash(char c);
 
-//tinyjson5
-static void json_free(Json5_root *r);
-static void json5_free(Json5 *root);
-static void json5_array_free(Json5_dyn_array *array);
-static void json5_push(Json5_dyn_array *array, Json5 ob);
-static Json5_root *json_parse_file(const char *path);
-Json5_root *json_parse_char_buffer(const char *buffer, size_t size);
-static char *json5_parse(Json5 *root, char *p);
-static char *json5__trim(char *p);
-static char *json5__parse_value(Json5 *obj, char *p, char **err_code);
-static char *json5__parse_string(Json5 *obj, char *p);
-static char *json5__parse_object(Json5 *obj, char *p, char **err_code);
-static Json5 *json_get_object(Json5 *json, const char *name);
-static int json_get_array_size(const Json5 *json);
-static Json5 *json_get_array_item(Json5 *json, int index);
-static char *json_get_object_string(Json5 *json, const char *name, char *fallback);
-
 //stdarc.c
 static unsigned pak_size(Pak *p, unsigned index);
 static unsigned pak_count(Pak *p);
@@ -173,7 +109,7 @@ void RvR_pak_add(const char *path)
    char ext[33] = {0};
    path_pop_ext(path,NULL,ext);
 
-   if(strncmp(ext,"json",32)==0)
+   if(strncmp(ext,"csv",32)==0)
       add_json_path(path);
    else if(strncmp(ext,"pak",32)==0)
       add_pak_path(path);
@@ -181,35 +117,58 @@ void RvR_pak_add(const char *path)
 
 void RvR_pak_create_from_json(const char *path_json, const char *path_pak)
 {
+   char base_path[256] = {0};
+   char tmp[256] = "";
+   char lump_name[256];
+   char lump_path[256];
+   FILE *f = fopen(path_json,"r");
    Pak *pak = pak_open(path_pak,"w");
 
-   char base_path[256] = {0};
-   char tmp[256] = {0};
    path_pop(path_json,base_path,NULL);
    strcat(base_path,"/");
 
-   Json5_root *root = json_parse_file(path_json);
-
-   Json5 *array = json_get_object(&root->root,"lumps");
-   if(array==NULL)
-      RvR_log("RvR_pak: no 'lumps' array in json\n");
-
-   int count = json_get_array_size(array);
-   for(int i = 0;i<count;i++)
+   while(!feof(f)&&!ferror(f))
    {
-      Json5 *el = json_get_array_item(array,i);
+      char delim;
+
+      //Read path
+      delim = getc(f);
+      ungetc(delim,f);
+      if(delim=='"')
+      {
+         if(fscanf(f,"\"%255[^\"]\",",lump_path)!=1)
+            break;
+      }
+      else
+      {
+         if(fscanf(f,"%255[^,],",lump_path)!=1)
+            break;
+      }
+
+      //Read name
+      delim = getc(f);
+      ungetc(delim,f);
+      if(delim=='"')
+      {
+         if(fscanf(f,"\"%255[^\"]\"\n",lump_name)!=1)
+            break;
+      }
+      else
+      {
+         if(fscanf(f,"%255[^\n]\n",lump_name)!=1)
+            break;
+      }
 
       strcpy(tmp,base_path);
-      strcat(tmp,json_get_object_string(el,"path","NULL"));
+      strcat(tmp,lump_path);
 
-      FILE *f = fopen(tmp,"rb");
-      pak_append_file(pak,json_get_object_string(el,"name","NULL"),f);
-      fclose(f);
+      FILE *fp = fopen(tmp,"rb");
+      pak_append_file(pak,lump_name,fp);
+      fclose(fp);
    }
 
+   fclose(f);
    pak_close(pak);
-
-   json_free(root);
 }
 
 void RvR_pak_flush()
@@ -315,26 +274,51 @@ const char *RvR_lump_get_path(const char *name)
 static void add_json_path(const char *path)
 {
    char base_path[256] = {0};
-   char tmp[256] = {0};
+   char tmp[256] = "";
+   char lump_name[256];
+   char lump_path[256];
+   FILE *f = fopen(path,"r");
+
    path_pop(path,base_path,NULL);
    strcat(base_path,"/");
 
-   Json5_root *root = json_parse_file(path);
-
-   Json5 *array = json_get_object(&root->root,"lumps");
-   if(array==NULL)
-      RvR_log("RvR_pak: no 'lumps' array in json\n");
-
-   int count = json_get_array_size(array);
-   for(int i = 0;i<count;i++)
+   while(!feof(f)&&!ferror(f))
    {
-      Json5 *el = json_get_array_item(array,i);
+      char delim;
+
+      //Read path
+      delim = getc(f);
+      ungetc(delim,f);
+      if(delim=='"')
+      {
+         if(fscanf(f,"\"%255[^\"]\",",lump_path)!=1)
+            break;
+      }
+      else
+      {
+         if(fscanf(f,"%255[^,],",lump_path)!=1)
+            break;
+      }
+
+      //Read name
+      delim = getc(f);
+      ungetc(delim,f);
+      if(delim=='"')
+      {
+         if(fscanf(f,"\"%255[^\"]\"\n",lump_name)!=1)
+            break;
+      }
+      else
+      {
+         if(fscanf(f,"%255[^\n]\n",lump_name)!=1)
+            break;
+      }
 
       strcpy(tmp,base_path);
-      RvR_lump_add(json_get_object_string(el,"name","NULL"),strcat(tmp,json_get_object_string(el,"path","NULL")));
+      RvR_lump_add(lump_name,strncat(tmp,lump_path,255));
    }
 
-   json_free(root);
+   fclose(f);
 }
 
 //Parse a pak file and add to list
@@ -558,484 +542,6 @@ static int path_is_slash(char c)
    return (c=='/')|(c=='\\');
 }
 //cute_path END
-
-static void json_free(Json5_root *r)
-{
-   RvR_free(r->data);
-   json5_free(&r->root);
-   RvR_free(r);
-}
-
-static void json5_array_free(Json5_dyn_array *array)
-{
-   RvR_free(array->data);
-   array->data = NULL;
-   array->size = 0;
-   array->used = 0;
-}
-
-static void json5_push(Json5_dyn_array *array, Json5 ob)
-{
-   if(array->data==NULL)
-   {
-      array->size = 16;
-      array->used = 0;
-      array->data = RvR_malloc(sizeof(ob)*array->size);
-   }
-   
-   ((Json5 *)(array->data))[array->used++] = ob;
-   if(array->used==array->size)
-   {
-      array->size+=16;
-      array->data = RvR_realloc(array->data,sizeof(ob)*array->size);
-   }
-}
-
-static Json5_root *json_parse_file(const char *path)
-{
-   //Load data from file
-   Json5_root *r = RvR_malloc(sizeof(*r));
-   memset(r,0,sizeof(*r));
-   FILE *f = fopen(path,"rb");
-   fseek(f,0,SEEK_END);
-   r->data_size = ftell(f);
-   fseek(f,0,SEEK_SET);
-   r->data = RvR_malloc(r->data_size+1);
-   fread(r->data,r->data_size,1,f);
-   r->data[r->data_size] = '\0';
-   fclose(f);
-
-   //Parsing
-   json5_parse(&r->root,r->data);
-
-   return r;
-}
-
-Json5_root *json_parse_char_buffer(const char *buffer, size_t size)
-{
-   Json5_root *r = RvR_malloc(sizeof(*r));
-   memset(r,0,sizeof(*r));
-   r->data = RvR_malloc(size+1);
-   memcpy(r->data,buffer,size);
-   r->data[size] = '\0';
-   r->data_size = size;
-
-   //Parsing
-   json5_parse(&r->root,r->data);
-
-   return r;
-}
-
-static Json5 *json_get_object(Json5 *json, const char *name)
-{
-   //Not an object
-   if(json->type!=Json5_object)
-      return NULL;
-
-   for(int i = 0;i<json->count;i++)
-   {
-      if(strcmp(name,((Json5 *)(json->content.nodes.data))[i].name)==0)
-         return &((Json5 *)(json->content.nodes.data))[i];
-   }
-
-   //Not found
-   return NULL;
-}
-
-static int json_get_array_size(const Json5 *json)
-{
-   if(json->type!=Json5_array)
-      return -1;
-
-   return json->count;
-}
-
-static Json5 *json_get_array_item(Json5 *json, int index)
-{
-   //Not an array
-   if(json->type!=Json5_array)
-      return NULL;
-
-   //Out of bounds
-   if(index<0||index>=json->count)
-      return NULL;
-
-   return &((Json5 *)(json->content.array.data))[index];
-}
-
-static char *json_get_object_string(Json5 *json, const char *name, char *fallback)
-{
-   if(!json||json->type!=Json5_object)
-      return fallback;
-
-   Json5 *o = json_get_object(json,name);
-   if(!o)
-      return fallback;
-
-   if(o->type==Json5_string)
-      return o->content.string;
-
-   return fallback;
-}
-
-//json5_free, json5_parse, json5__trim, json5__parse_value, json5__parse_object, json5__parse_string
-//by r-lyeh(https://github.com/r-lyeh), tinybits (https://github.com/r-lyeh/tinybits/blob/master/tinyjson5.c)
-//Original license info:
-//
-// JSON5 + SJSON parser module
-//
-// License:
-// This software is dual-licensed to the public domain and under the following
-// license: you are granted a perpetual, irrevocable license to copy, modify,
-// publish, and distribute this file as you see fit.
-// No warranty is implied, use at your own risk.
-//
-// Credits:
-// Dominik Madarasz (original code) (GitHub: zaklaus)
-// r-lyeh (fork)
-
-static void json5_free(Json5 *root)
-{
-   if(root->type==Json5_array&&root->content.array.data!=NULL) 
-   {
-      for(int i = 0, cnt = root->content.array.used;i<cnt;i++) 
-      {
-         json5_free(&((Json5 *)(root->content.array.data))[i]);
-      }
-      json5_array_free(&root->content.array);
-   } 
-
-   if(root->type==Json5_object&&root->content.nodes.data!=NULL) 
-   {
-      for(int i = 0,cnt = root->content.nodes.used;i<cnt;i++) 
-      {
-         json5_free(&((Json5 *)(root->content.nodes.data))[i]);
-      }
-      json5_array_free(&root->content.nodes);
-   }
-
-   *root = (Json5) {0}; // needed?
-}
-
-static char *json5_parse(Json5 *root, char *p)
-{
-   assert(root&&p);
-
-   char *err_code = "";
-   *root = (Json5) {0};
-
-   p = json5__trim(p);
-   if(*p=='[') 
-   { /* <-- for SJSON */
-      json5__parse_value(root, p, &err_code);
-   } 
-   else 
-   {
-      json5__parse_object(root,p,&err_code); /* <-- for SJSON */
-   }
-
-   return err_code[0] ? err_code : 0;
-}
-
-static char *json5__trim(char *p)
-{
-   while (*p) 
-   {
-      if(isspace(*p)) 
-      {
-         ++p;
-      }
-      else if(p[0]=='/'&&p[1]=='*') 
-      { 
-         //skip C comment
-         for(p+=2;*p&&!(p[0]=='*'&&p[1]=='/');++p);
-         if(*p) 
-            p+=2;
-      }
-      else if(p[0]=='/'&&p[1]=='/') 
-      { 
-         //skip C++ comment
-         for(p+=2;*p&&p[0]!='\n';++p);
-         if( *p ) 
-            ++p;
-      }
-      else 
-      {
-         break;
-      }
-   }
-
-   return p;
-}
-
-static char *json5__parse_value(Json5 *obj, char *p, char **err_code) 
-{
-   assert(obj&&p);
-
-   p = json5__trim(p);
-
-   char *is_string = json5__parse_string(obj,p);
-
-   if(is_string) 
-   {
-      p = is_string;
-      if(*err_code[0])
-      {
-         return NULL;
-      }
-   }
-   else if(*p=='{') 
-   {
-      p = json5__parse_object(obj,p,err_code);
-      if(*err_code[0]) 
-      {
-         return NULL;
-      }
-   }
-   else if(*p=='[')
-   {
-      obj->type = Json5_array;
-      obj->content.array.data = NULL;
-
-      while (*p) 
-      {
-         Json5 elem = {0};
-         elem.content.array.data = NULL;
-
-         do
-         { 
-            p = json5__trim(p+1); 
-         } 
-         while(*p==',');
-
-         if(*p ==']') 
-         { 
-            ++p; 
-            break; 
-         }
-
-         p = json5__parse_value(&elem,p,err_code);
-
-         if(*err_code[0]) 
-         {
-            return NULL;
-         }
-
-         if(elem.type!=Json5_undefined) 
-         {
-            json5_push(&obj->content.array, elem);
-            ++obj->count;
-         }
-         if(*p==']') 
-         { 
-            ++p; 
-            break; 
-         }
-      }
-   }
-   else if(isalpha(*p)||(*p=='-'&&!isdigit(p[1]))) 
-   {
-      const char *labels[] = { "null", "on","true", "off","false", "nan","NaN", "-nan","-NaN", "inf","Infinity", "-inf","-Infinity" };
-      const int lenghts[] = { 4, 2,4, 3,5, 3,3, 4,4, 3,8, 4,9 };
-      for(int i = 0;labels[i];++i)
-      {
-         if(!strncmp(p,labels[i],lenghts[i])) 
-         {
-            p+=lenghts[i];
-#ifdef _MSC_VER // somehow, NaN is apparently signed in MSC
-            if(i>=5) 
-            {
-               obj->type = Json5_real;
-               obj->real = i>=11?-INFINITY:i>=9?INFINITY:i>=7?NAN:-NAN;
-            }
-#else
-            if(i>=5)
-            {
-               obj->type = Json5_real;
-               obj->content.real = i>=11?-INFINITY:i>=9?INFINITY:i>=7?-NAN:NAN;
-            }
-#endif
-            else if(i>=1) 
-            {
-               obj->type = Json5_bool;
-               obj->content.boolean = i <= 2;
-            }
-            else
-            {
-               obj->type = Json5_null;
-            }
-            break;
-         }
-      }
-      if(obj->type==Json5_undefined ) 
-      {
-         JSON5_ASSERT; *err_code = "json5_error_invalid_value";
-         return NULL;
-      }
-   }
-   else if(isdigit(*p)||*p=='+'||*p=='-'||*p=='.')
-   {
-      char buffer[16] = {0};
-      char *buf = buffer;
-      char is_hex = 0;
-      char is_dbl = 0;
-      while(*p&&strchr("+-.xX0123456789aAbBcCdDeEfF",*p)) 
-      {
-         is_hex |= (*p | 32) == 'x';
-         is_dbl |= *p == '.';
-         *buf++ = *p++;
-      }
-      obj->type = is_dbl?Json5_real:Json5_integer;
-      if(is_dbl) 
-      {
-         sscanf(buffer,"%lf",&obj->content.real);
-      }
-      else if(is_hex) 
-      {
-         uint64_t hex;
-         sscanf(buffer,"%"SCNx64,&hex); // SCNx64 -> inttypes.h
-         obj->content.integer = (int64_t)hex;
-      }
-      else
-      {
-         sscanf(buffer,"%" SCNd64,&obj->content.integer); // SCNd64 -> inttypes.h
-      }
-   }
-   else 
-   {
-      return NULL;
-   }
-
-   return p;
-}
-
-static char *json5__parse_string(Json5 *obj, char *p)
-{
-   assert(obj&&p);
-
-   if(*p=='"'||*p=='\''||*p=='`') 
-   {
-      obj->type = Json5_string;
-      obj->content.string = p+1;
-
-      char eos_char = *p;
-      char *b = obj->content.string;
-      char *e = b;
-      while (*e) 
-      {
-         if(*e=='\\'&&(e[1]==eos_char)) 
-            ++e;
-         else if(*e=='\\'&&(e[1]=='\r'||e[1]=='\n')) 
-            *e = ' ';
-         else if(*e==eos_char) 
-            break;
-         ++e;
-      }
-
-      *e = '\0';
-      return (p = e+1);
-   }
-
-   //JSON5_ASSERT; *err_code = "json5_error_invalid_value";
-   return NULL;
-}
-
-static char *json5__parse_object(Json5 *obj, char *p, char **err_code)
-{
-   assert(obj&&p);
-
-   if(1) /* <-- for SJSON */
-   { 
-      int skip = *p=='{'; /* <-- for SJSON */
-      obj->type = Json5_object;
-      obj->content.nodes.data = NULL;
-      obj->content.nodes.size = 0;
-      obj->content.nodes.used = 0;
-
-      while(*p)
-      {
-         Json5 node = {0};
-         do 
-         { 
-            p = json5__trim(p+skip);
-            skip = 1; 
-         }
-         while(*p ==',');
-
-         if(*p =='}') 
-         {
-            ++p;
-            break;
-         }
-         // @todo: is_unicode() (s[0] == '\\' && isxdigit(s[1]) && isxdigit(s[2]) && isxdigit(s[3]) && isxdigit(s[4]))) {
-         else if(isalpha(*p)||*p=='_'||*p=='$') 
-         { 
-             // also || is_unicode(p)
-            node.name = p;
-
-            do 
-            {
-               ++p;
-            } 
-            while(*p&&(*p=='_'||isalpha(*p)||isdigit(*p))); // also || is_unicode(p)
-
-            char *e = p;
-            p = json5__trim(p);
-            *e = '\0';
-         }
-         else 
-         { 
-            //if( *p == '"' || *p == '\'' || *p == '`' ) {
-            char *ps = json5__parse_string(&node,p);
-            if(!ps) 
-            {
-               return NULL;
-            }
-            p = ps;
-            node.name = node.content.string;
-            p = json5__trim(p);
-         }
-
-         // @todo: https://www.ecma-international.org/ecma-262/5.1/#sec-7.6
-         if(!(node.name && node.name[0])) 
-         { 
-            // !json5__validate_name(node.name) ) {
-            JSON5_ASSERT; *err_code = "json5_error_invalid_name";
-            return NULL;
-         }
-
-         if(!p||(*p&&(*p!=':'&&*p!='='/*<-- for SJSON */))) 
-         {
-            JSON5_ASSERT; *err_code = "json5_error_invalid_name";
-            return NULL;
-         }
-         p = json5__trim(p + 1);
-         p = json5__parse_value(&node, p, err_code);
-
-         if(*err_code[0]) 
-         {
-            return NULL;
-         }
-
-         if(node.type!=Json5_undefined) 
-         {
-            json5_push(&obj->content.nodes, node);
-            ++obj->count;
-         }
-
-         if(*p =='}') 
-         { 
-            ++p; 
-            break; 
-         }
-      }
-      return p;
-   }
-
-   JSON5_ASSERT; *err_code = "json5_error_invalid_value";
-   return NULL;
-}
-//tinyjson5 END
 
 //pak_size, pak_count, pak_name, pak_close, pak_extract, pak_find, pak_open, pak_append_file
 //by r-lyeh(https://github.com/r-lyeh), stdarc.c (https://github.com/r-lyeh/stdarc.c/blob/master/src/pak.c)

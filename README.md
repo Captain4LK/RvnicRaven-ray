@@ -31,7 +31,6 @@ Rvnic Raven incorporates code from multiple different sources. Here is a list of
    * random number generator (RvR_rand.c), public domain
 * [r-lyeh](https://github.com/r-lyeh), for
    * tinyini (RvR_config.c), public domain
-   * tinyjson5 (RvR_pak.c), public domain
    * pak.c (RvR_pak.c), public domain
    * crush.c (RvR_compress.c), public domain
 * [RandyGaul](https://github.com/RandyGaul), for

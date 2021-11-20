@@ -288,7 +288,6 @@ uint8_t RvR_rw_read_u8(RvR_rw *rw)
    return out;
 }
 
-//TODO: endiannes byte swapping in all functions > 8
 int16_t RvR_rw_read_i16(RvR_rw *rw)
 {
    int16_t out = 0;
