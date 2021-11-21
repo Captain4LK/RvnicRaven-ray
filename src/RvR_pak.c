@@ -36,7 +36,8 @@ typedef struct Pak_header
 
 typedef struct Pak_file
 {
-   char name[56];
+   //char name[56];
+   char name[12];
    uint32_t offset;
    uint32_t size;
 }Pak_file;
@@ -590,10 +591,10 @@ static void pak_close(Pak *p)
          Pak_file *e = &p->entries[i];
 
          //write name (truncated if needed), and trailing zeros
-         char zero[56] = {0};
+         char zero[12] = {0};
          int namelen = strlen(e->name);
-         RvR_rw_write(p->out,e->name,1,namelen>=56?55:namelen);
-         RvR_rw_write(p->out,zero,1,namelen>=56?1:56-namelen);
+         RvR_rw_write(p->out,e->name,1,namelen);
+         RvR_rw_write(p->out,zero,1,12-namelen);
 
          //write offset + length pair
          RvR_rw_write_u32(p->out,seek);
@@ -653,7 +654,7 @@ static int pak_find(Pak *p, const char *filename)
 {
    if(p->in!=NULL)
       for(int i = p->count;--i>=0;)
-         if(!strcmp(p->entries[i].name,filename))
+         if(!strncmp(p->entries[i].name,filename,8))
             return i;
 
    return -1;
@@ -704,7 +705,7 @@ static Pak *pak_open(const char *fname, const char *mode)
 
       for(unsigned i = 0;i<num_files;i++)
       {
-         RvR_rw_read(rw,p->entries[i].name,1,56);
+         RvR_rw_read(rw,p->entries[i].name,1,sizeof(p->entries[i].name));
          p->entries[i].offset = RvR_rw_read_u32(rw);
          p->entries[i].size = RvR_rw_read_u32(rw);
       }
@@ -728,7 +729,7 @@ static Pak *pak_open(const char *fname, const char *mode)
 
 RvR_err:
 
-   RvR_log("RvR error %s\n",RvR_error_get_string());
+   RvR_log("pak_open %s\n",RvR_error_get_string());
 
 err:
 
@@ -750,22 +751,42 @@ err:
 
 static void pak_append_file(Pak *p, const char *filename, FILE *in)
 {
+   if(strlen(filename)>8)
+      RvR_log("pak_append_file: filename too long (max 8 characters), truncating\n");
+
    //index meta
    unsigned index = p->count++;
-   p->entries = RvR_realloc(p->entries, p->count*sizeof(Pak_file));
+   p->entries = RvR_realloc(p->entries,p->count*sizeof(Pak_file));
+   RvR_error_check(p->entries!=NULL,0x002);
    Pak_file *e = &p->entries[index];
    memset(e,0,sizeof(*e));
-   snprintf(e->name,55,"%s",filename); //TODO: verify 56 chars limit
+   strncpy(e->name,filename,9);
    e->offset = RvR_rw_tell(p->out);
 
    char buf[1<<15];
-   while(!feof(in)&&!ferror(in))
+   while(!feof(in))
    {
       size_t bytes = fread(buf,1,sizeof(buf),in);
+      RvR_error_check(!ferror(in),0x009);
       RvR_rw_write(p->out,buf,1,bytes);
    }
 
-   e->size = RvR_rw_tell(p->out) - e->offset;
+   e->size = RvR_rw_tell(p->out)-e->offset;
+
+   return;
+
+RvR_err:
+
+   RvR_log("pak_append_file %s\n",RvR_error_get_string());
+
+   if(RvR_error_get()==RVR_ERROR_FAIL_FREAD)
+   {
+      p->count--;
+      p->entries = RvR_realloc(p->entries,p->count*sizeof(Pak_file));
+      RvR_error_check(p->entries!=NULL,0x002);
+   }
+
+   return;
 }
 
 //pak.c END

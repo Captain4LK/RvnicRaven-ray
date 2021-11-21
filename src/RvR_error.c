@@ -58,6 +58,7 @@ void RvR_error_set(const char *file, unsigned line, unsigned reason)
    case 0x006: error_reason = RVR_ERROR_FAIL_FOPEN; break;
    case 0x007: error_reason = RVR_ERROR_FAIL_FCLOSE; break;
    case 0x008: error_reason = RVR_ERROR_FAIL_FPRINTF; break;
+   case 0x009: error_reason = RVR_ERROR_FAIL_FREAD; break;
    case 0x100: error_reason = RVR_ERROR_ARG_OOR; break;
    case 0x101: error_reason = RVR_ERROR_ARG_NULL; break;
    case 0x200: error_reason = RVR_ERROR_BUFFER_SHORT; break;
@@ -81,7 +82,7 @@ const char *RvR_error_get_string()
 {
    if(error_reason==RVR_ERROR_NONE)
    {
-      strncpy(error_string,"No error encountered",512);
+      strncpy(error_string,"(?/?): no error encountered",512);
       return error_string;
    }
 
@@ -97,6 +98,7 @@ const char *RvR_error_get_string()
    case RVR_ERROR_FAIL_FOPEN: desc = "fopen() failed"; break;
    case RVR_ERROR_FAIL_FCLOSE: desc = "fclose() failed"; break;
    case RVR_ERROR_FAIL_FPRINTF: desc = "fprintf() failed"; break;
+   case RVR_ERROR_FAIL_FREAD: desc = "fread() failed"; break;
    case RVR_ERROR_ARG_OOR: desc = "argument out of expected range"; break;
    case RVR_ERROR_ARG_NULL: desc = "argument NULL where non-NULL was expected"; break;
    case RVR_ERROR_BUFFER_SHORT: desc = "buffer too short"; break;

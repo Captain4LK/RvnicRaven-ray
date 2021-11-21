@@ -121,6 +121,7 @@ typedef enum
    RVR_ERROR_FAIL_FOPEN = 0x006,        //fopen() failed
    RVR_ERROR_FAIL_FCLOSE = 0x007,       //fclose() failed
    RVR_ERROR_FAIL_FPRINTF = 0x008,      //fprintf() failed
+   RVR_ERROR_FAIL_FREAD = 0x009,        //fread() failed
    RVR_ERROR_ARG_OOR = 0x100,           //argument outside expected range
    RVR_ERROR_ARG_NULL = 0x101,          //argument NULL 
    RVR_ERROR_BUFFER_SHORT = 0x200,      //buffer short
