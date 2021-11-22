@@ -86,6 +86,7 @@ static void lumps_push(Lump l);
 static uint32_t pak_paths_push(const char *path);
 static void add_json_path(const char *path);
 static void add_pak_path(const char *path);
+static uint8_t pak_xor_string(const char *str, size_t len);
 
 //cute_path
 static int path_pop_ext(const char *path, char *out, char *ext);
@@ -395,6 +396,16 @@ static uint32_t pak_paths_push(const char *path)
    }
 
    return pak_paths.used-1;
+}
+
+static uint8_t pak_xor_string(const char *str, size_t len)
+{
+   uint8_t hash = 0;
+
+   for(size_t i = 0;i<len;i++)
+      hash^=str[i];
+
+   return hash;
 }
 
 //path_pop, path_pop_ext, path_is_slash
