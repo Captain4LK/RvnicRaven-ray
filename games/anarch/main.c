@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <SDL2/SDL.h>
 //-------------------------------------
 
 //Internal includes
@@ -45,7 +46,7 @@ int config_camera_shear_step = 8;
 
 //Function implementations
 
-int main()
+int main(int argc, char **argv)
 {
    //Init memory manager
    RvR_malloc_init(1<<25,1<<26);
@@ -68,7 +69,7 @@ int main()
    RvR_ini_read(config,&config_camera_shear_step,RVR_CONFIG_INT,"camera_shear_step");
    RvR_ini_free(config);
 
-   RvR_pak_create_from_json("data_anarch/main.csv","test.pak");
+   RvR_pak_create_from_csv("data_anarch/main.csv","test.pak");
    RvR_pak_add("test.pak");
    //RvR_pak_add("data_anarch/main.csv");
    RvR_palette_load(0);

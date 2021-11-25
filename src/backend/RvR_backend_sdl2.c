@@ -83,7 +83,7 @@ void RvR_backend_init(const char *title, int scale)
 
    Uint32 flags = 
 #ifndef __EMSCRIPTEN__
-   SDL_INIT_EVERYTHING;
+   SDL_INIT_VIDEO|SDL_INIT_EVENTS;
 #else
    SDL_INIT_VIDEO|SDL_INIT_EVENTS;
 #endif
@@ -136,7 +136,7 @@ void RvR_backend_init(const char *title, int scale)
 
    layer_texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STREAMING,RVR_XRES,RVR_YRES);
    if(layer_texture==NULL)
-      RvR_log("RvR_backend_sdl2: failed to create texture for layer %d: %s",index,SDL_GetError());
+      RvR_log("RvR_backend_sdl2: failed to create texture for framebuffer %s",SDL_GetError());
 
    if(SDL_SetTextureBlendMode(layer_texture,SDL_BLENDMODE_BLEND)<0)
       RvR_log("RvR_backend_sdl2: failed to set texture blend mode: %s",SDL_GetError());

@@ -117,16 +117,16 @@ void RvR_pak_add(const char *path)
       add_pak_path(path);
 }
 
-void RvR_pak_create_from_json(const char *path_json, const char *path_pak)
+void RvR_pak_create_from_csv(const char *path_csv, const char *path_pak)
 {
    char base_path[256] = {0};
    char tmp[256] = "";
    char lump_name[256];
    char lump_path[256];
-   FILE *f = fopen(path_json,"r");
+   FILE *f = fopen(path_csv,"r");
    Pak *pak = pak_open(path_pak,"w");
 
-   path_pop(path_json,base_path,NULL);
+   path_pop(path_csv,base_path,NULL);
    strcat(base_path,"/");
 
    while(!feof(f)&&!ferror(f))

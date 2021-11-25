@@ -12,6 +12,8 @@
 
 4. Compile RvR_all.c, just keep the generated object file (.o) in the root directory of this repository: 
    ``gcc -c src/RvR_all.c -std=c99 -Wall -Wextra -pedantic -O3 -flto``
+   Windows mingw cross compile:
+   ``i686-w64-mingw32-gcc -c src/RvR_all.c -std=c99 -Wall -Wextra -pedantic -O3 -flto``
 
 # Building the example games
 
@@ -19,6 +21,8 @@
 
 2. Build the example (you may need to change the location of the RvR_all.o file depending on where you stored it):
    ``gcc -o ../../bin/RvnicRaven *.c ../../RvR_all.o -std=c99 -Wall -Wextra -pedantic -O3 -flto=auto -s -lSDL2 -lSDL2_mixer``
+   Windows mingw cross compile:
+   ``i686-w64-mingw32-gcci686-w64-mingw32-gcc -o ../../bin/RvnicRaven *.c ../../RvR_all.o -std=c99 -Wall -Wextra -pedantic -O3 -flto=auto -s -lmingw32 -lSDL2main -lSDL2 -lSDL2_mixer -mwindows``
 
 3. You can now run the example from the bin directory
 

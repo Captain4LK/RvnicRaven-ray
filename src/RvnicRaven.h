@@ -395,7 +395,7 @@ int32_t RvR_clamp(int32_t a, int32_t min, int32_t max);
 #define RvR_sign(a) (a<0?-1:1)
 
 void        RvR_pak_add(const char *path);
-void        RvR_pak_create_from_json(const char *path_json, const char *path_pak);
+void        RvR_pak_create_from_csv(const char *path_csv, const char *path_pak);
 void        RvR_pak_flush();
 void        RvR_lump_add(const char *name, const char *path);
 void       *RvR_lump_get(const char *name, unsigned *size);
