@@ -44,6 +44,7 @@ typedef struct
 {
    uint16_t type;
    vec3 pos;
+   int32_t direction;
    int32_t extra0;
    int32_t extra1;
    int32_t extra2;
@@ -208,6 +209,8 @@ int main(int argc, char **argv)
 
          if(strcmp(name,"z")==0)
             level_sprites[i].pos.z = HLH_json_get_object_integer(ent_prop,"value",0);
+         if(strcmp(name,"angle")==0)
+            level_sprites[i].direction = HLH_json_get_object_integer(ent_prop,"value",0);
          if(strcmp(name,"type")==0)
             level_sprites[i].type = HLH_json_get_object_integer(ent_prop,"value",0);
          if(strcmp(name,"extra0")==0)
@@ -289,6 +292,7 @@ static void map_write(const char *path)
       *(int32_t *)(mem+pos) = level_sprites[i].pos.x; pos+=4;
       *(int32_t *)(mem+pos) = level_sprites[i].pos.y; pos+=4;
       *(int32_t *)(mem+pos) = level_sprites[i].pos.z; pos+=4;
+      *(int32_t *)(mem+pos) = level_sprites[i].direction; pos+=4;
       *(int32_t *)(mem+pos) = level_sprites[i].extra0; pos+=4;
       *(int32_t *)(mem+pos) = level_sprites[i].extra1; pos+=4;
       *(int32_t *)(mem+pos) = level_sprites[i].extra2; pos+=4;
@@ -307,8 +311,10 @@ static void map_write(const char *path)
 static void util_mem_compress(void *mem, int32_t length, FILE *out)
 {
    char *buffer_out = malloc(length+1);
+   uint8_t endian = 0;
 
    fwrite(&length,4,1,out);
+   fwrite(&endian,1,1,out);
    int32_t size = crush_encode(mem,length,buffer_out,length,9);
    fwrite(buffer_out,size,1,out);
 

@@ -421,6 +421,20 @@ typedef struct
 
 typedef struct
 {
+   uint16_t *wall_ftex;
+   uint16_t *wall_ctex;
+   uint16_t *floor_tex;
+   uint16_t *ceil_tex;
+   int16_t *floor;
+   int16_t *ceiling;
+   uint16_t width;
+   uint16_t height;
+   uint8_t floor_color;
+   uint16_t sky_tex;
+}RvR_ray_map;
+
+typedef struct
+{
    RvR_vec2 position;
    RvR_vec2 square;
    RvR_fix22 distance;
@@ -438,6 +452,7 @@ typedef struct
 {
    uint16_t type;
    RvR_vec3 pos;
+   RvR_fix22 direction;
    int32_t extra0;
    int32_t extra1;
    int32_t extra2;
@@ -477,6 +492,7 @@ void RvR_ray_map_save(const char *path);
 int RvR_ray_map_sprite_count();
 RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index);
 
+RvR_ray_map *RvR_ray_map_get();
 int       RvR_ray_map_inbounds(int16_t x, int16_t y);
 uint16_t  RvR_ray_map_sky_tex();
 uint16_t  RvR_ray_map_wall_ftex_at(int16_t x, int16_t y);

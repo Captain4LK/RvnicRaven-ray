@@ -25,20 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-
-static struct
-{
-   uint16_t *wall_ftex;
-   uint16_t *wall_ctex;
-   uint16_t *floor_tex;
-   uint16_t *ceil_tex;
-   int16_t *floor;
-   int16_t *ceiling;
-   uint16_t width;
-   uint16_t height;
-   uint8_t floor_color;
-   uint16_t sky_tex;
-}ray_map = {0};
+RvR_ray_map ray_map = {0};
 
 static struct
 {
@@ -301,6 +288,7 @@ void RvR_ray_map_load_rw(RvR_rw *rw)
       ray_map_cache.sprites[i].pos.x = RvR_rw_read_i32(rw);
       ray_map_cache.sprites[i].pos.y = RvR_rw_read_i32(rw);
       ray_map_cache.sprites[i].pos.z = RvR_rw_read_i32(rw);
+      ray_map_cache.sprites[i].direction = RvR_rw_read_i32(rw);
       ray_map_cache.sprites[i].extra0 = RvR_rw_read_i32(rw);
       ray_map_cache.sprites[i].extra1 = RvR_rw_read_i32(rw);
       ray_map_cache.sprites[i].extra2 = RvR_rw_read_i32(rw);
@@ -496,5 +484,10 @@ RvR_fix22 RvR_ray_map_floor_height_at_us(int16_t x, int16_t y)
 RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y)
 {
    return ray_map.ceiling[(y)*ray_map.width+x]; 
+}
+
+RvR_ray_map *RvR_ray_map_get()
+{
+   return &ray_map;
 }
 //-------------------------------------
