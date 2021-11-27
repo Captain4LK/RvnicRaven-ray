@@ -424,6 +424,12 @@ void RvR_backend_mouse_relative(int relative)
       RvR_log("RvR_backend_sdl2: failed to set relative mouse mode: %s",SDL_GetError());
 }
 
+void RvR_backend_mouse_show(int show)
+{
+   if(SDL_ShowCursor(show?SDL_ENABLE:SDL_DISABLE)<0)
+      RvR_log("RvR_backend_sdl2: failed to show/hide cursor: %s",SDL_GetError());
+}
+
 static void backend_update_viewport()
 {
    SDL_GetWindowSize(sdl_window,&window_width,&window_height);
@@ -507,6 +513,12 @@ void RvR_backend_mouse_get_relative_pos(int *x, int *y)
 {
    *x = mouse_x_rel;
    *y = mouse_y_rel;
+}
+
+void RvR_backend_mouse_get_pos(int *x, int *y)
+{
+   *x = mouse_x;
+   *y = mouse_y;
 }
 
 void RvR_backend_text_input_start(char *text, int max_length)

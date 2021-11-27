@@ -19,6 +19,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "color.h"
 #include "map.h"
 #include "editor.h"
+#include "editor2d.h"
+#include "editor3d.h"
 //-------------------------------------
 
 //#defines
@@ -28,6 +30,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+static int editor_mode = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -35,41 +38,29 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-int main(int argc, char **argv)
+void editor_update()
 {
-   if(argc<2)
-   {
-      puts("No pak path specified!");
-      return -1;
-   }
+   if(editor_mode==0)
+      editor2d_update();
+   else
+      editor3d_update();
 
-   //Init memory manager
-   RvR_malloc_init(1<<25,1<<26);
+   if(RvR_core_key_pressed(RVR_KEY_ENTER))
+      editor_mode = !editor_mode;
+}
 
-   //Init RvnicRaven core
-   RvR_core_init("Rayed",0);
-   RvR_core_mouse_relative(0);
-   RvR_core_mouse_show(0);
+void editor_draw()
+{
+   if(editor_mode==0)
+      editor2d_draw();
+   else
+      editor3d_draw();
 
-   //RvR_pak_create_from_csv("data_demo/main.csv","test.pak");
-   //RvR_pak_add("test.pak");
-   RvR_pak_add(argv[1]);
-   RvR_palette_load(0);
-   RvR_font_load(0xF000);
-
-   map_load(0);
-   colors_find();
-
-   while(RvR_core_running())
-   {
-      RvR_core_update();
-
-      editor_update();
-      editor_draw();
-
-      RvR_core_render_present();
-   }
-
-   return 0;
+   int mx,my;
+   RvR_core_mouse_pos(&mx,&my);
+   RvR_draw_horizontal_line(mx-4,mx-1,my,color_magenta);
+   RvR_draw_horizontal_line(mx+1,mx+4,my,color_magenta);
+   RvR_draw_vertical_line(mx,my-1,my-4,color_magenta);
+   RvR_draw_vertical_line(mx,my+1,my+4,color_magenta);
 }
 //-------------------------------------

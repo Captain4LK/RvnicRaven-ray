@@ -16,9 +16,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "../../src/RvnicRaven.h"
-#include "color.h"
 #include "map.h"
-#include "editor.h"
+#include "editor3d.h"
 //-------------------------------------
 
 //#defines
@@ -35,41 +34,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-int main(int argc, char **argv)
+void editor3d_update()
 {
-   if(argc<2)
-   {
-      puts("No pak path specified!");
-      return -1;
-   }
 
-   //Init memory manager
-   RvR_malloc_init(1<<25,1<<26);
+}
 
-   //Init RvnicRaven core
-   RvR_core_init("Rayed",0);
-   RvR_core_mouse_relative(0);
-   RvR_core_mouse_show(0);
-
-   //RvR_pak_create_from_csv("data_demo/main.csv","test.pak");
-   //RvR_pak_add("test.pak");
-   RvR_pak_add(argv[1]);
-   RvR_palette_load(0);
-   RvR_font_load(0xF000);
-
-   map_load(0);
-   colors_find();
-
-   while(RvR_core_running())
-   {
-      RvR_core_update();
-
-      editor_update();
-      editor_draw();
-
-      RvR_core_render_present();
-   }
-
-   return 0;
+void editor3d_draw()
+{
 }
 //-------------------------------------

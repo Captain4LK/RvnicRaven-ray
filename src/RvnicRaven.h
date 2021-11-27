@@ -212,6 +212,7 @@ void RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char
 void RvR_core_quit();
 void RvR_core_init(char *title, int scale);
 void RvR_core_mouse_relative(int relative);
+void RvR_core_mouse_show(int show);
 int RvR_core_running();
 void RvR_core_update();
 void RvR_core_render_present();
@@ -227,6 +228,7 @@ int  RvR_core_gamepad_down(int index, RvR_gamepad_button button);
 int  RvR_core_gamepad_pressed(int index, RvR_gamepad_button button);
 int  RvR_core_gamepad_released(int index, RvR_gamepad_button button);
 void RvR_core_mouse_relative_pos(int *x, int *y);
+void RvR_core_mouse_pos(int *x, int *y);
 void RvR_core_text_input_start(char *text, int max_length);
 void RvR_core_text_input_end();
 
@@ -280,6 +282,9 @@ void RvR_draw_rectangle_fill(int x, int y, int width, int height, uint8_t index)
 void RvR_draw_set_font(RvR_texture *t);
 void RvR_draw_string(int x, int y, int scale, const char *text, uint8_t index);
 void RvR_draw(int x, int y, uint8_t index); //do not use, access framebuffer directly if possible
+void RvR_draw_line(int x0, int y0, int x1, int y1, uint8_t index);
+void RvR_draw_vertical_line(int x, int y0, int y1, uint8_t index);
+void RvR_draw_horizontal_line(int x0, int x1, int y, uint8_t index);
 
 //Set the current error
 //Parameters:
@@ -421,6 +426,17 @@ typedef struct
 
 typedef struct
 {
+   uint16_t type;
+   RvR_vec3 pos;
+   RvR_fix22 direction;
+   int32_t extra0;
+   int32_t extra1;
+   int32_t extra2;
+   int32_t extra3;
+}RvR_ray_map_sprite;
+
+typedef struct
+{
    uint16_t *wall_ftex;
    uint16_t *wall_ctex;
    uint16_t *floor_tex;
@@ -432,6 +448,23 @@ typedef struct
    uint8_t floor_color;
    uint16_t sky_tex;
 }RvR_ray_map;
+
+typedef struct
+{
+   uint16_t *wall_ftex;
+   uint16_t *wall_ctex;
+   uint16_t *floor_tex;
+   uint16_t *ceil_tex;
+   int8_t *floor;
+   int8_t *ceiling;
+   uint16_t width;
+   uint16_t height;
+   uint8_t floor_color;
+   uint16_t sky_tex;
+
+   RvR_ray_map_sprite *sprites;
+   uint32_t sprite_count;
+}RvR_ray_map_cache;
 
 typedef struct
 {
@@ -447,17 +480,6 @@ typedef struct
    RvR_fix22 cheight;
    RvR_fix22 texture_coord;
 }RvR_ray_hit_result;
-
-typedef struct
-{
-   uint16_t type;
-   RvR_vec3 pos;
-   RvR_fix22 direction;
-   int32_t extra0;
-   int32_t extra1;
-   int32_t extra2;
-   int32_t extra3;
-}RvR_ray_map_sprite;
 
 typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
 
@@ -493,6 +515,7 @@ int RvR_ray_map_sprite_count();
 RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index);
 
 RvR_ray_map *RvR_ray_map_get();
+RvR_ray_map_cache *RvR_ray_map_cache_get();
 int       RvR_ray_map_inbounds(int16_t x, int16_t y);
 uint16_t  RvR_ray_map_sky_tex();
 uint16_t  RvR_ray_map_wall_ftex_at(int16_t x, int16_t y);

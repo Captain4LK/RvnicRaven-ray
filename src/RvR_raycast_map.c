@@ -26,23 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 RvR_ray_map ray_map = {0};
-
-static struct
-{
-   uint16_t *wall_ftex;
-   uint16_t *wall_ctex;
-   uint16_t *floor_tex;
-   uint16_t *ceil_tex;
-   int8_t *floor;
-   int8_t *ceiling;
-   uint16_t width;
-   uint16_t height;
-   uint8_t floor_color;
-   uint16_t sky_tex;
-
-   RvR_ray_map_sprite *sprites;
-   uint32_t sprite_count;
-}ray_map_cache = {0};
+RvR_ray_map_cache ray_map_cache = {0};
 //-------------------------------------
 
 //Function prototypes
@@ -489,5 +473,10 @@ RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y)
 RvR_ray_map *RvR_ray_map_get()
 {
    return &ray_map;
+}
+
+RvR_ray_map_cache *RvR_ray_map_cache_get()
+{
+   return &ray_map_cache;
 }
 //-------------------------------------

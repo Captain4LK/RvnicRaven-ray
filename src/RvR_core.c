@@ -49,6 +49,11 @@ void RvR_core_mouse_relative(int relative)
    RvR_backend_mouse_relative(relative);
 }
 
+void RvR_core_mouse_show(int show)
+{
+   RvR_backend_mouse_show(show);
+}
+
 int RvR_core_running()
 {
    return core_running;
@@ -117,6 +122,11 @@ int RvR_core_gamepad_released(int index, RvR_gamepad_button button)
 void RvR_core_mouse_relative_pos(int *x, int *y)
 {
    RvR_backend_mouse_get_relative_pos(x,y);
+}
+
+void RvR_core_mouse_pos(int *x, int *y)
+{
+   RvR_backend_mouse_get_pos(x,y);
 }
 
 uint8_t *RvR_core_framebuffer()

@@ -201,4 +201,107 @@ void RvR_draw(int x, int y, uint8_t index)
 
    RvR_core_framebuffer()[y*RVR_XRES+x] = index;
 }
+
+void RvR_draw_line(int x0, int y0, int x1, int y1, uint8_t index)
+{
+   if(!index)
+      return;
+
+   if(x0>x1||y0>y1)
+   {
+      int t = x0;
+      x0 = x1;
+      x1 = t;
+      t = y0;
+      y0 = y1;
+      y1 = t;
+   }
+   int dx = x1-x0;
+   int ix = (dx>0)-(dx<0);
+   dx = abs(dx)<<1;
+   int dy = y1-y0;
+   int iy = (dy>0)-(dy<0);
+   dy = abs(dy)<<1;
+   RvR_draw(x0,y0,index);
+
+   if(dx>=dy)
+   {
+      int error = dy-(dx>>1);
+      while(x0!=x1)
+      {
+         if(error>0||(!error&&ix>0))
+         {
+            error-=dx;
+            y0+=iy;
+         }
+
+         error+=dy;
+         x0+=ix;
+
+         RvR_draw(x0,y0,index);
+      }
+   }
+   else
+   {
+      int error = dx-(dy>>1);
+
+      while(y0!=y1)
+      {
+         if(error>0||(!error&&iy>0))
+         {
+            error-=dy;
+            x0+=ix;
+         }
+
+         error+=dx;
+         y0+=iy;
+
+         RvR_draw(x0,y0,index);
+      }
+   }
+}
+
+void RvR_draw_vertical_line(int x, int y0, int y1, uint8_t index)
+{
+   if(y0>y1)
+   {
+      int t = y0;
+      y0 = y1;
+      y1 = t;
+   }
+
+   if(x<0||x>=RVR_XRES||y0>=RVR_YRES||y1<0)
+      return;
+
+   if(y0<0)
+      y0 = 0;
+   if(y1>RVR_YRES)
+      y1 = RVR_YRES;
+
+   uint8_t *buff = RvR_core_framebuffer();
+   for(int y = y0;y<=y1;y++)
+      buff[y*RVR_XRES+x] = index;
+}
+
+void RvR_draw_horizontal_line(int x0, int x1, int y, uint8_t index)
+{
+   if(x0>x1)
+   {
+      int t = x0;
+      x0 = x1;
+      x1 = t;
+   }
+	   
+   if(y<0||y>=RVR_YRES||x0>=RVR_XRES||x1<0)
+      return;
+
+   if(x0<0)
+      x0 = 0;
+   if(x1>=RVR_XRES)
+      x1 = RVR_XRES-1;
+
+   uint8_t *dst = &RvR_core_framebuffer()[y*RVR_XRES+x0];
+   for(int x = x0;x<=x1;x++,dst++)
+      *dst = index;
+}
 //-------------------------------------

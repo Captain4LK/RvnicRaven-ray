@@ -11,14 +11,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <stdint.h>
 //-------------------------------------
 
 //Internal includes
 #include "../../src/RvnicRaven.h"
 #include "color.h"
-#include "map.h"
-#include "editor.h"
 //-------------------------------------
 
 //#defines
@@ -28,48 +27,46 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+uint8_t color_white = 0;
+uint8_t color_light_gray = 0;
+uint8_t color_black = 0;
+uint8_t color_magenta = 0;
 //-------------------------------------
 
 //Function prototypes
+static uint8_t find_closest(RvR_color *pal, RvR_color color);
 //-------------------------------------
 
 //Function implementations
 
-int main(int argc, char **argv)
+void colors_find()
 {
-   if(argc<2)
+   RvR_color *pal = RvR_palette();
+
+   color_white = find_closest(pal,(RvR_color){.r = 255, .g = 255, .b = 255});
+   color_light_gray = find_closest(pal,(RvR_color){.r = 150, .g = 150, .b = 150});
+   color_black = find_closest(pal,(RvR_color){.r = 0, .g = 0, .b = 0});
+   color_magenta = find_closest(pal,(RvR_color){.r = 255, .g = 0, .b = 255});
+}
+
+static uint8_t find_closest(RvR_color *pal, RvR_color color)
+{
+   int dist_min = INT_MAX;
+   int index_min = 0;
+
+   for(int i = 0;i<256;i++)
    {
-      puts("No pak path specified!");
-      return -1;
+      int dr = pal[i].r-color.r;
+      int dg = pal[i].g-color.g;
+      int db = pal[i].b-color.b;
+      int dist = dr*dr+dg*dg+db*db;
+      if(dist<dist_min)
+      {
+         dist_min = dist;
+         index_min = i;
+      }
    }
 
-   //Init memory manager
-   RvR_malloc_init(1<<25,1<<26);
-
-   //Init RvnicRaven core
-   RvR_core_init("Rayed",0);
-   RvR_core_mouse_relative(0);
-   RvR_core_mouse_show(0);
-
-   //RvR_pak_create_from_csv("data_demo/main.csv","test.pak");
-   //RvR_pak_add("test.pak");
-   RvR_pak_add(argv[1]);
-   RvR_palette_load(0);
-   RvR_font_load(0xF000);
-
-   map_load(0);
-   colors_find();
-
-   while(RvR_core_running())
-   {
-      RvR_core_update();
-
-      editor_update();
-      editor_draw();
-
-      RvR_core_render_present();
-   }
-
-   return 0;
+   return index_min;
 }
 //-------------------------------------

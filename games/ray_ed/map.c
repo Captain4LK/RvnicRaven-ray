@@ -16,9 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "../../src/RvnicRaven.h"
-#include "color.h"
 #include "map.h"
-#include "editor.h"
 //-------------------------------------
 
 //#defines
@@ -28,6 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+RvR_ray_map *map = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -35,41 +34,28 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function implementations
 
-int main(int argc, char **argv)
+void map_load(uint16_t id)
 {
-   if(argc<2)
-   {
-      puts("No pak path specified!");
-      return -1;
-   }
+   RvR_ray_map_load(id);
+   
+   map = RvR_ray_map_get();
+   printf("Map dimensions: %ux%u\n",map->width,map->height);
+}
 
-   //Init memory manager
-   RvR_malloc_init(1<<25,1<<26);
+int map_tile_comp(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, RvR_fix22 cheight, int x, int y)
+{
+   if(ftex!=RvR_ray_map_floor_tex_at(x,y))
+      return 0;
 
-   //Init RvnicRaven core
-   RvR_core_init("Rayed",0);
-   RvR_core_mouse_relative(0);
-   RvR_core_mouse_show(0);
+   if(ctex!=RvR_ray_map_ceil_tex_at(x,y))
+      return 0;
 
-   //RvR_pak_create_from_csv("data_demo/main.csv","test.pak");
-   //RvR_pak_add("test.pak");
-   RvR_pak_add(argv[1]);
-   RvR_palette_load(0);
-   RvR_font_load(0xF000);
+   if(fheight!=RvR_ray_map_floor_height_at(x,y))
+      return 0;
 
-   map_load(0);
-   colors_find();
+   if(cheight!=RvR_ray_map_ceiling_height_at(x,y))
+      return 0;
 
-   while(RvR_core_running())
-   {
-      RvR_core_update();
-
-      editor_update();
-      editor_draw();
-
-      RvR_core_render_present();
-   }
-
-   return 0;
+   return 1;
 }
 //-------------------------------------

@@ -14,6 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void RvR_backend_init(const char *title, int scale);
 void RvR_backend_mouse_relative(int relative);
+void RvR_backend_mouse_show(int show);
 
 void RvR_backend_update();
 void RvR_backend_render_present();
@@ -29,6 +30,7 @@ int RvR_backend_gamepad_down(int index, int key);
 int RvR_backend_gamepad_pressed(int index, int key);
 int RvR_backend_gamepad_released(int index, int key);
 void RvR_backend_mouse_get_relative_pos(int *x, int *y);
+void RvR_backend_mouse_get_pos(int *x, int *y);
 uint8_t *RvR_backend_framebuffer();
 void RvR_backend_text_input_start(char *text, int max_length);
 void RvR_backend_text_input_end();
