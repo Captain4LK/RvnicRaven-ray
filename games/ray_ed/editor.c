@@ -55,12 +55,5 @@ void editor_draw()
       editor2d_draw();
    else
       editor3d_draw();
-
-   int mx,my;
-   RvR_core_mouse_pos(&mx,&my);
-   RvR_draw_horizontal_line(mx-4,mx-1,my,color_magenta);
-   RvR_draw_horizontal_line(mx+1,mx+4,my,color_magenta);
-   RvR_draw_vertical_line(mx,my-1,my-4,color_magenta);
-   RvR_draw_vertical_line(mx,my+1,my+4,color_magenta);
 }
 //-------------------------------------

@@ -31,6 +31,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 static int scroll_x = 0;
 static int scroll_y = 0;
 static int grid_size = 24;
+static int mouse_scroll = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -48,6 +49,17 @@ void editor2d_update()
       scroll_y-=2;
    if(RvR_core_key_down(RVR_KEY_NP2))
       scroll_y+=2;
+
+   if(RvR_core_mouse_pressed(RVR_BUTTON_RIGHT))
+   {
+      mouse_scroll = 1;
+      RvR_core_mouse_relative(1);
+   }
+   if(RvR_core_mouse_released(RVR_BUTTON_RIGHT))
+   {
+      mouse_scroll = 0;
+      RvR_core_mouse_relative(0);
+   }
 
    if(RvR_core_key_pressed(RVR_KEY_NP_ADD)&&grid_size<64)
    {
@@ -95,5 +107,12 @@ void editor2d_draw()
          }
       }
    }
+
+   int mx,my;
+   RvR_core_mouse_pos(&mx,&my);
+   RvR_draw_horizontal_line(mx-4,mx-1,my,color_magenta);
+   RvR_draw_horizontal_line(mx+1,mx+4,my,color_magenta);
+   RvR_draw_vertical_line(mx,my-1,my-4,color_magenta);
+   RvR_draw_vertical_line(mx,my+1,my+4,color_magenta);
 }
 //-------------------------------------

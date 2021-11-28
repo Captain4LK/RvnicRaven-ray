@@ -353,7 +353,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    }
 
    uint8_t * restrict pix = &RvR_core_framebuffer()[(y_current+increment)*RVR_XRES+pixel_info->position.x];
-   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(pixel_info->hit.direction&1)*10+22+(pixel_info->depth>>8)));
+   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(pixel_info->hit.direction&1)*10+(pixel_info->depth>>8)));
    const uint8_t * restrict tex = &texture->data[(pixel_info->tex_coords.x>>4)*texture->height];
 
    if(increment==-1)
@@ -701,7 +701,7 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
 
    //const and restrict don't seem to influence the generated assembly in this case
    uint8_t * restrict pix = &RvR_core_framebuffer()[y*RVR_XRES+x0];
-   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,22+(depth>>8)));
+   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(depth>>8)));
    const uint8_t * restrict tex = RvR_texture_get(texture)->data;
 
 #if RVR_UNROLL

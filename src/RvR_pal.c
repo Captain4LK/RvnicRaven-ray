@@ -92,9 +92,12 @@ static void pal_calculate_colormap()
       {
          if(x<256)
          {
-            int r = RvR_min(255,((int)palette[x].r*(63-y)+16)>>5);
-            int g = RvR_min(255,((int)palette[x].g*(63-y)+16)>>5);
-            int b = RvR_min(255,((int)palette[x].b*(63-y)+16)>>5);
+            //int r = RvR_min(255,((int)palette[x].r*(64-y))>>5);
+            //int g = RvR_min(255,((int)palette[x].g*(63-y))>>5);
+            //int b = RvR_min(255,((int)palette[x].b*(63-y))>>5);
+            int r = RvR_min(255,((int)palette[x].r*(63-y))/63);
+            int g = RvR_min(255,((int)palette[x].g*(63-y))/63);
+            int b = RvR_min(255,((int)palette[x].b*(63-y))/63);
             int best_index = -1;
             int best_dist = 0;
 
