@@ -12,6 +12,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define _EDITOR_H_
 
+typedef struct 
+{
+   RvR_vec3 pos;
+   RvR_fix22 direction;
+   int16_t shear;
+}Camera;
+extern Camera camera;
+
 void editor_update();
 void editor_draw();
 

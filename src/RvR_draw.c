@@ -204,9 +204,6 @@ void RvR_draw(int x, int y, uint8_t index)
 
 void RvR_draw_line(int x0, int y0, int x1, int y1, uint8_t index)
 {
-   if(!index)
-      return;
-
    if(x0>x1||y0>y1)
    {
       int t = x0;

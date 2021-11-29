@@ -85,7 +85,7 @@ struct
 static void ray_plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1);
 static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, uint16_t texture);
 static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, ray_pixel_info *pixel_info);
-static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, int16_t increment, ray_pixel_info *ray_pixel_info);
+static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, int16_t increment, ray_pixel_info *pixel_info);
 static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
 static ray_pixel_info ray_map_to_screen(RvR_vec3 world_position);
 
@@ -272,14 +272,14 @@ void RvR_ray_draw()
          //Clip against walls
          int ey1 = ey;
          int ys = y;
-         for(int i = 0;i<clip_depth+1;i++)
+         for(int d = 0;d<clip_depth+1;d++)
          {
-            if(depth>ray_depth_buffer[i][x][3]&&y+(ey1-sy)>ray_depth_buffer[i][x][2])
-               ey1 = ray_depth_buffer[i][x][2]-y+sy;
-            if(depth>ray_depth_buffer[i][x][1]&&ys<ray_depth_buffer[i][x][0])
+            if(depth>ray_depth_buffer[d][x][3]&&y+(ey1-sy)>ray_depth_buffer[d][x][2])
+               ey1 = ray_depth_buffer[d][x][2]-y+sy;
+            if(depth>ray_depth_buffer[d][x][1]&&ys<ray_depth_buffer[d][x][0])
             {
-               int diff = ys-ray_depth_buffer[i][x][0];
-               ys = ray_depth_buffer[i][x][0];
+               int diff = ys-ray_depth_buffer[d][x][0];
+               ys = ray_depth_buffer[d][x][0];
                ey1+=diff;
             }
          }
@@ -402,7 +402,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    return limit;
 }
 
-static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, int16_t increment, ray_pixel_info *ray_pixel_info)
+static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, int16_t increment, ray_pixel_info *pixel_info)
 {
    int16_t limit = RvR_clamp(y_to,limit0,limit1);
 
@@ -412,7 +412,7 @@ static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, R
       RvR_fix22 f_end = y_current+increment;
       if(f_end<f_start)
          return limit;
-      ray_plane_add(ray_pixel_info->is_horizon?-RvR_fix22_infinity:ray_pixel_info->hit.fheight,ray_pixel_info->hit.floor_tex,ray_pixel_info->position.x,f_start,f_end);
+      ray_plane_add(pixel_info->is_horizon?-RvR_fix22_infinity:pixel_info->hit.fheight,pixel_info->hit.floor_tex,pixel_info->position.x,f_start,f_end);
    }
    else if(increment==1)
    {
@@ -420,7 +420,7 @@ static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, R
       RvR_fix22 c_end = limit;
       if(c_end<c_start)
          return limit;
-      ray_plane_add(ray_pixel_info->is_horizon?RvR_fix22_infinity:ray_pixel_info->hit.cheight,ray_pixel_info->hit.ceil_tex,ray_pixel_info->position.x,c_start,c_end);
+      ray_plane_add(pixel_info->is_horizon?RvR_fix22_infinity:pixel_info->hit.cheight,pixel_info->hit.ceil_tex,pixel_info->position.x,c_start,c_end);
    }
 
    return limit;

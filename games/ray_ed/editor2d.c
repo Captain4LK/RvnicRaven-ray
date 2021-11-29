@@ -18,6 +18,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "../../src/RvnicRaven.h"
 #include "color.h"
 #include "map.h"
+#include "editor.h"
 #include "editor2d.h"
 //-------------------------------------
 
@@ -108,6 +109,15 @@ void editor2d_draw()
       }
    }
 
+   //Draw camera
+   int grid_fac = 1024/grid_size;
+   RvR_vec2 direction = RvR_vec2_rot(camera.direction);
+   RvR_vec2 cam_pos = {.x = (camera.pos.x-scroll_x*(grid_fac))/grid_fac, .y = (camera.pos.y-scroll_y*(grid_fac))/grid_fac};
+   RvR_draw_line(cam_pos.x,cam_pos.y,cam_pos.x-direction.x/128,cam_pos.y-direction.y/128,color_magenta);
+   RvR_draw(cam_pos.x,cam_pos.y,color_magenta);
+   //RvR_draw((camera.pos.x-scroll_x*(grid_fac))/grid_fac,(camera.pos.y-scroll_y*(grid_fac))/grid_fac,color_magenta);
+
+   //Draw cursor
    int mx,my;
    RvR_core_mouse_pos(&mx,&my);
    RvR_draw_horizontal_line(mx-4,mx-1,my,color_magenta);

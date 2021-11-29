@@ -56,7 +56,7 @@ enum { HASH2_MASK=HASH2_SIZE-1 };
 enum { HASH1_SHIFT=(HASH1_BITS+(HASH1_LEN-1))/HASH1_LEN };
 enum { HASH2_SHIFT=(HASH2_BITS+(HASH2_LEN-1))/HASH2_LEN };
 
-typedef struct bits
+typedef struct Bits
 {
    const uint8_t *g_inbuf;
    uint8_t *g_outbuf;
@@ -64,7 +64,7 @@ typedef struct bits
    int g_outbuf_pos;
    int bit_buf;
    int bit_count;
-}bits;
+}Bits;
 //-------------------------------------
 
 //Variables
@@ -75,13 +75,13 @@ static size_t crush_compress(const uint8_t *buf, size_t size, uint8_t *outbuf, s
 static size_t crush_decompress(const uint8_t *inbuf, size_t inlen, uint8_t *outbuf, size_t outsize);
 static int update_hash1(int h, int c);
 static int update_hash2(int h, int c);
-static void bits_init(bits *b, const uint8_t *inbuf, uint8_t *outbuf);
+static void bits_init(Bits *b, const uint8_t *inbuf, uint8_t *outbuf);
 static int get_min(int a, int b);
 static int get_max(int a, int b);
 static int get_penalty(int a, int b);
-static void bits_put(bits *b, int n, int x);
-static void bits_flush(bits *b);
-static int bits_get(bits *b, int n);
+static void bits_put(Bits *b, int n, int x);
+static void bits_flush(Bits *b);
+static int bits_get(Bits *b, int n);
 //-------------------------------------
 
 //Function implementations
@@ -188,7 +188,7 @@ static size_t crush_compress(const uint8_t *buf, size_t size, uint8_t *outbuf, s
    const size_t max_level = sizeof(max_chain)/sizeof(max_chain[0]);
    level = level > max_level ? max_level : level;
 
-   bits bits;
+   Bits bits;
 
    for(int i = 0;i<HASH1_SIZE+HASH2_SIZE;++i)
       head[i]=-1;
@@ -362,7 +362,7 @@ static size_t crush_decompress(const uint8_t *inbuf, size_t inlen, uint8_t *outb
       return 0;
    }
 
-   bits bits;
+   Bits bits;
    bits_init(&bits,inbuf,NULL);
 
    int p = 0;
@@ -413,7 +413,7 @@ static int update_hash2(int h, int c)
    return ((h<<HASH2_SHIFT)+c)&HASH2_MASK;
 }
 
-static void bits_init(bits *b, const uint8_t *inbuf, uint8_t *outbuf)
+static void bits_init(Bits *b, const uint8_t *inbuf, uint8_t *outbuf)
 {
    b->bit_count = b->bit_buf = b->g_inbuf_pos = b->g_outbuf_pos = 0;
    b->g_inbuf = inbuf;
@@ -441,7 +441,7 @@ static int get_penalty(int a, int b)
    return p;
 }
 
-static void bits_put(bits *b, int n, int x)
+static void bits_put(Bits *b, int n, int x)
 {
    b->bit_buf|=x<<b->bit_count;
    b->bit_count+=n;
@@ -453,13 +453,13 @@ static void bits_put(bits *b, int n, int x)
    }
 }
 
-static void bits_flush(bits *b)
+static void bits_flush(Bits *b)
 {
    bits_put(b,7,0);
    b->bit_count=b->bit_buf = 0;
 }
 
-static int bits_get(bits *b, int n)
+static int bits_get(Bits *b, int n)
 {
    while (b->bit_count<n)
    {
