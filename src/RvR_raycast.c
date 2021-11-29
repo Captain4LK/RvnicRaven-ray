@@ -130,13 +130,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
             leg A (distance along principal axis) divided by leg B (length along
             the same principal axis). */
 
-            #define CORRECT(dir1,dir2)\
-            RvR_fix22 tmp = diff/4;        /* 4 to prevent overflow */ \
-            /* prevent a bug with small dists */ \
-            h.distance = ((tmp/8)!=0)?((tmp*1024*ray_dir_ ## dir1 ## _recip)/(RECIP_SCALE/4)):\
-            RvR_abs(h.position.dir2-ray.start.dir2);
-
-            CORRECT(x,y)
+            h.distance = (diff*1024)/RvR_non_zero(ray.direction.x);
          }
          else
          {
@@ -153,7 +147,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
 
             h.position.x = ray.start.x+(ray.direction.x*diff*ray_dir_y_recip)/RECIP_SCALE;
 
-            CORRECT(y,x) //same as above but for different axis
+            h.distance = (diff*1024)/RvR_non_zero(ray.direction.y);
 
 #undef CORRECT
          }
