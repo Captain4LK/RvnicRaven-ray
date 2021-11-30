@@ -42,25 +42,34 @@ static int mouse_scroll = 0;
 
 void editor2d_update()
 {
-   if(RvR_core_key_down(RVR_KEY_NP6))
-      scroll_x+=2;
-   if(RvR_core_key_down(RVR_KEY_NP4))
-      scroll_x-=2;
-   if(RvR_core_key_down(RVR_KEY_NP8))
-      scroll_y-=2;
-   if(RvR_core_key_down(RVR_KEY_NP2))
-      scroll_y+=2;
-
    if(RvR_core_mouse_pressed(RVR_BUTTON_RIGHT))
    {
       mouse_scroll = 1;
+
+      int mx,my;
+      RvR_core_mouse_pos(&mx,&my);
       RvR_core_mouse_relative(1);
+      
+      camera.pos.x = ((scroll_x+mx)*1024)/grid_size;
+      camera.pos.y = ((scroll_y+my)*1024)/grid_size;
    }
    if(RvR_core_mouse_released(RVR_BUTTON_RIGHT))
    {
       mouse_scroll = 0;
       RvR_core_mouse_relative(0);
    }
+
+   if(mouse_scroll)
+   {
+      int mx,my;
+      RvR_core_mouse_relative_pos(&mx,&my);
+
+      camera.pos.x+=(mx*1024)/grid_size;
+      camera.pos.y+=(my*1024)/grid_size;
+   }
+
+   scroll_x = (camera.pos.x*grid_size)/1024-RVR_XRES/2;
+   scroll_y = (camera.pos.y*grid_size)/1024-RVR_YRES/2;
 
    if(RvR_core_key_pressed(RVR_KEY_NP_ADD)&&grid_size<64)
    {
@@ -102,24 +111,35 @@ void editor2d_draw()
             RvR_fix22 cheight = RvR_ray_map_ceiling_height_at(x+sx,y+sy);
 
             if(!map_tile_comp(ftex,ctex,fheight,cheight,x+sx,y+sy-1))
-               RvR_draw_horizontal_line(tx,tx+grid_size,ty,color_white);
+               RvR_draw_horizontal_line(tx,tx+grid_size,ty,color_light_gray);
             if(!map_tile_comp(ftex,ctex,fheight,cheight,x+sx-1,y+sy))
-               RvR_draw_vertical_line(tx,ty,ty+grid_size,color_white);
+               RvR_draw_vertical_line(tx,ty,ty+grid_size,color_light_gray);
          }
       }
    }
 
    //Draw camera
-   int grid_fac = 1024/grid_size;
    RvR_vec2 direction = RvR_vec2_rot(camera.direction);
-   RvR_vec2 cam_pos = {.x = (camera.pos.x-scroll_x*(grid_fac))/grid_fac, .y = (camera.pos.y-scroll_y*(grid_fac))/grid_fac};
-   RvR_draw_line(cam_pos.x,cam_pos.y,cam_pos.x-direction.x/128,cam_pos.y-direction.y/128,color_magenta);
-   RvR_draw(cam_pos.x,cam_pos.y,color_magenta);
-   //RvR_draw((camera.pos.x-scroll_x*(grid_fac))/grid_fac,(camera.pos.y-scroll_y*(grid_fac))/grid_fac,color_magenta);
+   int dsx = (direction.x*grid_size)/1024;
+   int dsy = (direction.y*grid_size)/1024;
+   RvR_draw_line(RVR_XRES/2+dsx/2,RVR_YRES/2+dsy/2,RVR_XRES/2-dsx/2,RVR_YRES/2-dsy/2,color_white);
+   direction = RvR_vec2_rot(camera.direction+128);
+   RvR_draw_line(RVR_XRES/2+dsx/2,RVR_YRES/2+dsy/2,RVR_XRES/2+dsx/2-(direction.x*grid_size/2)/1024,RVR_YRES/2+dsy/2-(direction.y*grid_size/2)/1024,color_white);
+   direction = RvR_vec2_rot(camera.direction-128);
+   RvR_draw_line(RVR_XRES/2+dsx/2,RVR_YRES/2+dsy/2,RVR_XRES/2+dsx/2-(direction.x*grid_size/2)/1024,RVR_YRES/2+dsy/2-(direction.y*grid_size/2)/1024,color_white);
 
    //Draw cursor
    int mx,my;
-   RvR_core_mouse_pos(&mx,&my);
+   if(!mouse_scroll)
+   {
+      RvR_core_mouse_pos(&mx,&my);
+   }
+   else
+   {
+      mx = RVR_XRES/2;
+      my = RVR_YRES/2;
+   }
+
    RvR_draw_horizontal_line(mx-4,mx-1,my,color_magenta);
    RvR_draw_horizontal_line(mx+1,mx+4,my,color_magenta);
    RvR_draw_vertical_line(mx,my-1,my-4,color_magenta);

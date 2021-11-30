@@ -41,5 +41,6 @@ void editor3d_update()
 
 void editor3d_draw()
 {
+   RvR_ray_draw();
 }
 //-------------------------------------

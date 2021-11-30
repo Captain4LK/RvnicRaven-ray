@@ -17,6 +17,7 @@ typedef struct
    RvR_vec3 pos;
    RvR_fix22 direction;
    int16_t shear;
+   RvR_fix22 vertical_speed;
 }Camera;
 extern Camera camera;
 

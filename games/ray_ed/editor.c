@@ -89,6 +89,11 @@ static void camera_update()
       camera.direction-=16;
    camera.direction&=1023;
 
+   //Gravity
+   camera.vertical_speed-=16;
+   camera.vertical_speed = RvR_max(-256,RvR_min(camera.vertical_speed,256));
+   move_offset.z = camera.vertical_speed;
+
    //Update raycasting values
    //needed by collision
    RvR_ray_set_position(camera.pos);

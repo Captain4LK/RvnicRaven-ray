@@ -44,7 +44,7 @@ void colors_find()
    RvR_color *pal = RvR_palette();
 
    color_white = find_closest(pal,(RvR_color){.r = 255, .g = 255, .b = 255});
-   color_light_gray = find_closest(pal,(RvR_color){.r = 150, .g = 150, .b = 150});
+   color_light_gray = find_closest(pal,(RvR_color){.r = 196, .g = 196, .b = 196});
    color_black = find_closest(pal,(RvR_color){.r = 0, .g = 0, .b = 0});
    color_magenta = find_closest(pal,(RvR_color){.r = 255, .g = 0, .b = 255});
 }
