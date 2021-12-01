@@ -42,12 +42,17 @@ static int mouse_scroll = 0;
 
 void editor2d_update()
 {
+   static int old_x;
+   static int old_y;
+
    if(RvR_core_mouse_pressed(RVR_BUTTON_RIGHT))
    {
       mouse_scroll = 1;
 
       int mx,my;
       RvR_core_mouse_pos(&mx,&my);
+      old_x = mx;
+      old_y = my;
       RvR_core_mouse_relative(1);
       
       camera.pos.x = ((scroll_x+mx)*1024)/grid_size;
@@ -57,6 +62,7 @@ void editor2d_update()
    {
       mouse_scroll = 0;
       RvR_core_mouse_relative(0);
+      RvR_core_mouse_set_pos(old_x,old_y);
    }
 
    if(mouse_scroll)

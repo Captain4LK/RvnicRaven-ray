@@ -129,6 +129,11 @@ void RvR_core_mouse_pos(int *x, int *y)
    RvR_backend_mouse_get_pos(x,y);
 }
 
+void RvR_core_mouse_set_pos(int x, int y)
+{
+   RvR_backend_mouse_set_pos(x, y);
+}
+
 uint8_t *RvR_core_framebuffer()
 {
    return RvR_backend_framebuffer();

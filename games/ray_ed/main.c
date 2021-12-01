@@ -64,8 +64,8 @@ int main(int argc, char **argv)
    {
       RvR_core_update();
 
-      editor_update();
       editor_draw();
+      editor_update();
 
       RvR_core_render_present();
    }

@@ -229,6 +229,7 @@ int  RvR_core_gamepad_pressed(int index, RvR_gamepad_button button);
 int  RvR_core_gamepad_released(int index, RvR_gamepad_button button);
 void RvR_core_mouse_relative_pos(int *x, int *y);
 void RvR_core_mouse_pos(int *x, int *y);
+void RvR_core_mouse_set_pos(int x, int y);
 void RvR_core_text_input_start(char *text, int max_length);
 void RvR_core_text_input_end();
 

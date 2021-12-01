@@ -521,6 +521,14 @@ void RvR_backend_mouse_get_pos(int *x, int *y)
    *y = mouse_y;
 }
 
+void RvR_backend_mouse_set_pos(int x, int y)
+{
+   x*=pixel_scale;
+   y*=pixel_scale;
+
+   SDL_WarpMouseInWindow(sdl_window,x,y);
+}
+
 void RvR_backend_text_input_start(char *text, int max_length)
 {
    text_input = text;
