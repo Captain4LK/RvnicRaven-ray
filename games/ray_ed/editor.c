@@ -37,6 +37,7 @@ static int editor_mode = 0;
 
 //Function prototypes
 static void camera_update();
+static void move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t compute_plane, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height);
 //-------------------------------------
 
 //Function implementations
@@ -104,22 +105,11 @@ static void camera_update()
    //Collision
    RvR_fix22 floor_height = 0;
    RvR_fix22 ceiling_height = 0;
-   RvR_ray_move_with_collision(move_offset,1,1,&floor_height,&ceiling_height);
-   camera.pos = RvR_ray_get_position();
-   /*on_ground = 0;
+   move_with_collision(move_offset,1,1,&floor_height,&ceiling_height);
 
-   //Reset verticall speed if ceiling was hit
-   if(player.entity->pos.z+CAMERA_COLL_HEIGHT_ABOVE==ceiling_height)
-      player.vertical_speed = 0;
-
-   //Enable jumping if on ground
-   if(player.entity->pos.z-CAMERA_COLL_HEIGHT_BELOW==floor_height)
-   {
-      on_ground = 1;
-      player.vertical_speed = 0;
-   }
-
-   last_vertical_speed = player.vertical_speed;*/
+   //Reset vertical speed if floor was hit
+   if(camera.pos.z-CAMERA_COLL_HEIGHT_BELOW==floor_height)
+      camera.vertical_speed = 0;
    //-------------------------------------
 
    //Update raycasting values again
@@ -130,12 +120,11 @@ static void camera_update()
    //-------------------------------------
 }
 
-#if 0
-void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t force, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height)
+static void move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t compute_plane, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height)
 {
    int8_t moves_in_plane = offset.x!=0||offset.y!=0;
 
-   if(moves_in_plane||force)
+   if(compute_plane)
    {
       int16_t x_square_new, y_square_new;
 
@@ -145,8 +134,8 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
       int16_t x_dir = offset.x>0?1:-1;
       int16_t y_dir = offset.y>0?1:-1;
 
-      corner.x = ray_cam_position.x+x_dir*CAMERA_COLL_RADIUS;
-      corner.y = ray_cam_position.y+y_dir*CAMERA_COLL_RADIUS;
+      corner.x = camera.pos.x+x_dir*CAMERA_COLL_RADIUS;
+      corner.y = camera.pos.y+y_dir*CAMERA_COLL_RADIUS;
 
       int16_t x_square = RvR_div_round_down(corner.x,1024);
       int16_t y_square = RvR_div_round_down(corner.y,1024);
@@ -164,9 +153,9 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
 
       if(compute_height)
       {
-         bottom_limit = ray_cam_position.z-CAMERA_COLL_HEIGHT_BELOW+CAMERA_COLL_STEP_HEIGHT;
+         bottom_limit = camera.pos.z-CAMERA_COLL_HEIGHT_BELOW+CAMERA_COLL_STEP_HEIGHT;
 
-         top_limit = ray_cam_position.z+CAMERA_COLL_HEIGHT_ABOVE;
+         top_limit = camera.pos.z+CAMERA_COLL_HEIGHT_ABOVE;
 
          curr_ceil_height = RvR_ray_map_ceiling_height_at(x_square,y_square);
       }
@@ -243,11 +232,11 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
             square_pos.x = x_square*1024;
             square_pos.y = y_square*1024;
 
-            new_pos.x = RvR_max(square_pos.x+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.x+1024-CAMERA_COLL_RADIUS-1,ray_cam_position.x));
-            new_pos.y = RvR_max(square_pos.y+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.y+1024-CAMERA_COLL_RADIUS-1,ray_cam_position.y));
+            new_pos.x = RvR_max(square_pos.x+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.x+1024-CAMERA_COLL_RADIUS-1,camera.pos.x));
+            new_pos.y = RvR_max(square_pos.y+CAMERA_COLL_RADIUS+1,RvR_min(square_pos.y+1024-CAMERA_COLL_RADIUS-1,camera.pos.y));
 
-            corner_new.x = corner.x+(new_pos.x-ray_cam_position.x);
-            corner_new.y = corner.y+(new_pos.y-ray_cam_position.y);
+            corner_new.x = corner.x+(new_pos.x-camera.pos.x);
+            corner_new.y = corner.y+(new_pos.y-camera.pos.y);
          }
       }
       else 
@@ -269,21 +258,21 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
 
 #undef collCheck
 
-      ray_cam_position.x = corner_new.x-x_dir*CAMERA_COLL_RADIUS;
-      ray_cam_position.y = corner_new.y-y_dir*CAMERA_COLL_RADIUS;  
+      camera.pos.x = corner_new.x-x_dir*CAMERA_COLL_RADIUS;
+      camera.pos.y = corner_new.y-y_dir*CAMERA_COLL_RADIUS;  
    }
 
-   if(compute_height&&(moves_in_plane||(offset.z!=0)||force))
+   if(compute_height&&(moves_in_plane||(offset.z!=0)||1))
    {
-      ray_cam_position.z+=offset.z;
+      camera.pos.z+=offset.z;
 
-      int16_t x_square1 = RvR_div_round_down(ray_cam_position.x-CAMERA_COLL_RADIUS,1024);
+      int16_t x_square1 = RvR_div_round_down(camera.pos.x-CAMERA_COLL_RADIUS,1024);
 
-      int16_t x_square2 = RvR_div_round_down(ray_cam_position.x+CAMERA_COLL_RADIUS,1024);
+      int16_t x_square2 = RvR_div_round_down(camera.pos.x+CAMERA_COLL_RADIUS,1024);
 
-      int16_t y_square1 = RvR_div_round_down(ray_cam_position.y-CAMERA_COLL_RADIUS,1024);
+      int16_t y_square1 = RvR_div_round_down(camera.pos.y-CAMERA_COLL_RADIUS,1024);
 
-      int16_t y_square2 = RvR_div_round_down(ray_cam_position.y+CAMERA_COLL_RADIUS,1024);
+      int16_t y_square2 = RvR_div_round_down(camera.pos.y+CAMERA_COLL_RADIUS,1024);
 
       RvR_fix22 bottom_limit = RvR_ray_map_floor_height_at(x_square1,y_square1);
       RvR_fix22 top_limit = RvR_ray_map_ceiling_height_at(x_square1,y_square1);
@@ -312,11 +301,9 @@ void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t 
       if(ceiling_height!=NULL)
          *ceiling_height = top_limit;
 
-      ray_cam_position.z = RvR_clamp(ray_cam_position.z,bottom_limit+CAMERA_COLL_HEIGHT_BELOW,top_limit-CAMERA_COLL_HEIGHT_ABOVE);
+      camera.pos.z = RvR_clamp(camera.pos.z,bottom_limit+CAMERA_COLL_HEIGHT_BELOW,top_limit-CAMERA_COLL_HEIGHT_ABOVE);
 
 #undef checkSquares
    }
 }
-
-#endif
 //-------------------------------------
