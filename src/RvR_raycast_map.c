@@ -428,13 +428,13 @@ void RvR_ray_map_ceil_tex_set(int16_t x, int16_t y, uint16_t tex)
       ray_map.ceil_tex[y*ray_map.width+x] = tex;
 }
 
-void RvR_ray_map_floor_height_set(int16_t x, int16_t y, int16_t height)
+void RvR_ray_map_floor_height_set(int16_t x, int16_t y, RvR_fix22 height)
 {
    if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
       ray_map.floor[y*ray_map.width+x] = height;
 }
 
-void RvR_ray_map_ceiling_height_set(int16_t x, int16_t y, int16_t height)
+void RvR_ray_map_ceiling_height_set(int16_t x, int16_t y, RvR_fix22 height)
 {
    if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
       ray_map.ceiling[y*ray_map.width+x] = height;

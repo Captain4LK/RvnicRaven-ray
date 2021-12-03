@@ -523,6 +523,8 @@ void RvR_backend_mouse_get_pos(int *x, int *y)
 
 void RvR_backend_mouse_set_pos(int x, int y)
 {
+   mouse_x = x;
+   mouse_y = y;
    x*=pixel_scale;
    y*=pixel_scale;
 

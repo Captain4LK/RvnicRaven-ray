@@ -42,27 +42,23 @@ static int mouse_scroll = 0;
 
 void editor2d_update()
 {
-   static int old_x;
-   static int old_y;
-
    if(RvR_core_mouse_pressed(RVR_BUTTON_RIGHT))
    {
       mouse_scroll = 1;
 
       int mx,my;
       RvR_core_mouse_pos(&mx,&my);
-      old_x = mx;
-      old_y = my;
       RvR_core_mouse_relative(1);
       
       camera.pos.x = ((scroll_x+mx)*1024)/grid_size;
       camera.pos.y = ((scroll_y+my)*1024)/grid_size;
    }
+
    if(RvR_core_mouse_released(RVR_BUTTON_RIGHT))
    {
       mouse_scroll = 0;
       RvR_core_mouse_relative(0);
-      RvR_core_mouse_set_pos(old_x,old_y);
+      RvR_core_mouse_set_pos(RVR_XRES/2,RVR_YRES/2);
    }
 
    if(mouse_scroll)
@@ -72,6 +68,10 @@ void editor2d_update()
 
       camera.pos.x+=(mx*1024)/grid_size;
       camera.pos.y+=(my*1024)/grid_size;
+   }
+   else
+   {
+      camera_update();
    }
 
    scroll_x = (camera.pos.x*grid_size)/1024-RVR_XRES/2;

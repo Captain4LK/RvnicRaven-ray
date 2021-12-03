@@ -442,8 +442,8 @@ typedef struct
    uint16_t *wall_ctex;
    uint16_t *floor_tex;
    uint16_t *ceil_tex;
-   int16_t *floor;
-   int16_t *ceiling;
+   RvR_fix22 *floor;
+   RvR_fix22 *ceiling;
    uint16_t width;
    uint16_t height;
    uint8_t floor_color;
@@ -530,8 +530,8 @@ void RvR_ray_map_wall_ftex_set(int16_t x, int16_t y, uint16_t tex);
 void RvR_ray_map_wall_ctex_set(int16_t x, int16_t y, uint16_t tex);
 void RvR_ray_map_floor_tex_set(int16_t x, int16_t y, uint16_t tex);
 void RvR_ray_map_ceil_tex_set(int16_t x, int16_t y, uint16_t tex);
-void RvR_ray_map_floor_height_set(int16_t x, int16_t y, int16_t height);
-void RvR_ray_map_ceiling_height_set(int16_t x, int16_t y, int16_t height);
+void RvR_ray_map_floor_height_set(int16_t x, int16_t y, RvR_fix22 height);
+void RvR_ray_map_ceiling_height_set(int16_t x, int16_t y, RvR_fix22 height);
 
 uint16_t  RvR_ray_map_wall_ftex_at_us(int16_t x, int16_t y);
 uint16_t  RvR_ray_map_wall_ctex_at_us(int16_t x, int16_t y);

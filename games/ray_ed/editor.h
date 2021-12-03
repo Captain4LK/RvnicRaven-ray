@@ -23,5 +23,6 @@ extern Camera camera;
 
 void editor_update();
 void editor_draw();
+void camera_update();
 
 #endif

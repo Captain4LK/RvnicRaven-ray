@@ -244,7 +244,7 @@ RvR_vec2 RvR_vec2_rot(RvR_fix22 angle)
    RvR_vec2 result;
 
    result.x = RvR_fix22_cos(angle);
-   result.y = -RvR_fix22_sin(angle);
+   result.y = RvR_fix22_sin(angle);
 
    return result;
 }

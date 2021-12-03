@@ -36,7 +36,7 @@ static int editor_mode = 0;
 //-------------------------------------
 
 //Function prototypes
-static void camera_update();
+void camera_update();
 static void move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t compute_plane, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height);
 //-------------------------------------
 
@@ -44,15 +44,13 @@ static void move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t c
 
 void editor_update()
 {
+   if(RvR_core_key_pressed(RVR_KEY_ENTER))
+      editor_mode = !editor_mode;
+
    if(editor_mode==0)
       editor2d_update();
    else
       editor3d_update();
-
-   if(RvR_core_key_pressed(RVR_KEY_ENTER))
-      editor_mode = !editor_mode;
-
-   camera_update();
 }
 
 void editor_draw()
@@ -63,7 +61,7 @@ void editor_draw()
       editor3d_draw();
 }
 
-static void camera_update()
+void camera_update()
 {
    RvR_vec2 direction = RvR_vec2_rot(camera.direction);
    direction.x/=8;
