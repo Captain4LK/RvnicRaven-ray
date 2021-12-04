@@ -308,14 +308,14 @@ void RvR_backend_update()
             text_input[strlen(text_input)-1] = '\0';
          if(event.key.state==SDL_PRESSED)
          {
-            new_key_state[key_map[event.key.keysym.scancode]] = 1;
+            new_key_state[key_map[SDL_GetScancodeFromKey(event.key.keysym.sym)]] = 1;
             if(event.key.repeat&&key_repeat)
                old_key_state[key_map[event.key.keysym.scancode]] = 0;
          }
          break;
       case SDL_KEYUP:
          if(event.key.state==SDL_RELEASED)
-            new_key_state[key_map[event.key.keysym.scancode]] = 0;
+            new_key_state[key_map[SDL_GetScancodeFromKey(event.key.keysym.sym)]] = 0;
          break;
       case SDL_MOUSEBUTTONDOWN:
          if(event.button.state==SDL_PRESSED)
