@@ -50,6 +50,7 @@ int main(int argc, char **argv)
    RvR_core_init("Rayed",0);
    RvR_core_mouse_relative(0);
    RvR_core_mouse_show(0);
+   RvR_core_key_repeat(1);
 
    //RvR_pak_create_from_csv("data_demo/main.csv","test.pak");
    //RvR_pak_add("test.pak");

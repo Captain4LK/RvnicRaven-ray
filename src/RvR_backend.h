@@ -15,6 +15,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 void RvR_backend_init(const char *title, int scale);
 void RvR_backend_mouse_relative(int relative);
 void RvR_backend_mouse_show(int show);
+void RvR_backend_key_repeat(int repeat);
 
 void RvR_backend_update();
 void RvR_backend_render_present();

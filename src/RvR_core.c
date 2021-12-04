@@ -54,6 +54,11 @@ void RvR_core_mouse_show(int show)
    RvR_backend_mouse_show(show);
 }
 
+void RvR_core_key_repeat(int repeat)
+{
+   RvR_backend_key_repeat(repeat);
+}
+
 int RvR_core_running()
 {
    return core_running;

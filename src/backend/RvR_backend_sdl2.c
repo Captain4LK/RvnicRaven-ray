@@ -66,6 +66,7 @@ static unsigned text_input_max;
 static int mouse_x;
 static int mouse_y;
 static int mouse_wheel;
+static int key_repeat = 0;
 
 static uint8_t *framebuffer = NULL;
 //-------------------------------------
@@ -198,10 +199,12 @@ void RvR_backend_init(const char *title, int scale)
    key_map[SDL_SCANCODE_PAGEUP] = RVR_KEY_PGUP;
    key_map[SDL_SCANCODE_PAGEDOWN] = RVR_KEY_PGDN;
    key_map[SDL_SCANCODE_INSERT] = RVR_KEY_INS;
-   key_map[SDL_SCANCODE_LSHIFT] = RVR_KEY_SHIFT;
-   key_map[SDL_SCANCODE_RSHIFT] = RVR_KEY_SHIFT;
-   key_map[SDL_SCANCODE_LCTRL] = RVR_KEY_CTRL;
-   key_map[SDL_SCANCODE_RCTRL] = RVR_KEY_CTRL;
+   key_map[SDL_SCANCODE_LSHIFT] = RVR_KEY_LSHIFT;
+   key_map[SDL_SCANCODE_RSHIFT] = RVR_KEY_RSHIFT;
+   key_map[SDL_SCANCODE_LCTRL] = RVR_KEY_LCTRL;
+   key_map[SDL_SCANCODE_RCTRL] = RVR_KEY_RCTRL;
+   key_map[SDL_SCANCODE_RALT] = RVR_KEY_RALT;
+   key_map[SDL_SCANCODE_LALT] = RVR_KEY_LALT;
    key_map[SDL_SCANCODE_SPACE] = RVR_KEY_SPACE;
 
    key_map[SDL_SCANCODE_0] = RVR_KEY_0;
@@ -304,7 +307,11 @@ void RvR_backend_update()
          if(text_input_active&&event.key.keysym.sym==SDLK_BACKSPACE&&text_input[0]!='\0')
             text_input[strlen(text_input)-1] = '\0';
          if(event.key.state==SDL_PRESSED)
+         {
             new_key_state[key_map[event.key.keysym.scancode]] = 1;
+            if(event.key.repeat&&key_repeat)
+               old_key_state[key_map[event.key.keysym.scancode]] = 0;
+         }
          break;
       case SDL_KEYUP:
          if(event.key.state==SDL_RELEASED)
@@ -550,5 +557,10 @@ void RvR_backend_text_input_end()
 uint8_t *RvR_backend_framebuffer()
 {
    return framebuffer;
+}
+
+void RvR_backend_key_repeat(int repeat)
+{
+   key_repeat = repeat;
 }
 //-------------------------------------

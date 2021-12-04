@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "../../src/RvnicRaven.h"
 #include "map.h"
+#include "editor.h"
 //-------------------------------------
 
 //#defines
@@ -40,6 +41,10 @@ void map_load(uint16_t id)
    
    map = RvR_ray_map_get();
    printf("Map dimensions: %ux%u\n",map->width,map->height);
+
+   camera.pos.x = map->width*512+512;
+   camera.pos.y = map->height*512+512;
+   camera.pos.z = INT16_MIN;
 }
 
 int map_tile_comp(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, RvR_fix22 cheight, int x, int y)

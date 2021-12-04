@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "../../src/RvnicRaven.h"
+#include "config.h"
 #include "color.h"
 #include "map.h"
 #include "editor.h"
@@ -24,6 +25,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
+#define CAMERA_SHEAR_MAX_PIXELS ((CAMERA_SHEAR_MAX*RVR_YRES)/1024)
+#define CAMERA_SHEAR_STEP_FRAME ((RVR_YRES*CAMERA_SHEAR_SPEED)/(RVR_FPS*4))
 //-------------------------------------
 
 //Typedefs
@@ -66,32 +69,69 @@ void camera_update()
    RvR_vec2 direction = RvR_vec2_rot(camera.direction);
    direction.x/=8;
    direction.y/=8;
-   int step = 1;
+   int speed = 1;
    RvR_vec3 move_offset = {0};
+
+   //Faster movement
+   if(RvR_core_key_down(RVR_KEY_LSHIFT))
+      speed = 4;
 
    //Forward/Backward movement
    if(RvR_core_key_down(RVR_KEY_UP))
    {
-      move_offset.x+=step*direction.x;
-      move_offset.y+=step*direction.y;
+      move_offset.x+=speed*direction.x;
+      move_offset.y+=speed*direction.y;
    }
    else if(RvR_core_key_down(RVR_KEY_DOWN))
    {
-      move_offset.x-=step*direction.x;
-      move_offset.y-=step*direction.y;
+      move_offset.x-=speed*direction.x;
+      move_offset.y-=speed*direction.y;
    }
 
-   //Rotation
-   if(RvR_core_key_down(RVR_KEY_LEFT))
-      camera.direction-=16;
-   else if(RvR_core_key_down(RVR_KEY_RIGHT))
-      camera.direction+=16;
-   camera.direction&=1023;
+   //Up/Down movement or shearing
+   if(RvR_core_key_down(RVR_KEY_A))
+   {
+      if(RvR_core_key_down(RVR_KEY_LALT))
+         camera.shear+=CAMERA_SHEAR_STEP_FRAME;
+      else
+         move_offset.z = speed*64;
+   }
+   else if(RvR_core_key_down(RVR_KEY_Z))
+   {
+      if(RvR_core_key_down(RVR_KEY_LALT))
+         camera.shear-=CAMERA_SHEAR_STEP_FRAME;
+      else
+         move_offset.z = -speed*64;
+   }
 
-   //Gravity
-   camera.vertical_speed-=16;
-   camera.vertical_speed = RvR_max(-256,RvR_min(camera.vertical_speed,256));
-   move_offset.z = camera.vertical_speed;
+   camera.shear = RvR_max(-CAMERA_SHEAR_MAX_PIXELS,RvR_min(CAMERA_SHEAR_MAX_PIXELS,camera.shear));
+
+   //Rotation or left/right movement
+   if(RvR_core_key_down(RVR_KEY_LEFT))
+   {
+      if(RvR_core_key_down(RVR_KEY_RCTRL))
+      {
+         move_offset.x+=speed*direction.y;
+         move_offset.y-=speed*direction.x;
+      }
+      else
+      {
+         camera.direction-=16;
+      }
+   }
+   else if(RvR_core_key_down(RVR_KEY_RIGHT))
+   {
+      if(RvR_core_key_down(RVR_KEY_RCTRL))
+      {
+         move_offset.x-=speed*direction.y;
+         move_offset.y+=speed*direction.x;
+      }
+      else
+      {
+         camera.direction+=16;
+      }
+   }
+   camera.direction&=1023;
 
    //Update raycasting values
    //needed by collision
@@ -104,10 +144,6 @@ void camera_update()
    RvR_fix22 floor_height = 0;
    RvR_fix22 ceiling_height = 0;
    move_with_collision(move_offset,1,1,&floor_height,&ceiling_height);
-
-   //Reset vertical speed if floor was hit
-   if(camera.pos.z-CAMERA_COLL_HEIGHT_BELOW==floor_height)
-      camera.vertical_speed = 0;
    //-------------------------------------
 
    //Update raycasting values again
@@ -305,3 +341,6 @@ static void move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t c
    }
 }
 //-------------------------------------
+
+#undef CAMERA_SHEAR_MAX_PIXELS 
+#undef CAMERA_SHEAR_STEP_FRAME 

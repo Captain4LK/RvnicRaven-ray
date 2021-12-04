@@ -48,6 +48,13 @@ void editor3d_update()
    RvR_core_mouse_pos(&mx,&my);
    mouse_world_pos(mx,my,&wx,&wy,&location);
 
+   if(RvR_core_key_down(RVR_KEY_LCTRL))
+   {
+      wx = camera.pos.x/1024;
+      wy = camera.pos.y/1024;
+   }
+   //TODO: locking selection (L key?)
+
    if(RvR_core_key_pressed(RVR_KEY_PGUP))
    {
       if(location==0||location==2)
