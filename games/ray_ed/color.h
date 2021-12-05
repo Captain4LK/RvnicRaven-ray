@@ -14,6 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 extern uint8_t color_white;
 extern uint8_t color_light_gray;
+extern uint8_t color_dark_gray;
 extern uint8_t color_black;
 extern uint8_t color_magenta;
 

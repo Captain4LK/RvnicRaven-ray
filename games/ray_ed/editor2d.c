@@ -33,6 +33,7 @@ static int scroll_x = 0;
 static int scroll_y = 0;
 static int grid_size = 24;
 static int mouse_scroll = 0;
+static int menu = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -42,6 +43,14 @@ static int mouse_scroll = 0;
 
 void editor2d_update()
 {
+   if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+      menu = !menu;
+
+   if(menu)
+   {
+      return;
+   }
+
    if(RvR_core_mouse_pressed(RVR_BUTTON_RIGHT))
    {
       mouse_scroll = 1;
@@ -150,5 +159,11 @@ void editor2d_draw()
    RvR_draw_horizontal_line(mx+1,mx+4,my,color_magenta);
    RvR_draw_vertical_line(mx,my-1,my-4,color_magenta);
    RvR_draw_vertical_line(mx,my+1,my+4,color_magenta);
+
+   if(menu)
+   {
+      RvR_draw_rectangle_fill(0,RVR_YRES-12,RVR_XRES,12,color_dark_gray);
+      RvR_draw_string(0,RVR_YRES-8,1,"(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit",color_white);
+   }
 }
 //-------------------------------------

@@ -29,6 +29,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Variables
 uint8_t color_white = 0;
 uint8_t color_light_gray = 0;
+uint8_t color_dark_gray = 0;
 uint8_t color_black = 0;
 uint8_t color_magenta = 0;
 //-------------------------------------
@@ -44,6 +45,7 @@ void colors_find()
    RvR_color *pal = RvR_palette();
 
    color_white = find_closest(pal,(RvR_color){.r = 255, .g = 255, .b = 255});
+   color_dark_gray = find_closest(pal,(RvR_color){.r = 64, .g = 64, .b = 64});
    color_light_gray = find_closest(pal,(RvR_color){.r = 196, .g = 196, .b = 196});
    color_black = find_closest(pal,(RvR_color){.r = 0, .g = 0, .b = 0});
    color_magenta = find_closest(pal,(RvR_color){.r = 255, .g = 0, .b = 255});
