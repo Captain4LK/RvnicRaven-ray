@@ -233,6 +233,7 @@ void RvR_backend_init(const char *title, int scale)
    key_map[SDL_SCANCODE_KP_DIVIDE] = RVR_KEY_NP_DIV;
    key_map[SDL_SCANCODE_KP_MINUS] = RVR_KEY_NP_SUB;
    key_map[SDL_SCANCODE_KP_PERIOD] = RVR_KEY_NP_DECIMAL;
+   key_map[SDL_SCANCODE_KP_ENTER] = RVR_KEY_NP_ENTER;
 
    mouse_map[SDL_BUTTON_LEFT] = RVR_BUTTON_LEFT;
    mouse_map[SDL_BUTTON_RIGHT] = RVR_BUTTON_RIGHT;

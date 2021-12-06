@@ -34,6 +34,9 @@ static int scroll_y = 0;
 static int grid_size = 24;
 static int mouse_scroll = 0;
 static int menu = 0;
+static char menu_input[512] = {0};
+static uint16_t menu_new_width = 0;
+static uint16_t menu_new_height = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -46,8 +49,79 @@ void editor2d_update()
    if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
       menu = !menu;
 
-   if(menu)
+   //Big mess
+   if(menu!=0)
    {
+      switch(menu)
+      {
+      case -1:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+            menu = 0;
+         break;
+      case 1:
+         if(RvR_core_key_pressed(RVR_KEY_N))
+            menu = 2;
+         break;
+      case 2:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE)||RvR_core_key_pressed(RVR_KEY_N))
+         {
+            menu = 0;
+         }
+
+         if(RvR_core_key_pressed(RVR_KEY_Y))
+         {
+            menu_input[0] = '\0';
+            RvR_core_text_input_start(menu_input,512);
+            menu = 3;
+         }
+         break;
+      case 3:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+         {
+            RvR_core_text_input_end();
+            menu = 0;
+         }
+
+         if(RvR_core_key_pressed(RVR_KEY_ENTER))
+         {
+            RvR_core_text_input_end();
+            menu_new_width = atoi(menu_input);
+            if(menu_new_width<=0)
+            {
+               menu = -1;
+            }
+            else
+            {
+               menu_input[0] = '\0';
+               RvR_core_text_input_start(menu_input,512);
+               menu = 4;
+            }
+         }
+         break;
+      case 4:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+         {
+            RvR_core_text_input_end();
+            menu = 0;
+         }
+
+         if(RvR_core_key_pressed(RVR_KEY_ENTER))
+         {
+            RvR_core_text_input_end();
+            menu_new_height = atoi(menu_input);
+            if(menu_new_height<=0)
+            {
+               menu = -1;
+            }
+            else
+            {
+               map_new(menu_new_width,menu_new_height);
+               menu = 0;
+            }
+         }
+         break;
+      }
+
       return;
    }
 
@@ -160,10 +234,17 @@ void editor2d_draw()
    RvR_draw_vertical_line(mx,my-1,my-4,color_magenta);
    RvR_draw_vertical_line(mx,my+1,my+4,color_magenta);
 
-   if(menu)
-   {
       RvR_draw_rectangle_fill(0,RVR_YRES-12,RVR_XRES,12,color_dark_gray);
-      RvR_draw_string(0,RVR_YRES-8,1,"(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit",color_white);
+      char tmp[512];
+      
+   switch(menu)
+   {
+   case -1: RvR_draw_string(5,RVR_YRES-10,1,"Invalid input",color_white); break;
+   case 0: snprintf(tmp,512,"x: %d y:%d ang:%d",camera.pos.x,camera.pos.y,camera.direction); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 1: RvR_draw_string(5,RVR_YRES-10,1,"(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit",color_white); break;
+   case 2: RvR_draw_string(5,RVR_YRES-10,1,"Are you sure you want to start a new map? (Y/N)",color_white); break;
+   case 3: snprintf(tmp,512,"Map width: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 4: snprintf(tmp,512,"Map height: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    }
 }
 //-------------------------------------

@@ -47,7 +47,7 @@ static void move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t c
 
 void editor_update()
 {
-   if(RvR_core_key_pressed(RVR_KEY_ENTER))
+   if(RvR_core_key_pressed(RVR_KEY_NP_ENTER))
       editor_mode = !editor_mode;
 
    if(editor_mode==0)

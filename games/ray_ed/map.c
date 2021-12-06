@@ -47,6 +47,17 @@ void map_load(uint16_t id)
    camera.pos.z = INT16_MIN;
 }
 
+void map_new(uint16_t width, uint16_t height)
+{
+   RvR_ray_map_create(width,height);
+   map = RvR_ray_map_get();
+   printf("Map dimensions: %ux%u\n",map->width,map->height);
+
+   camera.pos.x = map->width*512+512;
+   camera.pos.y = map->height*512+512;
+   camera.pos.z = INT16_MIN;
+}
+
 int map_tile_comp(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, RvR_fix22 cheight, int x, int y)
 {
    if(ftex!=RvR_ray_map_floor_tex_at(x,y))

@@ -57,6 +57,7 @@ void RvR_ray_map_create(uint16_t width, uint16_t height)
 
    ray_map_cache.floor_color = 23;
    ray_map_cache.sky_tex = 0;
+   ray_map_cache.sprite_count = 0;
 
    for(int y = 1;y<ray_map_cache.height-1;y++)
    {
