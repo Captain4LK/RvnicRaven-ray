@@ -272,8 +272,8 @@ void RvR_draw_vertical_line(int x, int y0, int y1, uint8_t index)
 
    if(y0<0)
       y0 = 0;
-   if(y1>RVR_YRES)
-      y1 = RVR_YRES;
+   if(y1>=RVR_YRES)
+      y1 = RVR_YRES-1;
 
    uint8_t *buff = RvR_core_framebuffer();
    for(int y = y0;y<=y1;y++)

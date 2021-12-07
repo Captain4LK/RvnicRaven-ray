@@ -12,6 +12,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+
+#define CUTE_PATH_IMPLEMENTATION
+#include "../../external/cute_path.h"
+
+#define CUTE_FILES_IMPLEMENTATION
+#include "../../external/cute_files.h"
 //-------------------------------------
 
 //Internal includes
@@ -60,6 +66,14 @@ int main(int argc, char **argv)
 
    map_load(0);
    colors_find();
+
+   char path[512];
+   path_pop(argv[0],path,NULL);
+   strcat(path,"/");
+   map_path_add(path);
+   path_pop(argv[1],path,NULL);
+   strcat(path,"/");
+   map_path_add(path);
 
    while(RvR_core_running())
    {

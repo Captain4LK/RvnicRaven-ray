@@ -91,6 +91,8 @@ void RvR_compress(FILE *in, FILE *out)
    uint8_t *buffer_in = NULL;
    uint8_t *buffer_out = NULL;
    int32_t size = 0;
+   uint8_t endian = RVR_ENDIAN;
+
    fseek(in,0,SEEK_END);
    size = ftell(in);
    fseek(in,0,SEEK_SET);
@@ -102,6 +104,7 @@ void RvR_compress(FILE *in, FILE *out)
    buffer_in[size] = 0;
 
    fwrite(&size,4,1,out);
+   fwrite(&endian,1,1,out);
    size = crush_compress(buffer_in,size,buffer_out,size,9);
    fwrite(buffer_out,size,1,out);
 
@@ -121,8 +124,10 @@ void RvR_compress_path(const char *path_in, const char *path_out)
 void RvR_mem_compress(void *mem, int32_t length, FILE *out)
 {
    uint8_t *buffer_out = RvR_malloc(length+1);
+   uint8_t endian = RVR_ENDIAN;
 
    fwrite(&length,4,1,out);
+   fwrite(&endian,1,1,out);
    int32_t size = crush_compress(mem,length,buffer_out,length,9);
    fwrite(buffer_out,size,1,out);
 
@@ -133,6 +138,8 @@ void *RvR_decompress(FILE *in, int32_t *length, uint8_t *endian)
 {
    fread(length,4,1,in);
    fread(endian,1,1,in);
+   *length = RvR_endian_swap32(*length,*endian);
+
    uint8_t *buffer_in = NULL;
    int size = 0;
    fseek(in,0,SEEK_END);
@@ -163,6 +170,8 @@ void *RvR_mem_decompress(void *mem, int32_t length_in, int32_t *length_out, uint
 {
    *length_out = *((int32_t *)mem);
    *endian = *(((uint8_t *)mem)+4);
+   *length_out = RvR_endian_swap32(*length_out,*endian);
+
    uint8_t *buffer_out  = RvR_malloc((*length_out)+1);
    crush_decompress(((uint8_t *)mem)+5,length_in-5,buffer_out,*length_out);
    

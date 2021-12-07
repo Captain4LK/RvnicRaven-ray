@@ -290,6 +290,7 @@ void RvR_ray_map_save(const char *path)
    int size = 0;
    size+=2; //ray_map.width
    size+=2; //ray_map.height
+   size+=4; //ray_map.sprite_count
    size+=1; //ray_map.floor_color
    size+=2; //ray_map.sky_tex
    size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.wall_ftex
@@ -298,6 +299,7 @@ void RvR_ray_map_save(const char *path)
    size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.ceil_tex
    size+=ray_map_cache.width*ray_map_cache.height; //ray_map.floor
    size+=ray_map_cache.width*ray_map_cache.height; //ray_map.ceiling
+   size+=ray_map_cache.sprite_count*sizeof(*ray_map_cache.sprites);
 
    uint8_t *mem = RvR_malloc(size);
    int pos = 0;
@@ -313,7 +315,7 @@ void RvR_ray_map_save(const char *path)
    *(uint8_t *)(mem+pos) = ray_map_cache.floor_color; pos+=1;
 
    //Write sky texture
-   *(uint16_t *)(mem+pos) = ray_map_cache.sky_tex; pos+=1;
+   *(uint16_t *)(mem+pos) = ray_map_cache.sky_tex; pos+=2;
 
    //Write texture, floor and ceiling
    memcpy(mem+pos,ray_map_cache.wall_ftex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
@@ -330,6 +332,7 @@ void RvR_ray_map_save(const char *path)
       *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.x; pos+=4;
       *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.y; pos+=4;
       *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.z; pos+=4;
+      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].direction; pos+=4;
       *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra0; pos+=4;
       *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra1; pos+=4;
       *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra2; pos+=4;

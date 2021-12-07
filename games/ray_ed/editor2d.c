@@ -50,17 +50,34 @@ void editor2d_update()
       menu = !menu;
 
    //Big mess
+   //Probably the worst code I've written this year...
    if(menu!=0)
    {
       switch(menu)
       {
+      case -2:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+            menu = 0;
+         break;
       case -1:
          if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
             menu = 0;
          break;
       case 1:
          if(RvR_core_key_pressed(RVR_KEY_N))
+         {
             menu = 2;
+         }
+         else if(RvR_core_key_pressed(RVR_KEY_S))
+         {
+            map_save();
+         }
+         else if(RvR_core_key_pressed(RVR_KEY_A))
+         {
+            menu = 5;
+            menu_input[0] = '\0';
+            RvR_core_text_input_start(menu_input,9);
+         }
          break;
       case 2:
          if(RvR_core_key_pressed(RVR_KEY_ESCAPE)||RvR_core_key_pressed(RVR_KEY_N))
@@ -118,6 +135,21 @@ void editor2d_update()
                map_new(menu_new_width,menu_new_height);
                menu = 0;
             }
+         }
+         break;
+      case 5:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+         {
+            RvR_core_text_input_end();
+            menu = 0;
+         }
+
+         if(RvR_core_key_pressed(RVR_KEY_ENTER))
+         {
+            RvR_core_text_input_end();
+            map_set_name(menu_input);
+            map_save();
+            menu = -2;
          }
          break;
       }
@@ -239,12 +271,14 @@ void editor2d_draw()
       
    switch(menu)
    {
+   case -2: snprintf(tmp,512,"Saved map to %s.rvr",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case -1: RvR_draw_string(5,RVR_YRES-10,1,"Invalid input",color_white); break;
    case 0: snprintf(tmp,512,"x: %d y:%d ang:%d",camera.pos.x,camera.pos.y,camera.direction); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case 1: RvR_draw_string(5,RVR_YRES-10,1,"(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit",color_white); break;
    case 2: RvR_draw_string(5,RVR_YRES-10,1,"Are you sure you want to start a new map? (Y/N)",color_white); break;
    case 3: snprintf(tmp,512,"Map width: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case 4: snprintf(tmp,512,"Map height: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 5: snprintf(tmp,512,"Save as: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    }
 }
 //-------------------------------------
