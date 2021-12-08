@@ -21,8 +21,13 @@ typedef struct
 }Camera;
 extern Camera camera;
 
+void editor_init();
 void editor_update();
 void editor_draw();
+void editor_undo();
 void camera_update();
+
+//Editing
+void editor_ed_floor(int16_t x, int16_t y, int fac);
 
 #endif

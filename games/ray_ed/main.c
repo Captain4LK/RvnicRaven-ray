@@ -75,6 +75,8 @@ int main(int argc, char **argv)
    strcat(path,"/");
    map_path_add(path);
 
+   editor_init();
+
    while(RvR_core_running())
    {
       RvR_core_update();

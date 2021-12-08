@@ -80,7 +80,7 @@ int path_compact(const char* path, char* out, int n);
 	int path_root(const char* path, char* out);
 */
 
-#define CUTE_PATH_UNIT_TESTS 1
+#define CUTE_PATH_UNIT_TESTS 0
 void path_do_unit_tests();
 
 #define CUTE_PATH_H

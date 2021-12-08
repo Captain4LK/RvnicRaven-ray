@@ -155,6 +155,9 @@ static void map_list_add(const char *path)
 
 int map_tile_comp(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, RvR_fix22 cheight, int x, int y)
 {
+   if(!RvR_ray_map_inbounds(x,y))
+      return 0;
+
    if(ftex!=RvR_ray_map_floor_tex_at(x,y))
       return 0;
 

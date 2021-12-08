@@ -33,6 +33,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Function prototypes
 static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *location);
+void floor_height_flood_fill(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, RvR_fix22 cheight, int x, int y, RvR_fix22 theight);
 //-------------------------------------
 
 //Function implementations
@@ -58,14 +59,28 @@ void editor3d_update()
    if(RvR_core_key_pressed(RVR_KEY_PGUP))
    {
       if(location==0||location==2)
-         RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
+      {
+         if(RvR_core_key_down(RVR_KEY_LSHIFT))
+            floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
+         else
+            editor_ed_floor(wx,wy,1);
+            //RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
+      }
       if(location==1||location==3)
+      {
          RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)+128);
+      }
    }
    else if(RvR_core_key_pressed(RVR_KEY_PGDN))
    {
       if(location==0||location==2)
-         RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
+      {
+         if(RvR_core_key_down(RVR_KEY_LSHIFT))
+            floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
+         else
+            //RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
+            editor_ed_floor(wx,wy,-1);
+      }
       if(location==1||location==3)
          RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)-128);
    }
@@ -248,6 +263,19 @@ static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *locatio
             c_z1_world = c_z2_world; //for the next iteration
          }              //^ puposfully allow outside screen bounds here 
       }
+   }
+}
+
+void floor_height_flood_fill(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, RvR_fix22 cheight, int x, int y, RvR_fix22 theight)
+{
+   if(map_tile_comp(ftex,ctex,fheight,cheight,x,y))
+   {
+      RvR_ray_map_floor_height_set(x,y,theight);
+
+      floor_height_flood_fill(ftex,ctex,fheight,cheight,x-1,y,theight);
+      floor_height_flood_fill(ftex,ctex,fheight,cheight,x+1,y,theight);
+      floor_height_flood_fill(ftex,ctex,fheight,cheight,x,y-1,theight);
+      floor_height_flood_fill(ftex,ctex,fheight,cheight,x,y+1,theight);
    }
 }
 //-------------------------------------

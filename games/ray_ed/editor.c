@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 //-------------------------------------
 
 //Internal includes
@@ -27,23 +28,67 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //#defines
 #define CAMERA_SHEAR_MAX_PIXELS ((CAMERA_SHEAR_MAX*RVR_YRES)/1024)
 #define CAMERA_SHEAR_STEP_FRAME ((RVR_YRES*CAMERA_SHEAR_SPEED)/(RVR_FPS*4))
+
+#define WRAP(p) ((p)&(UNDO_BUFFER_SIZE-1))
+#define UNDO_RECORD
 //-------------------------------------
 
 //Typedefs
+typedef enum
+{
+   ED_FLOOR_HEIGHT = 0,
+   ED_CEILING_HEIGHT = 1,
+}Ed_action;
 //-------------------------------------
 
 //Variables
 Camera camera = {0};
 
 static int editor_mode = 0;
+
+static uint16_t *undo_buffer = NULL;
+static int undo_len = 0;
+static int undo_pos = 0;
+static int redo_len = 0;
+static int undo_availible_valid = 0;
+static int undoing = 0;
+static uint32_t undo_entry_len = 0;
 //-------------------------------------
 
 //Function prototypes
 void camera_update();
 static void move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t compute_plane, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height);
+
+static void undo_write(uint16_t val);
+static void undo_begin(Ed_action action);
+static void undo_end();
+static void undo_record_height(int16_t x, int16_t y, RvR_fix22 height);
+static void redo_record_height(int16_t x, int16_t y, RvR_fix22 height);
+static void undo_record_tex(int16_t x, int16_t y, uint16_t tex);
+static void redo_record_tex(int16_t x, int16_t y, uint16_t tex);
+static void redo_write(uint16_t val);
+static int undo_find_end(uint32_t *len);
+
+static int undo_floor_height(int pos);
 //-------------------------------------
 
 //Function implementations
+
+void editor_init()
+{
+   undo_buffer = RvR_malloc(sizeof(*undo_buffer)*UNDO_BUFFER_SIZE);
+   memset(undo_buffer,0,sizeof(*undo_buffer)*UNDO_BUFFER_SIZE);
+
+   /*undo_begin(ED_CEILING_HEIGHT);
+   undo_write(11);
+   undo_end();
+   printf("%u\n",undo_buffer[undo_find_end()]);
+
+   undo_begin(ED_FLOOR_HEIGHT);
+   undo_write(10);
+   undo_end();
+   printf("%u\n",undo_buffer[undo_find_end()]);*/
+}
 
 void editor_update()
 {
@@ -62,6 +107,38 @@ void editor_draw()
       editor2d_draw();
    else
       editor3d_draw();
+
+   if(RvR_core_key_pressed(RVR_KEY_U))
+      editor_undo();
+}
+
+void editor_undo()
+{
+   int pos = 0;
+   uint32_t len = 0;
+   int endpos = undo_find_end(&len);
+   if(endpos<0)
+      return;
+   Ed_action action = undo_buffer[endpos];
+   endpos = WRAP(endpos);
+   pos = WRAP(undo_pos-3);
+
+   //New redo entry
+   redo_write(UINT16_MAX-2);
+   redo_write(action);
+
+   //Apply undoes
+   while(endpos!=pos)
+   {
+      switch(action)
+      {
+      case ED_FLOOR_HEIGHT: pos = undo_floor_height(pos); break;
+      }
+   }
+
+   redo_write((len>>16)&UINT16_MAX);
+   redo_write(len&UINT16_MAX);
+   undo_buffer[undo_pos] = UINT16_MAX-1;
 }
 
 void camera_update()
@@ -339,6 +416,133 @@ static void move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t c
 
 #undef checkSquares
    }
+}
+
+static void undo_write(uint16_t val)
+{
+   int pos = undo_pos;
+   undo_buffer[pos] = val;
+   undo_pos = WRAP(pos+1);
+   //undo_pos = (pos+1)&(UNDO_BUFFER_SIZE-1);
+   undo_len+=(undo_len<UNDO_BUFFER_SIZE-2);
+   redo_len-=(redo_len>0);
+   undo_entry_len++;
+   undo_availible_valid = 0;
+}
+
+static void redo_write(uint16_t val)
+{
+   int pos = undo_pos;
+   undo_buffer[pos] = val;
+   undo_pos = WRAP(pos-1);
+   //undo_pos = (pos-1)&(UNDO_BUFFER_SIZE-1);
+   redo_len+=(redo_len<UNDO_BUFFER_SIZE-2);
+   undo_len-=(undo_len>0);
+   undo_availible_valid = 0;
+}
+
+static void undo_begin(Ed_action action)
+{
+   redo_len = 0;
+   undo_write(UINT16_MAX);
+   undo_write(action);
+   undoing = 1;
+   undo_entry_len = 0;
+}
+
+static void undo_end()
+{
+   if(!undoing)
+      return;
+
+   int pos = WRAP(undo_pos-1);
+   //int pos = (undo_pos-1)&(UNDO_BUFFER_SIZE-1);
+   if(undo_buffer[pos]==UINT16_MAX)
+   {
+      //empty
+      undo_pos = pos;
+      undo_len-=1;
+   }
+   else
+   {
+      uint16_t hi = (undo_entry_len>>16)&UINT16_MAX;
+      uint16_t lo = undo_entry_len&UINT16_MAX;
+      undo_write(hi);
+      undo_write(lo);
+   }
+   undo_buffer[undo_pos] = UINT16_MAX-1;
+   undoing = 0;
+}
+
+static void undo_record_height(int16_t x, int16_t y, RvR_fix22 height)
+{
+   if(!undoing)
+      return;
+
+   undo_write(x);
+   undo_write(y);
+   undo_write((height>>16)&UINT16_MAX);
+   undo_write(height&UINT16_MAX);
+}
+
+static void redo_record_height(int16_t x, int16_t y, RvR_fix22 height)
+{
+   redo_write(x);
+   redo_write(y);
+   redo_write((height>>16)&UINT16_MAX);
+   redo_write(height&UINT16_MAX);
+}
+
+static void undo_record_tex(int16_t x, int16_t y, uint16_t tex)
+{
+   if(!undoing)
+      return;
+
+   undo_write(x);
+   undo_write(y);
+   undo_write(tex);
+}
+
+static void redo_record_tex(int16_t x, int16_t y, uint16_t tex)
+{
+   redo_write(x);
+   redo_write(y);
+   redo_write(tex);
+}
+
+static int undo_find_end(uint32_t *len)
+{
+   if(undo_buffer[undo_pos]!=UINT16_MAX-1)
+      return -1;
+
+   int pos = WRAP(undo_pos-1);
+   *len = undo_buffer[pos]; pos = WRAP(pos-1);
+   *len+=undo_buffer[pos]<<16;
+
+   return WRAP(pos-*len-1);
+}
+
+static int undo_floor_height(int pos)
+{
+   RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos-1);
+   height+=undo_buffer[pos]<<16;        pos = WRAP(pos-1);
+   int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
+   int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
+   RvR_fix22 old_height = map->floor[y*map->width+x];
+   //printf("%d %d %d\n",x,y,height);
+
+   redo_record_height(x,y,old_height);
+   map->floor[y*map->width+x] = height;
+
+   return pos;
+}
+
+void editor_ed_floor(int16_t x, int16_t y, int fac)
+{
+   undo_begin(ED_FLOOR_HEIGHT);
+   undo_record_height(x,y,RvR_ray_map_floor_height_at(x,y));
+   RvR_ray_map_floor_height_set(x,y,RvR_ray_map_floor_height_at(x,y)+128*fac);
+   undo_end();
 }
 //-------------------------------------
 
