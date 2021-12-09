@@ -44,7 +44,8 @@ void editor3d_update()
 
    //Get real world tile position of mouse
    int mx,my;
-   int16_t wx, wy;
+   int16_t wx = 0;
+   int16_t wy = 0;
    int location = 0;
    RvR_core_mouse_pos(&mx,&my);
    mouse_world_pos(mx,my,&wx,&wy,&location);
@@ -68,7 +69,8 @@ void editor3d_update()
       }
       if(location==1||location==3)
       {
-         RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)+128);
+         //RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)+128);
+         editor_ed_ceiling(wx,wy,1);
       }
    }
    else if(RvR_core_key_pressed(RVR_KEY_PGDN))
@@ -82,7 +84,8 @@ void editor3d_update()
             editor_ed_floor(wx,wy,-1);
       }
       if(location==1||location==3)
-         RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)-128);
+         //RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)-128);
+         editor_ed_ceiling(wx,wy,-1);
    }
 }
 

@@ -30,7 +30,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define CAMERA_SHEAR_STEP_FRAME ((RVR_YRES*CAMERA_SHEAR_SPEED)/(RVR_FPS*4))
 
 #define WRAP(p) ((p)&(UNDO_BUFFER_SIZE-1))
-#define UNDO_RECORD
+#define UNDO_RECORD (UINT16_MAX)
+#define REDO_RECORD (UINT16_MAX-2)
+#define JUNK_RECORD (UINT16_MAX-1)
 //-------------------------------------
 
 //Typedefs
@@ -62,14 +64,20 @@ static void move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t c
 static void undo_write(uint16_t val);
 static void undo_begin(Ed_action action);
 static void undo_end();
+static int undo_find_end(uint32_t *len);
+
+static void redo_write(uint16_t val);
+static int redo_find_end(uint32_t *len);
+
 static void undo_record_height(int16_t x, int16_t y, RvR_fix22 height);
 static void redo_record_height(int16_t x, int16_t y, RvR_fix22 height);
 static void undo_record_tex(int16_t x, int16_t y, uint16_t tex);
 static void redo_record_tex(int16_t x, int16_t y, uint16_t tex);
-static void redo_write(uint16_t val);
-static int undo_find_end(uint32_t *len);
 
 static int undo_floor_height(int pos);
+static int redo_floor_height(int pos);
+static int undo_ceiling_height(int pos);
+static int redo_ceiling_height(int pos);
 //-------------------------------------
 
 //Function implementations
@@ -78,16 +86,6 @@ void editor_init()
 {
    undo_buffer = RvR_malloc(sizeof(*undo_buffer)*UNDO_BUFFER_SIZE);
    memset(undo_buffer,0,sizeof(*undo_buffer)*UNDO_BUFFER_SIZE);
-
-   /*undo_begin(ED_CEILING_HEIGHT);
-   undo_write(11);
-   undo_end();
-   printf("%u\n",undo_buffer[undo_find_end()]);
-
-   undo_begin(ED_FLOOR_HEIGHT);
-   undo_write(10);
-   undo_end();
-   printf("%u\n",undo_buffer[undo_find_end()]);*/
 }
 
 void editor_update()
@@ -110,6 +108,9 @@ void editor_draw()
 
    if(RvR_core_key_pressed(RVR_KEY_U))
       editor_undo();
+
+   if(RvR_core_key_pressed(RVR_KEY_R))
+      editor_redo();
 }
 
 void editor_undo()
@@ -120,25 +121,66 @@ void editor_undo()
    if(endpos<0)
       return;
    Ed_action action = undo_buffer[endpos];
+   //printf("%d\n",action);
+
    endpos = WRAP(endpos);
    pos = WRAP(undo_pos-3);
 
+   if(pos==endpos)
+      return;
+
    //New redo entry
-   redo_write(UINT16_MAX-2);
+   redo_write(REDO_RECORD);
    redo_write(action);
 
    //Apply undoes
+   //printf("undo %d %d\n",endpos,pos);
    while(endpos!=pos)
    {
       switch(action)
       {
       case ED_FLOOR_HEIGHT: pos = undo_floor_height(pos); break;
+      case ED_CEILING_HEIGHT: pos = undo_ceiling_height(pos); break;
       }
    }
 
    redo_write((len>>16)&UINT16_MAX);
    redo_write(len&UINT16_MAX);
-   undo_buffer[undo_pos] = UINT16_MAX-1;
+   undo_buffer[undo_pos] = JUNK_RECORD;
+}
+
+void editor_redo()
+{
+   int pos = 0;
+   uint32_t len = 0;
+   int endpos = redo_find_end(&len);
+   if(endpos<0)
+      return;
+
+   Ed_action action = undo_buffer[endpos];
+   pos = WRAP(undo_pos+3);
+
+   if(pos==endpos)
+      return;
+
+   //New undo entry
+   undo_write(UNDO_RECORD);
+   undo_write(action);
+
+   //Apply redoes
+   //printf("redo %d %d\n",endpos,pos);
+   while(endpos!=pos)
+   {
+      switch(action)
+      {
+      case ED_FLOOR_HEIGHT: pos = redo_floor_height(pos); break;
+      case ED_CEILING_HEIGHT: pos = redo_ceiling_height(pos); break;
+      }
+   }
+
+   undo_write((len>>16)&UINT16_MAX);
+   undo_write(len&UINT16_MAX);
+   undo_buffer[undo_pos] = JUNK_RECORD;
 }
 
 void camera_update()
@@ -423,7 +465,6 @@ static void undo_write(uint16_t val)
    int pos = undo_pos;
    undo_buffer[pos] = val;
    undo_pos = WRAP(pos+1);
-   //undo_pos = (pos+1)&(UNDO_BUFFER_SIZE-1);
    undo_len+=(undo_len<UNDO_BUFFER_SIZE-2);
    redo_len-=(redo_len>0);
    undo_entry_len++;
@@ -435,7 +476,6 @@ static void redo_write(uint16_t val)
    int pos = undo_pos;
    undo_buffer[pos] = val;
    undo_pos = WRAP(pos-1);
-   //undo_pos = (pos-1)&(UNDO_BUFFER_SIZE-1);
    redo_len+=(redo_len<UNDO_BUFFER_SIZE-2);
    undo_len-=(undo_len>0);
    undo_availible_valid = 0;
@@ -444,7 +484,7 @@ static void redo_write(uint16_t val)
 static void undo_begin(Ed_action action)
 {
    redo_len = 0;
-   undo_write(UINT16_MAX);
+   undo_write(UNDO_RECORD);
    undo_write(action);
    undoing = 1;
    undo_entry_len = 0;
@@ -457,7 +497,7 @@ static void undo_end()
 
    int pos = WRAP(undo_pos-1);
    //int pos = (undo_pos-1)&(UNDO_BUFFER_SIZE-1);
-   if(undo_buffer[pos]==UINT16_MAX)
+   if(undo_buffer[pos]==UNDO_RECORD)
    {
       //empty
       undo_pos = pos;
@@ -470,15 +510,12 @@ static void undo_end()
       undo_write(hi);
       undo_write(lo);
    }
-   undo_buffer[undo_pos] = UINT16_MAX-1;
+   undo_buffer[undo_pos] = JUNK_RECORD;
    undoing = 0;
 }
 
 static void undo_record_height(int16_t x, int16_t y, RvR_fix22 height)
 {
-   if(!undoing)
-      return;
-
    undo_write(x);
    undo_write(y);
    undo_write((height>>16)&UINT16_MAX);
@@ -495,9 +532,6 @@ static void redo_record_height(int16_t x, int16_t y, RvR_fix22 height)
 
 static void undo_record_tex(int16_t x, int16_t y, uint16_t tex)
 {
-   if(!undoing)
-      return;
-
    undo_write(x);
    undo_write(y);
    undo_write(tex);
@@ -512,7 +546,7 @@ static void redo_record_tex(int16_t x, int16_t y, uint16_t tex)
 
 static int undo_find_end(uint32_t *len)
 {
-   if(undo_buffer[undo_pos]!=UINT16_MAX-1)
+   if(undo_buffer[undo_pos]!=JUNK_RECORD)
       return -1;
 
    int pos = WRAP(undo_pos-1);
@@ -522,17 +556,73 @@ static int undo_find_end(uint32_t *len)
    return WRAP(pos-*len-1);
 }
 
+static int redo_find_end(uint32_t *len)
+{
+   if(undo_buffer[undo_pos]!=JUNK_RECORD)
+      return -1;
+   if(redo_len<=0)
+      return -1;
+
+   int pos = WRAP(undo_pos+1);
+   *len = undo_buffer[pos]; pos = WRAP(pos+1);
+   *len+=undo_buffer[pos]<<16;
+
+   return WRAP(pos+*len+1);
+}
+
 static int undo_floor_height(int pos)
 {
    RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos-1);
    height+=undo_buffer[pos]<<16;        pos = WRAP(pos-1);
    int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
    int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
-   RvR_fix22 old_height = map->floor[y*map->width+x];
-   //printf("%d %d %d\n",x,y,height);
+   RvR_fix22 old_height = RvR_ray_map_floor_height_at(x,y);
 
    redo_record_height(x,y,old_height);
-   map->floor[y*map->width+x] = height;
+   RvR_ray_map_floor_height_set(x,y,height);
+
+   return pos;
+}
+
+static int redo_floor_height(int pos)
+{
+   RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos+1);
+   height+=undo_buffer[pos]<<16;        pos = WRAP(pos+1);
+   int16_t y = undo_buffer[pos];        pos = WRAP(pos+1);
+   int16_t x = undo_buffer[pos];        pos = WRAP(pos+1);
+   RvR_fix22 old_height = RvR_ray_map_floor_height_at(x,y);
+
+   undo_record_height(x,y,old_height);
+   RvR_ray_map_floor_height_set(x,y,height);
+
+   return pos;
+}
+
+static int undo_ceiling_height(int pos)
+{
+   RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos-1);
+   height+=undo_buffer[pos]<<16;        pos = WRAP(pos-1);
+   int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
+   int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
+   RvR_fix22 old_height = RvR_ray_map_ceiling_height_at(x,y);
+
+   redo_record_height(x,y,old_height);
+   RvR_ray_map_ceiling_height_set(x,y,height);
+
+   return pos;
+}
+
+static int redo_ceiling_height(int pos)
+{
+
+   RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos+1);
+   height+=undo_buffer[pos]<<16;        pos = WRAP(pos+1);
+   int16_t y = undo_buffer[pos];        pos = WRAP(pos+1);
+   int16_t x = undo_buffer[pos];        pos = WRAP(pos+1);
+   RvR_fix22 old_height = RvR_ray_map_ceiling_height_at(x,y);
+
+   undo_record_height(x,y,old_height);
+   RvR_ray_map_ceiling_height_set(x,y,height);
 
    return pos;
 }
@@ -542,6 +632,14 @@ void editor_ed_floor(int16_t x, int16_t y, int fac)
    undo_begin(ED_FLOOR_HEIGHT);
    undo_record_height(x,y,RvR_ray_map_floor_height_at(x,y));
    RvR_ray_map_floor_height_set(x,y,RvR_ray_map_floor_height_at(x,y)+128*fac);
+   undo_end();
+}
+
+void editor_ed_ceiling(int16_t x, int16_t y, int fac)
+{
+   undo_begin(ED_CEILING_HEIGHT);
+   undo_record_height(x,y,RvR_ray_map_ceiling_height_at(x,y));
+   RvR_ray_map_ceiling_height_set(x,y,RvR_ray_map_ceiling_height_at(x,y)+128*fac);
    undo_end();
 }
 //-------------------------------------
