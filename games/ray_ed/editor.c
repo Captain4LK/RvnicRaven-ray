@@ -40,6 +40,8 @@ typedef enum
 {
    ED_FLOOR_HEIGHT = 0,
    ED_CEILING_HEIGHT = 1,
+   ED_FLOOD_FLOOR_HEIGHT = 2,
+   ED_FLOOD_CEILING_HEIGHT = 3,
 }Ed_action;
 //-------------------------------------
 
@@ -74,10 +76,17 @@ static void redo_record_height(int16_t x, int16_t y, RvR_fix22 height);
 static void undo_record_tex(int16_t x, int16_t y, uint16_t tex);
 static void redo_record_tex(int16_t x, int16_t y, uint16_t tex);
 
-static int undo_floor_height(int pos);
-static int redo_floor_height(int pos);
-static int undo_ceiling_height(int pos);
-static int redo_ceiling_height(int pos);
+static void undo_floor_height(int pos, int endpos);
+static void redo_floor_height(int pos, int endpos);
+static void undo_ceiling_height(int pos, int endpos);
+static void redo_ceiling_height(int pos, int endpos);
+static void undo_flood_floor_height(int pos, int endpos);
+static void redo_flood_floor_height(int pos, int endpos);
+static void undo_flood_ceiling_height(int pos, int endpos);
+static void redo_flood_ceiling_height(int pos, int endpos);
+
+static void flood_floor_height(int16_t x, int16_t y, uint16_t ftex, RvR_fix22 height, int fac);
+static void flood_ceiling_height(int16_t x, int16_t y, uint16_t ctex, RvR_fix22 height, int fac);
 //-------------------------------------
 
 //Function implementations
@@ -135,13 +144,12 @@ void editor_undo()
 
    //Apply undoes
    //printf("undo %d %d\n",endpos,pos);
-   while(endpos!=pos)
+   switch(action)
    {
-      switch(action)
-      {
-      case ED_FLOOR_HEIGHT: pos = undo_floor_height(pos); break;
-      case ED_CEILING_HEIGHT: pos = undo_ceiling_height(pos); break;
-      }
+   case ED_FLOOR_HEIGHT: undo_floor_height(pos,endpos); break;
+   case ED_CEILING_HEIGHT: undo_ceiling_height(pos,endpos); break;
+   case ED_FLOOD_FLOOR_HEIGHT: undo_flood_floor_height(pos,endpos); break;
+   case ED_FLOOD_CEILING_HEIGHT: undo_flood_ceiling_height(pos,endpos); break;
    }
 
    redo_write((len>>16)&UINT16_MAX);
@@ -169,13 +177,12 @@ void editor_redo()
 
    //Apply redoes
    //printf("redo %d %d\n",endpos,pos);
-   while(endpos!=pos)
+   switch(action)
    {
-      switch(action)
-      {
-      case ED_FLOOR_HEIGHT: pos = redo_floor_height(pos); break;
-      case ED_CEILING_HEIGHT: pos = redo_ceiling_height(pos); break;
-      }
+   case ED_FLOOR_HEIGHT: redo_floor_height(pos,endpos); break;
+   case ED_CEILING_HEIGHT: redo_ceiling_height(pos,endpos); break;
+   case ED_FLOOD_FLOOR_HEIGHT: redo_flood_floor_height(pos,endpos); break;
+   case ED_FLOOD_CEILING_HEIGHT: redo_flood_ceiling_height(pos,endpos); break;
    }
 
    undo_write((len>>16)&UINT16_MAX);
@@ -570,61 +577,164 @@ static int redo_find_end(uint32_t *len)
    return WRAP(pos+*len+1);
 }
 
-static int undo_floor_height(int pos)
+static void undo_floor_height(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos-1);
+      height+=undo_buffer[pos]<<16;        pos = WRAP(pos-1);
+      int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
+      int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
+      RvR_fix22 old_height = RvR_ray_map_floor_height_at(x,y);
+
+      redo_record_height(x,y,old_height);
+      RvR_ray_map_floor_height_set(x,y,height);
+   }
+}
+
+static void redo_floor_height(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos+1);
+      height+=undo_buffer[pos]<<16;        pos = WRAP(pos+1);
+      int16_t y = undo_buffer[pos];        pos = WRAP(pos+1);
+      int16_t x = undo_buffer[pos];        pos = WRAP(pos+1);
+      RvR_fix22 old_height = RvR_ray_map_floor_height_at(x,y);
+
+      undo_record_height(x,y,old_height);
+      RvR_ray_map_floor_height_set(x,y,height);
+   }
+}
+
+static void undo_ceiling_height(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos-1);
+      height+=undo_buffer[pos]<<16;        pos = WRAP(pos-1);
+      int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
+      int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
+      RvR_fix22 old_height = RvR_ray_map_ceiling_height_at(x,y);
+
+      redo_record_height(x,y,old_height);
+      RvR_ray_map_ceiling_height_set(x,y,height);
+   }
+}
+
+static void redo_ceiling_height(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos+1);
+      height+=undo_buffer[pos]<<16;        pos = WRAP(pos+1);
+      int16_t y = undo_buffer[pos];        pos = WRAP(pos+1);
+      int16_t x = undo_buffer[pos];        pos = WRAP(pos+1);
+      RvR_fix22 old_height = RvR_ray_map_ceiling_height_at(x,y);
+
+      undo_record_height(x,y,old_height);
+      RvR_ray_map_ceiling_height_set(x,y,height);
+   }
+}
+
+static void undo_flood_floor_height(int pos, int endpos)
 {
    RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos-1);
    height+=undo_buffer[pos]<<16;        pos = WRAP(pos-1);
-   int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
-   int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
-   RvR_fix22 old_height = RvR_ray_map_floor_height_at(x,y);
+   RvR_fix22 old_height = INT32_MIN;
+   int16_t x = 0;
+   int16_t y = 0;
 
-   redo_record_height(x,y,old_height);
-   RvR_ray_map_floor_height_set(x,y,height);
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos];        pos = WRAP(pos-1);
+      x = undo_buffer[pos];        pos = WRAP(pos-1);
 
-   return pos;
+      if(old_height==INT32_MIN)
+         old_height = RvR_ray_map_floor_height_at(x,y);
+      RvR_ray_map_floor_height_set(x,y,height);
+
+      redo_write(x);
+      redo_write(y);
+   }
+
+   redo_write((old_height>>16)&UINT16_MAX);
+   redo_write(old_height&UINT16_MAX);
 }
 
-static int redo_floor_height(int pos)
+static void redo_flood_floor_height(int pos, int endpos)
 {
    RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos+1);
    height+=undo_buffer[pos]<<16;        pos = WRAP(pos+1);
-   int16_t y = undo_buffer[pos];        pos = WRAP(pos+1);
-   int16_t x = undo_buffer[pos];        pos = WRAP(pos+1);
-   RvR_fix22 old_height = RvR_ray_map_floor_height_at(x,y);
+   RvR_fix22 old_height = INT32_MIN;
+   int16_t x = 0;
+   int16_t y = 0;
 
-   undo_record_height(x,y,old_height);
-   RvR_ray_map_floor_height_set(x,y,height);
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos];        pos = WRAP(pos+1);
+      x = undo_buffer[pos];        pos = WRAP(pos+1);
 
-   return pos;
+      if(old_height==INT32_MIN)
+         old_height = RvR_ray_map_floor_height_at(x,y);
+      RvR_ray_map_floor_height_set(x,y,height);
+
+      undo_write(x);
+      undo_write(y);
+   }
+
+   undo_write((old_height>>16)&UINT16_MAX);
+   undo_write(old_height&UINT16_MAX);
 }
 
-static int undo_ceiling_height(int pos)
+static void undo_flood_ceiling_height(int pos, int endpos)
 {
    RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos-1);
    height+=undo_buffer[pos]<<16;        pos = WRAP(pos-1);
-   int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
-   int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
-   RvR_fix22 old_height = RvR_ray_map_ceiling_height_at(x,y);
+   RvR_fix22 old_height = INT32_MIN;
+   int16_t x = 0;
+   int16_t y = 0;
 
-   redo_record_height(x,y,old_height);
-   RvR_ray_map_ceiling_height_set(x,y,height);
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos]; pos = WRAP(pos-1);
+      x = undo_buffer[pos]; pos = WRAP(pos-1);
 
-   return pos;
+      if(old_height==INT32_MIN)
+         old_height = RvR_ray_map_ceiling_height_at(x,y);
+      RvR_ray_map_ceiling_height_set(x,y,height);
+
+      redo_write(x);
+      redo_write(y);
+   }
+
+   redo_write((old_height>>16)&UINT16_MAX);
+   redo_write(old_height&UINT16_MAX);
 }
 
-static int redo_ceiling_height(int pos)
+static void redo_flood_ceiling_height(int pos, int endpos)
 {
-
    RvR_fix22 height = undo_buffer[pos]; pos = WRAP(pos+1);
    height+=undo_buffer[pos]<<16;        pos = WRAP(pos+1);
-   int16_t y = undo_buffer[pos];        pos = WRAP(pos+1);
-   int16_t x = undo_buffer[pos];        pos = WRAP(pos+1);
-   RvR_fix22 old_height = RvR_ray_map_ceiling_height_at(x,y);
+   RvR_fix22 old_height = INT32_MIN;
+   int16_t x = 0;
+   int16_t y = 0;
 
-   undo_record_height(x,y,old_height);
-   RvR_ray_map_ceiling_height_set(x,y,height);
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos]; pos = WRAP(pos+1);
+      x = undo_buffer[pos]; pos = WRAP(pos+1);
 
-   return pos;
+      if(old_height==INT32_MIN)
+         old_height = RvR_ray_map_ceiling_height_at(x,y);
+      RvR_ray_map_ceiling_height_set(x,y,height);
+
+      undo_write(x);
+      undo_write(y);
+   }
+
+   undo_write((old_height>>16)&UINT16_MAX);
+   undo_write(old_height&UINT16_MAX);
 }
 
 void editor_ed_floor(int16_t x, int16_t y, int fac)
@@ -641,6 +751,78 @@ void editor_ed_ceiling(int16_t x, int16_t y, int fac)
    undo_record_height(x,y,RvR_ray_map_ceiling_height_at(x,y));
    RvR_ray_map_ceiling_height_set(x,y,RvR_ray_map_ceiling_height_at(x,y)+128*fac);
    undo_end();
+}
+
+void editor_ed_flood_floor(int16_t x, int16_t y, int fac)
+{
+   if(fac==0)
+      return;
+
+   if(!RvR_ray_map_inbounds(x,y))
+      return;
+
+   undo_begin(ED_FLOOD_FLOOR_HEIGHT);
+
+   RvR_fix22 height = RvR_ray_map_floor_height_at(x,y);
+   uint16_t ftex = RvR_ray_map_floor_tex_at(x,y);
+
+   flood_floor_height(x,y,ftex,height,fac);
+
+   undo_write((height>>16)&UINT16_MAX);
+   undo_write(height&UINT16_MAX);
+
+   undo_end();
+}
+
+void editor_ed_flood_ceiling(int16_t x, int16_t y, int fac)
+{
+   if(fac==0)
+      return;
+
+   if(!RvR_ray_map_inbounds(x,y))
+      return;
+
+   undo_begin(ED_FLOOD_CEILING_HEIGHT);
+
+   RvR_fix22 height = RvR_ray_map_ceiling_height_at(x,y);
+   uint16_t ctex = RvR_ray_map_ceil_tex_at(x,y);
+
+   flood_ceiling_height(x,y,ctex,height,fac);
+
+   undo_write((height>>16)&UINT16_MAX);
+   undo_write(height&UINT16_MAX);
+
+   undo_end();
+}
+
+static void flood_floor_height(int16_t x, int16_t y, uint16_t ftex, RvR_fix22 height, int fac)
+{
+   if(RvR_ray_map_inbounds(x,y)&&RvR_ray_map_floor_height_at(x,y)==height&&RvR_ray_map_floor_tex_at(x,y)==ftex)
+   {
+      RvR_ray_map_floor_height_set(x,y,height+fac*128);
+      undo_write(x);
+      undo_write(y);
+
+      flood_floor_height(x-1,y,ftex,height,fac);
+      flood_floor_height(x+1,y,ftex,height,fac);
+      flood_floor_height(x,y-1,ftex,height,fac);
+      flood_floor_height(x,y+1,ftex,height,fac);
+   }
+}
+
+static void flood_ceiling_height(int16_t x, int16_t y, uint16_t ctex, RvR_fix22 height, int fac)
+{
+   if(RvR_ray_map_inbounds(x,y)&&RvR_ray_map_ceiling_height_at(x,y)==height&&RvR_ray_map_ceil_tex_at(x,y)==ctex)
+   {
+      RvR_ray_map_ceiling_height_set(x,y,height+fac*128);
+      undo_write(x);
+      undo_write(y);
+
+      flood_ceiling_height(x-1,y,ctex,height,fac);
+      flood_ceiling_height(x+1,y,ctex,height,fac);
+      flood_ceiling_height(x,y-1,ctex,height,fac);
+      flood_ceiling_height(x,y+1,ctex,height,fac);
+   }
 }
 //-------------------------------------
 

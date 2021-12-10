@@ -13,3 +13,9 @@
 |A+LALT|Look Up|
 |Z+LALT|Look down|
 |+LSHIFT|faster movement|
+
+# Editing
+
+|Key|Function|
+|---|---|
+

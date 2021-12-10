@@ -29,6 +29,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+static int16_t wx = 0;
+static int16_t wy = 0;
+static int wlocation = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -43,49 +46,59 @@ void editor3d_update()
    camera_update();
 
    //Get real world tile position of mouse
-   int mx,my;
-   int16_t wx = 0;
-   int16_t wy = 0;
-   int location = 0;
-   RvR_core_mouse_pos(&mx,&my);
-   mouse_world_pos(mx,my,&wx,&wy,&location);
+   if(!RvR_core_key_down(RVR_KEY_LCTRL))
+   {
+      int mx,my;
+      RvR_core_mouse_pos(&mx,&my);
+      mouse_world_pos(mx,my,&wx,&wy,&wlocation);
+   }
 
-   if(RvR_core_key_down(RVR_KEY_LCTRL))
+   /*if(RvR_core_key_down(RVR_KEY_LCTRL))
    {
       wx = camera.pos.x/1024;
       wy = camera.pos.y/1024;
-   }
+   }*/
    //TODO: locking selection (L key?)
 
    if(RvR_core_key_pressed(RVR_KEY_PGUP))
    {
-      if(location==0||location==2)
+      if(wlocation==0||wlocation==2)
       {
          if(RvR_core_key_down(RVR_KEY_LSHIFT))
-            floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
+            editor_ed_flood_floor(wx,wy,1);
+            //floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
          else
             editor_ed_floor(wx,wy,1);
             //RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
       }
-      if(location==1||location==3)
+      if(wlocation==1||wlocation==3)
       {
+         if(RvR_core_key_down(RVR_KEY_LSHIFT))
+            editor_ed_flood_ceiling(wx,wy,1);
+         else
+            editor_ed_ceiling(wx,wy,1);
          //RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)+128);
-         editor_ed_ceiling(wx,wy,1);
       }
    }
    else if(RvR_core_key_pressed(RVR_KEY_PGDN))
    {
-      if(location==0||location==2)
+      if(wlocation==0||wlocation==2)
       {
          if(RvR_core_key_down(RVR_KEY_LSHIFT))
-            floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
+            //floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
+            editor_ed_flood_floor(wx,wy,-1);
          else
             //RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
             editor_ed_floor(wx,wy,-1);
       }
-      if(location==1||location==3)
+      if(wlocation==1||wlocation==3)
+      {
+         if(RvR_core_key_down(RVR_KEY_LSHIFT))
+            editor_ed_flood_ceiling(wx,wy,-1);
+         else
+            editor_ed_ceiling(wx,wy,-1);
          //RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)-128);
-         editor_ed_ceiling(wx,wy,-1);
+      }
    }
 }
 

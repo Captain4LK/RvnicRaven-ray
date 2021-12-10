@@ -31,5 +31,7 @@ void camera_update();
 //Editing
 void editor_ed_floor(int16_t x, int16_t y, int fac);
 void editor_ed_ceiling(int16_t x, int16_t y, int fac);
+void editor_ed_flood_floor(int16_t x, int16_t y, int fac);
+void editor_ed_flood_ceiling(int16_t x, int16_t y, int fac);
 
 #endif
