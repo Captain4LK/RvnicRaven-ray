@@ -17,6 +17,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "../../src/RvnicRaven.h"
 #include "color.h"
+#include "texture.h"
+#include "draw.h"
 #include "map.h"
 #include "editor.h"
 #include "editor3d.h"
@@ -32,6 +34,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 static int16_t wx = 0;
 static int16_t wy = 0;
 static int wlocation = 0;
+static int menu = 0;
+
+static uint16_t texture_selected = 0;
+static int texture_selection_scroll = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -43,72 +49,146 @@ void floor_height_flood_fill(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, Rv
 
 void editor3d_update()
 {
-   camera_update();
+   int mx,my;
+   RvR_core_mouse_pos(&mx,&my);
 
-   //Get real world tile position of mouse
-   if(!RvR_core_key_down(RVR_KEY_LCTRL))
+   if(menu==0)
    {
-      int mx,my;
-      RvR_core_mouse_pos(&mx,&my);
-      mouse_world_pos(mx,my,&wx,&wy,&wlocation);
+      camera_update();
+
+      //Get real world tile position of mouse
+      if(!RvR_core_key_down(RVR_KEY_LCTRL))
+         mouse_world_pos(mx,my,&wx,&wy,&wlocation);
+
+      /*if(RvR_core_key_down(RVR_KEY_LCTRL))
+      {
+         wx = camera.pos.x/1024;
+         wy = camera.pos.y/1024;
+      }*/
+      //TODO: locking selection (L key?)
+
+      if(RvR_core_key_pressed(RVR_KEY_PGUP))
+      {
+         if(wlocation==0||wlocation==2)
+         {
+            if(RvR_core_key_down(RVR_KEY_LSHIFT))
+               editor_ed_flood_floor(wx,wy,1);
+               //floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
+            else
+               editor_ed_floor(wx,wy,1);
+               //RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
+         }
+         if(wlocation==1||wlocation==3)
+         {
+            if(RvR_core_key_down(RVR_KEY_LSHIFT))
+               editor_ed_flood_ceiling(wx,wy,1);
+            else
+               editor_ed_ceiling(wx,wy,1);
+            //RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)+128);
+         }
+      }
+      else if(RvR_core_key_pressed(RVR_KEY_PGDN))
+      {
+         if(wlocation==0||wlocation==2)
+         {
+            if(RvR_core_key_down(RVR_KEY_LSHIFT))
+               //floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
+               editor_ed_flood_floor(wx,wy,-1);
+            else
+               //RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
+               editor_ed_floor(wx,wy,-1);
+         }
+         if(wlocation==1||wlocation==3)
+         {
+            if(RvR_core_key_down(RVR_KEY_LSHIFT))
+               editor_ed_flood_ceiling(wx,wy,-1);
+            else
+               editor_ed_ceiling(wx,wy,-1);
+            //RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)-128);
+         }
+      }
+
+      if(RvR_core_key_pressed(RVR_KEY_V))
+      {
+         menu = 1;
+         texture_selection_scroll = 0;
+      }
    }
-
-   /*if(RvR_core_key_down(RVR_KEY_LCTRL))
+   else if(menu==1)
    {
-      wx = camera.pos.x/1024;
-      wy = camera.pos.y/1024;
-   }*/
-   //TODO: locking selection (L key?)
-
-   if(RvR_core_key_pressed(RVR_KEY_PGUP))
-   {
-      if(wlocation==0||wlocation==2)
+      if(RvR_core_key_pressed(RVR_KEY_V))
       {
-         if(RvR_core_key_down(RVR_KEY_LSHIFT))
-            editor_ed_flood_floor(wx,wy,1);
-            //floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
-         else
-            editor_ed_floor(wx,wy,1);
-            //RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
+         menu = 2;
+         texture_selection_scroll = 0;
       }
-      if(wlocation==1||wlocation==3)
+
+      if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+         menu = 0;
+
+      if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
       {
-         if(RvR_core_key_down(RVR_KEY_LSHIFT))
-            editor_ed_flood_ceiling(wx,wy,1);
-         else
-            editor_ed_ceiling(wx,wy,1);
-         //RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)+128);
+
       }
    }
-   else if(RvR_core_key_pressed(RVR_KEY_PGDN))
+   else if(menu==2)
    {
-      if(wlocation==0||wlocation==2)
+      if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+         menu = 0;
+
+      if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
       {
-         if(RvR_core_key_down(RVR_KEY_LSHIFT))
-            //floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
-            editor_ed_flood_floor(wx,wy,-1);
-         else
-            //RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
-            editor_ed_floor(wx,wy,-1);
-      }
-      if(wlocation==1||wlocation==3)
-      {
-         if(RvR_core_key_down(RVR_KEY_LSHIFT))
-            editor_ed_flood_ceiling(wx,wy,-1);
-         else
-            editor_ed_ceiling(wx,wy,-1);
-         //RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)-128);
       }
    }
 }
 
 void editor3d_draw()
 {
-   RvR_ray_draw();
-
-   //Draw cursor
    int mx,my;
    RvR_core_mouse_pos(&mx,&my);
+
+   if(menu==0)
+   {
+      RvR_ray_draw();
+
+      RvR_draw_rectangle(8,RVR_YRES-74,66,66,color_white);
+      draw_fit64(9,RVR_YRES-73,texture_selected);
+   }
+   else if(menu==1)
+   {
+      RvR_draw_clear(color_black);
+
+      for(int y = 0;y<RVR_YRES/64;y++)
+      {
+         for(int x = 0;x<RVR_XRES/64;x++)
+         {
+            int index = y*(RVR_XRES/64)+x;
+            if(index<texture_list_used.data_used)
+               draw_fit64(x*64,y*64,texture_list_used.data[index].tex);
+         }
+      }
+
+      if(mx/64<RVR_XRES/64)
+         RvR_draw_rectangle((mx/64)*64,(my/64)*64,64,64,color_white);
+   }
+   else if(menu==2)
+   {
+      RvR_draw_clear(color_black);
+
+      for(int y = 0;y<RVR_YRES/64;y++)
+      {
+         for(int x = 0;x<RVR_XRES/64;x++)
+         {
+            int index = y*(RVR_XRES/64)+x;
+            if(index<texture_list.data_used)
+               draw_fit64(x*64,y*64,texture_list.data[index]);
+         }
+      }
+
+      if(mx/64<RVR_XRES/64)
+         RvR_draw_rectangle((mx/64)*64,(my/64)*64,64,64,color_white);
+   }
+
+   //Draw cursor
    RvR_draw_horizontal_line(mx-4,mx-1,my,color_magenta);
    RvR_draw_horizontal_line(mx+1,mx+4,my,color_magenta);
    RvR_draw_vertical_line(mx,my-1,my-4,color_magenta);

@@ -125,6 +125,14 @@ void RvR_draw_texture2(RvR_texture *t, int x, int y)
    }
 }
 
+void RvR_draw_rectangle(int x, int y, int width, int height, uint8_t index)
+{
+   RvR_draw_horizontal_line(x,x+width-1,y,index);
+   RvR_draw_horizontal_line(x,x+width-1,y+height-1,index);
+   RvR_draw_vertical_line(x,y,y+height-1,index);
+   RvR_draw_vertical_line(x+width-1,y,y+height-1,index);
+}
+
 void RvR_draw_rectangle_fill(int x, int y, int width, int height, uint8_t index)
 {
    //Clip src rect

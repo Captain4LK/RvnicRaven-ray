@@ -317,7 +317,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
       RvR_fix22 f_end = y_current+increment;
       if(f_end<f_start)
          return limit;
-      ray_plane_add(pixel_info->is_horizon?-RvR_fix22_infinity:pixel_info->hit.fheight,pixel_info->hit.wall_ftex,pixel_info->position.x,f_start,f_end);
+      ray_plane_add(pixel_info->hit.fheight,pixel_info->hit.wall_ftex,pixel_info->position.x,f_start,f_end);
 
       return limit;
    }
@@ -327,7 +327,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
       RvR_fix22 c_end = limit;
       if(c_end<c_start)
          return limit;
-      ray_plane_add(pixel_info->is_horizon?RvR_fix22_infinity:pixel_info->hit.cheight,pixel_info->hit.wall_ctex,pixel_info->position.x,c_start,c_end);
+      ray_plane_add(pixel_info->hit.cheight,pixel_info->hit.wall_ctex,pixel_info->position.x,c_start,c_end);
 
       return limit;
    }
@@ -412,7 +412,7 @@ static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, R
       RvR_fix22 f_end = y_current+increment;
       if(f_end<f_start)
          return limit;
-      ray_plane_add(pixel_info->is_horizon?-RvR_fix22_infinity:pixel_info->hit.fheight,pixel_info->hit.floor_tex,pixel_info->position.x,f_start,f_end);
+      ray_plane_add(pixel_info->hit.fheight,pixel_info->hit.floor_tex,pixel_info->position.x,f_start,f_end);
    }
    else if(increment==1)
    {
@@ -420,7 +420,7 @@ static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, R
       RvR_fix22 c_end = limit;
       if(c_end<c_start)
          return limit;
-      ray_plane_add(pixel_info->is_horizon?RvR_fix22_infinity:pixel_info->hit.cheight,pixel_info->hit.ceil_tex,pixel_info->position.x,c_start,c_end);
+      ray_plane_add(pixel_info->hit.cheight,pixel_info->hit.ceil_tex,pixel_info->position.x,c_start,c_end);
    }
 
    return limit;
@@ -491,6 +491,8 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
          p.hit.wall_ctex = RvR_ray_map_sky_tex();
          p.hit.floor_tex = RvR_ray_map_sky_tex();
          p.hit.ceil_tex = RvR_ray_map_sky_tex();
+         p.hit.fheight = RvR_fix22_infinity;
+         p.hit.cheight = RvR_fix22_infinity;
       }
 
       RvR_fix22 limit;

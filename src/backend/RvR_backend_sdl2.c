@@ -416,9 +416,10 @@ void RvR_backend_render_present()
    void *data;
    int stride;
    SDL_LockTexture(layer_texture,NULL,&data,&stride);
-   RvR_color *pix = data;
+   RvR_color * restrict pix = data;
+   const RvR_color * restrict pal = RvR_palette();
    for(int i = 0;i<RVR_XRES*RVR_YRES;i++)
-      pix[i] = RvR_palette()[framebuffer[i]];
+      pix[i] = pal[framebuffer[i]];
    SDL_UnlockTexture(layer_texture);
 
    SDL_RenderCopy(renderer,layer_texture,NULL,&dst_rect);

@@ -95,6 +95,9 @@ void editor_init()
 {
    undo_buffer = RvR_malloc(sizeof(*undo_buffer)*UNDO_BUFFER_SIZE);
    memset(undo_buffer,0,sizeof(*undo_buffer)*UNDO_BUFFER_SIZE);
+
+   RvR_texture_create(UINT16_MAX,1<<RVR_RAY_TEXTURE,1<<RVR_RAY_TEXTURE);
+   RvR_texture_create(UINT16_MAX-1,1<<RVR_RAY_TEXTURE,1<<RVR_RAY_TEXTURE_HIGH);
 }
 
 void editor_update()

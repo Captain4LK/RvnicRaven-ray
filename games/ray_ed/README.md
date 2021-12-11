@@ -18,4 +18,5 @@
 
 |Key|Function|
 |---|---|
-
+|U|undo|
+|R|redo|

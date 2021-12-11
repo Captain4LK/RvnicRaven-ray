@@ -23,6 +23,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Internal includes
 #include "../../src/RvnicRaven.h"
 #include "color.h"
+#include "texture.h"
 #include "map.h"
 #include "editor.h"
 //-------------------------------------
@@ -66,6 +67,9 @@ int main(int argc, char **argv)
 
    map_load(0);
    colors_find();
+   texture_list_create();
+   texture_list_used_create();
+   printf("%d\n",texture_list_used.data_used);
 
    char path[512];
    path_pop(argv[0],path,NULL);
@@ -83,6 +87,9 @@ int main(int argc, char **argv)
 
       editor_update();
       editor_draw();
+
+      if(RvR_core_key_pressed(RVR_KEY_M))
+         RvR_malloc_report();
 
       RvR_core_render_present();
    }

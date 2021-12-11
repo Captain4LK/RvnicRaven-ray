@@ -84,7 +84,8 @@ void RvR_texture_load(uint16_t id)
       memset(textures_timeout,0,sizeof(*textures_timeout)*UINT16_MAX);
    }
 
-   textures_timeout[id] = RVR_TEXTURE_TIMEOUT;
+   if(textures_timeout[id]!=PERMANENT)
+      textures_timeout[id] = RVR_TEXTURE_TIMEOUT;
    if(textures[id]!=NULL)
       return;
 
@@ -108,6 +109,40 @@ void RvR_texture_load(uint16_t id)
 
    RvR_free(mem_pak);
    RvR_free(mem_decomp);
+}
+
+void RvR_texture_lock(uint16_t id)
+{
+   if(textures[id]!=NULL)
+      textures_timeout[id] = PERMANENT;
+}
+
+void RvR_texture_unlock(uint16_t id)
+{
+   if(textures[id]!=NULL)
+      textures_timeout[id] = RVR_TEXTURE_TIMEOUT;
+}
+
+void RvR_texture_create(uint16_t id, int width, int height)
+{
+   if(textures==NULL)
+   {
+      textures = RvR_malloc(sizeof(*textures)*UINT16_MAX);
+      textures_timeout = RvR_malloc(sizeof(*textures_timeout)*UINT16_MAX);
+      memset(textures,0,sizeof(*textures)*UINT16_MAX);
+      memset(textures_timeout,0,sizeof(*textures_timeout)*UINT16_MAX);
+   }
+
+   if(textures[id]!=NULL)
+      return;
+
+   if(textures_timeout[id]!=PERMANENT)
+      textures_timeout[id] = RVR_TEXTURE_TIMEOUT;
+
+   textures[id] = RvR_malloc(sizeof(*textures[id]));
+   textures[id]->width = width;
+   textures[id]->height = height;
+   textures[id]->data = RvR_malloc(sizeof(*textures[id]->data)*textures[id]->width*textures[id]->height);
 }
 
 void RvR_font_load(uint16_t id)

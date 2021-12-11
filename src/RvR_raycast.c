@@ -92,8 +92,8 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
    //DDA loop
 #define RECIP_SCALE 65536
 
-   RvR_fix22 ray_dir_x_recip = RECIP_SCALE/RvR_non_zero(ray.direction.x);
-   RvR_fix22 ray_dir_y_recip = RECIP_SCALE/RvR_non_zero(ray.direction.y);
+   //RvR_fix22 ray_dir_x_recip = RECIP_SCALE/RvR_non_zero(ray.direction.x);
+   //RvR_fix22 ray_dir_y_recip = RECIP_SCALE/RvR_non_zero(ray.direction.y);
    //^ we precompute reciprocals to avoid divisions in the loop
 
    int first = 1;
@@ -119,8 +119,9 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
 
             RvR_fix22 diff = h.position.x-ray.start.x;
 
+            h.position.y = ray.start.y+(ray.direction.y*diff)/RvR_non_zero(ray.direction.x);
             //avoid division by multiplying with reciprocal
-            h.position.y = ray.start.y+(ray.direction.y*diff*ray_dir_x_recip)/RECIP_SCALE;
+            //h.position.y = ray.start.y+(ray.direction.y*diff*ray_dir_x_recip)/RECIP_SCALE;
 
             /* Here we compute the fish eye corrected distance (perpendicular to
             the projection plane) as the Euclidean distance (of hit from camera
@@ -145,7 +146,8 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
 
             RvR_fix22 diff = h.position.y-ray.start.y;
 
-            h.position.x = ray.start.x+(ray.direction.x*diff*ray_dir_y_recip)/RECIP_SCALE;
+            h.position.x = ray.start.x+(ray.direction.x*diff)/RvR_non_zero(ray.direction.y);
+            //h.position.x = ray.start.x+(ray.direction.x*diff*ray_dir_y_recip)/RECIP_SCALE;
 
             h.distance = (diff*1024)/RvR_non_zero(ray.direction.y);
 

@@ -281,6 +281,7 @@ void *RvR_mem_decompress(void *mem, int32_t length_in, int32_t *length_out, uint
 void RvR_draw_clear(uint8_t index);
 void RvR_draw_texture(RvR_texture *t, int x, int y);
 void RvR_draw_texture2(RvR_texture *t, int x, int y);
+void RvR_draw_rectangle(int x, int y, int width, int height, uint8_t index);
 void RvR_draw_rectangle_fill(int x, int y, int width, int height, uint8_t index);
 void RvR_draw_set_font(RvR_texture *t);
 void RvR_draw_string(int x, int y, int scale, const char *text, uint8_t index);
@@ -408,11 +409,15 @@ void        RvR_pak_flush();
 void        RvR_lump_add(const char *name, const char *path);
 void       *RvR_lump_get(const char *name, unsigned *size);
 const char *RvR_lump_get_path(const char *name);
+int         RvR_lump_exists(const char *name);
 
 RvR_texture *RvR_texture_get(uint16_t id);
 void RvR_texture_load_begin();
 void RvR_texture_load_end();
 void RvR_texture_load(uint16_t id);
+void RvR_texture_lock(uint16_t id);
+void RvR_texture_unlock(uint16_t id);
+void RvR_texture_create(uint16_t id, int width, int height);
 void RvR_font_load(uint16_t id);
 void RvR_font_unload(uint16_t id);
 

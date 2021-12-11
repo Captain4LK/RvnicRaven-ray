@@ -272,6 +272,14 @@ const char *RvR_lump_get_path(const char *name)
    return NULL;
 }
 
+int RvR_lump_exists(const char *name)
+{
+   for(int i = lumps.used-1;i>=0;i--)
+      if(strncmp(name,lumps.data[i].name,8)==0)
+         return 1;
+   return 0;
+}
+
 //Parse a json file and add all lumps to list
 static void add_json_path(const char *path)
 {
