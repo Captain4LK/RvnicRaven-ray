@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 //-------------------------------------
 
 //Internal includes
@@ -148,7 +149,99 @@ void editor3d_draw()
 
    if(menu==0)
    {
+      //Highlight selected tile
+      static uint16_t texture_highlight_old = 0;
+      uint16_t texture_highlight = 0;
+
+      if(wlocation==0)
+         texture_highlight = RvR_ray_map_floor_tex_at(wx,wy);
+      if(wlocation==1)
+         texture_highlight = RvR_ray_map_ceil_tex_at(wx,wy);
+      if(wlocation==2)
+         texture_highlight = RvR_ray_map_wall_ftex_at(wx,wy);
+      if(wlocation==3)
+         texture_highlight = RvR_ray_map_wall_ctex_at(wx,wy);
+
+      RvR_texture *texture_high = RvR_texture_get(texture_highlight);
+      if(texture_high->width==1<<RVR_RAY_TEXTURE&&texture_high->height==1<<RVR_RAY_TEXTURE)
+      {
+         if(texture_highlight!=texture_highlight_old)
+         {
+            RvR_texture *texture_new = RvR_texture_get(UINT16_MAX-1);
+            memcpy(texture_new->data,texture_high->data,sizeof(*texture_new->data)*texture_high->width*texture_high->height);
+
+            //Add outline
+            for(int i = 0;i<texture_new->height;i++)
+            {
+               texture_new->data[i] = color_white;
+               texture_new->data[i+texture_new->height] = color_white;
+               texture_new->data[i+texture_new->height*(texture_new->width-1)] = color_white;
+               texture_new->data[i+texture_new->height*(texture_new->width-2)] = color_white;
+            }
+            for(int i = 0;i<texture_new->width;i++)
+            {
+               texture_new->data[i*texture_new->height] = color_white;
+               texture_new->data[i*texture_new->height+1] = color_white;
+               texture_new->data[i*texture_new->height+texture_new->height-1] = color_white;
+               texture_new->data[i*texture_new->height+texture_new->height-2] = color_white;
+            }
+         }
+
+         if(wlocation==0)
+            RvR_ray_map_floor_tex_set(wx,wy,UINT16_MAX-1);
+         if(wlocation==1)
+            RvR_ray_map_ceil_tex_set(wx,wy,UINT16_MAX-1);
+         if(wlocation==2)
+            RvR_ray_map_wall_ftex_set(wx,wy,UINT16_MAX-1);
+         if(wlocation==3)
+            RvR_ray_map_wall_ctex_set(wx,wy,UINT16_MAX-1);
+      }
+      else if(texture_high->width==1<<RVR_RAY_TEXTURE&&texture_high->height==1<<RVR_RAY_TEXTURE_HIGH)
+      {
+         if(texture_highlight!=texture_highlight_old)
+         {
+            RvR_texture *texture_new = RvR_texture_get(UINT16_MAX-2);
+            memcpy(texture_new->data,texture_high->data,sizeof(*texture_new->data)*texture_high->width*texture_high->height);
+
+            //Add outline
+            for(int i = 0;i<texture_new->height;i++)
+            {
+               texture_new->data[i] = color_white;
+               texture_new->data[i+texture_new->height] = color_white;
+               texture_new->data[i+texture_new->height*(texture_new->width-1)] = color_white;
+               texture_new->data[i+texture_new->height*(texture_new->width-2)] = color_white;
+            }
+            for(int i = 0;i<texture_new->width;i++)
+            {
+               texture_new->data[i*texture_new->height] = color_white;
+               texture_new->data[i*texture_new->height+1] = color_white;
+               texture_new->data[i*texture_new->height+texture_new->height-1] = color_white;
+               texture_new->data[i*texture_new->height+texture_new->height-2] = color_white;
+            }
+         }
+
+         if(wlocation==0)
+            RvR_ray_map_floor_tex_set(wx,wy,UINT16_MAX-2);
+         if(wlocation==1)
+            RvR_ray_map_ceil_tex_set(wx,wy,UINT16_MAX-2);
+         if(wlocation==2)
+            RvR_ray_map_wall_ftex_set(wx,wy,UINT16_MAX-2);
+         if(wlocation==3)
+            RvR_ray_map_wall_ctex_set(wx,wy,UINT16_MAX-2);
+      }
+      //-------------------------------------
+      
       RvR_ray_draw();
+
+      texture_highlight_old = texture_highlight;
+      if(wlocation==0)
+         RvR_ray_map_floor_tex_set(wx,wy,texture_highlight);
+      if(wlocation==1)
+         RvR_ray_map_ceil_tex_set(wx,wy,texture_highlight);
+      if(wlocation==2)
+         RvR_ray_map_wall_ftex_set(wx,wy,texture_highlight);
+      if(wlocation==3)
+         RvR_ray_map_wall_ctex_set(wx,wy,texture_highlight);
 
       RvR_draw_rectangle(8,RVR_YRES-74,66,66,color_white);
       draw_fit64(9,RVR_YRES-73,texture_selected);
