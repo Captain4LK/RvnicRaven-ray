@@ -16,6 +16,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "../../src/RvnicRaven.h"
+#include "config.h"
 #include "texture.h"
 #include "map.h"
 //-------------------------------------
@@ -53,6 +54,23 @@ void texture_list_create()
          continue;
 
       RvR_texture_load(i);
+      RvR_texture *tex = RvR_texture_get(i);
+
+      if(tex->width==1<<RVR_RAY_TEXTURE_SKY_W)
+      {
+         if(tex->height!=1<<RVR_RAY_TEXTURE_SKY_H)
+            continue;
+      }
+      else if(tex->width==1<<RVR_RAY_TEXTURE)
+      {
+         if(tex->height!=1<<RVR_RAY_TEXTURE&&tex->height!=1<<RVR_RAY_TEXTURE_HIGH)
+            continue;
+      }
+      else
+      {
+         continue;
+      }
+
       RvR_texture_lock(i);
       texture_list.data[texture_list.data_used++] = i;
       if(texture_list.data_used==texture_list.data_size)
@@ -76,30 +94,27 @@ void texture_list_used_create()
 
 void texture_list_used_add(uint16_t tex)
 {
-   if(texture_list_used.data==NULL)
+   for(unsigned i = 0;i<TEXTURE_MRU_SIZE;i++)
    {
-      texture_list_used.data_used = 0;
-      texture_list_used.data_size = 16;
-      texture_list_used.data = RvR_malloc(sizeof(*texture_list_used.data)*texture_list_used.data_size);
-   }
+      //Place back to front
+      if(texture_list_used.data[i]==tex)
+      {  
+         if(i!=texture_list_used.data_last)
+         {
+            int index = texture_list_used_wrap(i);
+            while(index!=texture_list_used.data_last)
+            {
+               texture_list_used.data[texture_list_used_wrap(index)] = texture_list_used.data[texture_list_used_wrap(index+1)];
+               index = texture_list_used_wrap(index+1);
+            }
+            texture_list_used.data[texture_list_used.data_last] = tex;
+         }
 
-   for(unsigned i = 0;i<texture_list_used.data_used;i++)
-   {
-      if(texture_list_used.data[i].tex==tex)
-      {
-         texture_list_used.data[i].count++;
          return;
       }
    }
 
-   texture_list_used.data[texture_list_used.data_used].tex = tex;
-   texture_list_used.data[texture_list_used.data_used].count = 1;
-   texture_list_used.data_used++;
-
-   if(texture_list_used.data_used==texture_list_used.data_size)
-   {
-      texture_list_used.data_size+=16;
-      texture_list_used.data = RvR_realloc(texture_list_used.data,sizeof(*texture_list_used.data)*texture_list_used.data_size);
-   }
+   texture_list_used.data_last = texture_list_used_wrap(texture_list_used.data_last+1);
+   texture_list_used.data[texture_list_used.data_last] = tex;
 }
 //-------------------------------------

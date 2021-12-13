@@ -29,9 +29,21 @@ void editor_redo();
 void camera_update();
 
 //Editing
+//Height
 void editor_ed_floor(int16_t x, int16_t y, int fac);
 void editor_ed_ceiling(int16_t x, int16_t y, int fac);
 void editor_ed_flood_floor(int16_t x, int16_t y, int fac);
 void editor_ed_flood_ceiling(int16_t x, int16_t y, int fac);
+
+//Textures
+void editor_ed_floor_tex(int16_t x, int16_t y, uint16_t tex);
+void editor_ed_ceiling_tex(int16_t x, int16_t y, uint16_t tex);
+void editor_ed_floor_wall_tex(int16_t x, int16_t y, uint16_t tex);
+void editor_ed_ceiling_wall_tex(int16_t x, int16_t y, uint16_t tex);
+
+void editor_ed_flood_floor_tex(int16_t x, int16_t y, uint16_t tex);
+void editor_ed_flood_ceiling_tex(int16_t x, int16_t y, uint16_t tex);
+void editor_ed_flood_floor_wall_tex(int16_t x, int16_t y, uint16_t tex);
+void editor_ed_flood_ceiling_wall_tex(int16_t x, int16_t y, uint16_t tex);
 
 #endif

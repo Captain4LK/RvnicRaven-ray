@@ -42,6 +42,16 @@ typedef enum
    ED_CEILING_HEIGHT = 1,
    ED_FLOOD_FLOOR_HEIGHT = 2,
    ED_FLOOD_CEILING_HEIGHT = 3,
+
+   ED_FLOOR_TEXTURE = 4,
+   ED_CEILING_TEXTURE = 5,
+   ED_FLOOR_WALL_TEXTURE = 6,
+   ED_CEILING_WALL_TEXTURE = 7,
+
+   ED_FLOOD_FLOOR_TEXTURE = 8,
+   ED_FLOOD_CEILING_TEXTURE = 9,
+   ED_FLOOD_FLOOR_WALL_TEXTURE = 10,
+   ED_FLOOD_CEILING_WALL_TEXTURE = 11,
 }Ed_action;
 //-------------------------------------
 
@@ -85,8 +95,30 @@ static void redo_flood_floor_height(int pos, int endpos);
 static void undo_flood_ceiling_height(int pos, int endpos);
 static void redo_flood_ceiling_height(int pos, int endpos);
 
+static void undo_floor_tex(int pos, int endpos);
+static void redo_floor_tex(int pos, int endpos);
+static void undo_ceiling_tex(int pos, int endpos);
+static void redo_ceiling_tex(int pos, int endpos);
+static void undo_floor_wall_tex(int pos, int endpos);
+static void redo_floor_wall_tex(int pos, int endpos);
+static void undo_ceiling_wall_tex(int pos, int endpos);
+static void redo_ceiling_wall_tex(int pos, int endpos);
+
+static void undo_flood_floor_tex(int pos, int endpos);
+static void redo_flood_floor_tex(int pos, int endpos);
+static void undo_flood_ceiling_tex(int pos, int endpos);
+static void redo_flood_ceiling_tex(int pos, int endpos);
+static void undo_flood_wall_ftex(int pos, int endpos);
+static void redo_flood_wall_ftex(int pos, int endpos);
+static void undo_flood_wall_ctex(int pos, int endpos);
+static void redo_flood_wall_ctex(int pos, int endpos);
+
 static void flood_floor_height(int16_t x, int16_t y, uint16_t ftex, RvR_fix22 height, int fac);
 static void flood_ceiling_height(int16_t x, int16_t y, uint16_t ctex, RvR_fix22 height, int fac);
+static void flood_floor_tex(int16_t x, int16_t y, uint16_t ftex, uint16_t tex, RvR_fix22 height);
+static void flood_ceiling_tex(int16_t x, int16_t y, uint16_t ctex, uint16_t tex, RvR_fix22 height);
+static void flood_wall_ftex(int16_t x, int16_t y, uint16_t ftex, uint16_t tex, RvR_fix22 height);
+static void flood_wall_ctex(int16_t x, int16_t y, uint16_t ctex, uint16_t tex, RvR_fix22 height);
 //-------------------------------------
 
 //Function implementations
@@ -153,6 +185,14 @@ void editor_undo()
    case ED_CEILING_HEIGHT: undo_ceiling_height(pos,endpos); break;
    case ED_FLOOD_FLOOR_HEIGHT: undo_flood_floor_height(pos,endpos); break;
    case ED_FLOOD_CEILING_HEIGHT: undo_flood_ceiling_height(pos,endpos); break;
+   case ED_FLOOR_TEXTURE: undo_floor_tex(pos,endpos); break;
+   case ED_CEILING_TEXTURE: undo_ceiling_tex(pos,endpos); break;
+   case ED_FLOOR_WALL_TEXTURE: undo_floor_wall_tex(pos,endpos); break;
+   case ED_CEILING_WALL_TEXTURE: undo_ceiling_wall_tex(pos,endpos); break;
+   case ED_FLOOD_FLOOR_TEXTURE: undo_flood_floor_tex(pos,endpos); break;
+   case ED_FLOOD_CEILING_TEXTURE: undo_flood_ceiling_tex(pos,endpos); break;
+   case ED_FLOOD_FLOOR_WALL_TEXTURE: undo_flood_wall_ftex(pos,endpos); break;
+   case ED_FLOOD_CEILING_WALL_TEXTURE: undo_flood_wall_ctex(pos,endpos); break;
    }
 
    redo_write((len>>16)&UINT16_MAX);
@@ -186,6 +226,14 @@ void editor_redo()
    case ED_CEILING_HEIGHT: redo_ceiling_height(pos,endpos); break;
    case ED_FLOOD_FLOOR_HEIGHT: redo_flood_floor_height(pos,endpos); break;
    case ED_FLOOD_CEILING_HEIGHT: redo_flood_ceiling_height(pos,endpos); break;
+   case ED_FLOOR_TEXTURE: redo_floor_tex(pos,endpos); break;
+   case ED_CEILING_TEXTURE: redo_ceiling_tex(pos,endpos); break;
+   case ED_FLOOR_WALL_TEXTURE: redo_floor_wall_tex(pos,endpos); break;
+   case ED_CEILING_WALL_TEXTURE: redo_ceiling_wall_tex(pos,endpos); break;
+   case ED_FLOOD_FLOOR_TEXTURE: redo_flood_floor_tex(pos,endpos); break;
+   case ED_FLOOD_CEILING_TEXTURE: redo_flood_ceiling_tex(pos,endpos); break;
+   case ED_FLOOD_FLOOR_WALL_TEXTURE: redo_flood_wall_ftex(pos,endpos); break;
+   case ED_FLOOD_CEILING_WALL_TEXTURE: redo_flood_wall_ctex(pos,endpos); break;
    }
 
    undo_write((len>>16)&UINT16_MAX);
@@ -740,6 +788,294 @@ static void redo_flood_ceiling_height(int pos, int endpos)
    undo_write(old_height&UINT16_MAX);
 }
 
+static void undo_floor_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t tex = undo_buffer[pos]; pos = WRAP(pos-1);
+      int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
+      int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
+      uint16_t old_tex = RvR_ray_map_floor_tex_at(x,y);
+
+      redo_record_tex(x,y,old_tex);
+      RvR_ray_map_floor_tex_set(x,y,tex);
+   }
+}
+
+static void redo_floor_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t tex = undo_buffer[pos]; pos = WRAP(pos+1);
+      int16_t y = undo_buffer[pos];    pos = WRAP(pos+1);
+      int16_t x = undo_buffer[pos];    pos = WRAP(pos+1);
+      uint16_t old_tex = RvR_ray_map_floor_tex_at(x,y);
+
+      undo_record_tex(x,y,old_tex);
+      RvR_ray_map_floor_tex_set(x,y,tex);
+   }
+}
+
+static void undo_ceiling_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t tex = undo_buffer[pos]; pos = WRAP(pos-1);
+      int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
+      int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
+      uint16_t old_tex = RvR_ray_map_ceil_tex_at(x,y);
+
+      redo_record_tex(x,y,old_tex);
+      RvR_ray_map_ceil_tex_set(x,y,tex);
+   }
+}
+
+static void redo_ceiling_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t tex = undo_buffer[pos]; pos = WRAP(pos+1);
+      int16_t y = undo_buffer[pos];    pos = WRAP(pos+1);
+      int16_t x = undo_buffer[pos];    pos = WRAP(pos+1);
+      uint16_t old_tex = RvR_ray_map_ceil_tex_at(x,y);
+
+      undo_record_tex(x,y,old_tex);
+      RvR_ray_map_ceil_tex_set(x,y,tex);
+   }
+}
+
+static void undo_floor_wall_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t tex = undo_buffer[pos]; pos = WRAP(pos-1);
+      int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
+      int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
+      uint16_t old_tex = RvR_ray_map_wall_ftex_at(x,y);
+
+      redo_record_tex(x,y,old_tex);
+      RvR_ray_map_wall_ftex_set(x,y,tex);
+   }
+}
+
+static void redo_floor_wall_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t tex = undo_buffer[pos]; pos = WRAP(pos+1);
+      int16_t y = undo_buffer[pos];    pos = WRAP(pos+1);
+      int16_t x = undo_buffer[pos];    pos = WRAP(pos+1);
+      uint16_t old_tex = RvR_ray_map_wall_ftex_at(x,y);
+
+      undo_record_tex(x,y,old_tex);
+      RvR_ray_map_wall_ftex_set(x,y,tex);
+   }
+}
+
+static void undo_ceiling_wall_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t tex = undo_buffer[pos]; pos = WRAP(pos-1);
+      int16_t y = undo_buffer[pos];        pos = WRAP(pos-1);
+      int16_t x = undo_buffer[pos];        pos = WRAP(pos-1);
+      uint16_t old_tex = RvR_ray_map_wall_ctex_at(x,y);
+
+      redo_record_tex(x,y,old_tex);
+      RvR_ray_map_wall_ctex_set(x,y,tex);
+   }
+}
+
+static void redo_ceiling_wall_tex(int pos, int endpos)
+{
+   while(pos!=endpos)
+   {
+      uint16_t tex = undo_buffer[pos]; pos = WRAP(pos+1);
+      int16_t y = undo_buffer[pos];    pos = WRAP(pos+1);
+      int16_t x = undo_buffer[pos];    pos = WRAP(pos+1);
+      uint16_t old_tex = RvR_ray_map_wall_ctex_at(x,y);
+
+      undo_record_tex(x,y,old_tex);
+      RvR_ray_map_wall_ctex_set(x,y,tex);
+   }
+}
+
+static void undo_flood_floor_tex(int pos, int endpos)
+{
+   uint16_t tex = undo_buffer[pos]; pos = WRAP(pos-1);
+   uint16_t old_tex = 0;
+   int16_t x = 0;
+   int16_t y = 0;
+
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos]; pos = WRAP(pos-1);
+      x = undo_buffer[pos]; pos = WRAP(pos-1);
+
+      old_tex = RvR_ray_map_floor_tex_at(x,y);
+      RvR_ray_map_floor_tex_set(x,y,tex);
+
+      redo_write(x);
+      redo_write(y);
+   }
+
+   redo_write(old_tex);
+}
+
+static void redo_flood_floor_tex(int pos, int endpos)
+{
+   uint16_t tex = undo_buffer[pos]; pos = WRAP(pos+1);
+   uint16_t old_tex = 0;
+   int16_t x = 0;
+   int16_t y = 0;
+
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos]; pos = WRAP(pos+1);
+      x = undo_buffer[pos]; pos = WRAP(pos+1);
+
+      old_tex = RvR_ray_map_floor_tex_at(x,y);
+      RvR_ray_map_floor_tex_set(x,y,tex);
+
+      undo_write(x);
+      undo_write(y);
+   }
+
+   undo_write(old_tex);
+}
+
+static void undo_flood_ceiling_tex(int pos, int endpos)
+{
+   uint16_t tex = undo_buffer[pos]; pos = WRAP(pos-1);
+   uint16_t old_tex = 0;
+   int16_t x = 0;
+   int16_t y = 0;
+
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos]; pos = WRAP(pos-1);
+      x = undo_buffer[pos]; pos = WRAP(pos-1);
+
+      old_tex = RvR_ray_map_ceil_tex_at(x,y);
+      RvR_ray_map_ceil_tex_set(x,y,tex);
+
+      redo_write(x);
+      redo_write(y);
+   }
+
+   redo_write(old_tex);
+}
+
+static void redo_flood_ceiling_tex(int pos, int endpos)
+{
+   uint16_t tex = undo_buffer[pos]; pos = WRAP(pos+1);
+   uint16_t old_tex = 0;
+   int16_t x = 0;
+   int16_t y = 0;
+
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos]; pos = WRAP(pos+1);
+      x = undo_buffer[pos]; pos = WRAP(pos+1);
+
+      old_tex = RvR_ray_map_ceil_tex_at(x,y);
+      RvR_ray_map_ceil_tex_set(x,y,tex);
+
+      undo_write(x);
+      undo_write(y);
+   }
+
+   undo_write(old_tex);
+}
+
+static void undo_flood_wall_ftex(int pos, int endpos)
+{
+   uint16_t tex = undo_buffer[pos]; pos = WRAP(pos-1);
+   uint16_t old_tex = 0;
+   int16_t x = 0;
+   int16_t y = 0;
+
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos]; pos = WRAP(pos-1);
+      x = undo_buffer[pos]; pos = WRAP(pos-1);
+
+      old_tex = RvR_ray_map_wall_ftex_at(x,y);
+      RvR_ray_map_wall_ftex_set(x,y,tex);
+
+      redo_write(x);
+      redo_write(y);
+   }
+
+   redo_write(old_tex);
+}
+
+static void redo_flood_wall_ftex(int pos, int endpos)
+{
+   uint16_t tex = undo_buffer[pos]; pos = WRAP(pos+1);
+   uint16_t old_tex = 0;
+   int16_t x = 0;
+   int16_t y = 0;
+
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos]; pos = WRAP(pos+1);
+      x = undo_buffer[pos]; pos = WRAP(pos+1);
+
+      old_tex = RvR_ray_map_wall_ftex_at(x,y);
+      RvR_ray_map_wall_ftex_set(x,y,tex);
+
+      undo_write(x);
+      undo_write(y);
+   }
+
+   undo_write(old_tex);
+}
+
+static void undo_flood_wall_ctex(int pos, int endpos)
+{
+   uint16_t tex = undo_buffer[pos]; pos = WRAP(pos-1);
+   uint16_t old_tex = 0;
+   int16_t x = 0;
+   int16_t y = 0;
+
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos]; pos = WRAP(pos-1);
+      x = undo_buffer[pos]; pos = WRAP(pos-1);
+
+      old_tex = RvR_ray_map_wall_ctex_at(x,y);
+      RvR_ray_map_wall_ctex_set(x,y,tex);
+
+      redo_write(x);
+      redo_write(y);
+   }
+
+   redo_write(old_tex);
+}
+
+static void redo_flood_wall_ctex(int pos, int endpos)
+{
+   uint16_t tex = undo_buffer[pos]; pos = WRAP(pos+1);
+   uint16_t old_tex = 0;
+   int16_t x = 0;
+   int16_t y = 0;
+
+   while(pos!=endpos)
+   {
+      y = undo_buffer[pos]; pos = WRAP(pos+1);
+      x = undo_buffer[pos]; pos = WRAP(pos+1);
+
+      old_tex = RvR_ray_map_wall_ctex_at(x,y);
+      RvR_ray_map_wall_ctex_set(x,y,tex);
+
+      undo_write(x);
+      undo_write(y);
+   }
+
+   undo_write(old_tex);
+}
+
 void editor_ed_floor(int16_t x, int16_t y, int fac)
 {
    undo_begin(ED_FLOOR_HEIGHT);
@@ -826,6 +1162,194 @@ static void flood_ceiling_height(int16_t x, int16_t y, uint16_t ctex, RvR_fix22 
       flood_ceiling_height(x,y-1,ctex,height,fac);
       flood_ceiling_height(x,y+1,ctex,height,fac);
    }
+}
+
+static void flood_floor_tex(int16_t x, int16_t y, uint16_t ftex, uint16_t tex, RvR_fix22 height)
+{
+   if(RvR_ray_map_inbounds(x,y)&&RvR_ray_map_floor_height_at(x,y)==height&&RvR_ray_map_floor_tex_at(x,y)==tex)
+   {
+      RvR_ray_map_floor_tex_set(x,y,ftex);
+      undo_write(x);
+      undo_write(y);
+
+      flood_floor_tex(x-1,y,ftex,tex,height);
+      flood_floor_tex(x+1,y,ftex,tex,height);
+      flood_floor_tex(x,y-1,ftex,tex,height);
+      flood_floor_tex(x,y+1,ftex,tex,height);
+   }
+}
+
+static void flood_ceiling_tex(int16_t x, int16_t y, uint16_t ctex, uint16_t tex, RvR_fix22 height)
+{
+   if(RvR_ray_map_inbounds(x,y)&&RvR_ray_map_ceiling_height_at(x,y)==height&&RvR_ray_map_ceil_tex_at(x,y)==tex)
+   {
+      RvR_ray_map_ceil_tex_set(x,y,ctex);
+      undo_write(x);
+      undo_write(y);
+
+      flood_ceiling_tex(x-1,y,ctex,tex,height);
+      flood_ceiling_tex(x+1,y,ctex,tex,height);
+      flood_ceiling_tex(x,y-1,ctex,tex,height);
+      flood_ceiling_tex(x,y+1,ctex,tex,height);
+   }
+}
+
+static void flood_wall_ftex(int16_t x, int16_t y, uint16_t ftex, uint16_t tex, RvR_fix22 height)
+{
+   if(RvR_ray_map_inbounds(x,y)&&RvR_ray_map_floor_height_at(x,y)==height&&RvR_ray_map_wall_ftex_at(x,y)==tex)
+   {
+      RvR_ray_map_wall_ftex_set(x,y,ftex);
+      undo_write(x);
+      undo_write(y);
+
+      flood_wall_ftex(x-1,y,ftex,tex,height);
+      flood_wall_ftex(x+1,y,ftex,tex,height);
+      flood_wall_ftex(x,y-1,ftex,tex,height);
+      flood_wall_ftex(x,y+1,ftex,tex,height);
+   }
+}
+
+static void flood_wall_ctex(int16_t x, int16_t y, uint16_t ctex, uint16_t tex, RvR_fix22 height)
+{
+   if(RvR_ray_map_inbounds(x,y)&&RvR_ray_map_ceiling_height_at(x,y)==height&&RvR_ray_map_wall_ctex_at(x,y)==tex)
+   {
+      RvR_ray_map_wall_ctex_set(x,y,ctex);
+      undo_write(x);
+      undo_write(y);
+
+      flood_wall_ctex(x-1,y,ctex,tex,height);
+      flood_wall_ctex(x+1,y,ctex,tex,height);
+      flood_wall_ctex(x,y-1,ctex,tex,height);
+      flood_wall_ctex(x,y+1,ctex,tex,height);
+   }
+}
+
+void editor_ed_floor_tex(int16_t x, int16_t y, uint16_t tex)
+{
+   if(!RvR_ray_map_inbounds(x,y))
+      return;
+
+   if(RvR_ray_map_floor_tex_at(x,y)==tex)
+      return;
+
+   undo_begin(ED_FLOOR_TEXTURE);
+   undo_record_tex(x,y,RvR_ray_map_floor_tex_at(x,y));
+   RvR_ray_map_floor_tex_set(x,y,tex);
+   undo_end();
+}
+
+void editor_ed_ceiling_tex(int16_t x, int16_t y, uint16_t tex)
+{
+   if(!RvR_ray_map_inbounds(x,y))
+      return;
+
+   if(RvR_ray_map_ceil_tex_at(x,y)==tex)
+      return;
+
+   undo_begin(ED_CEILING_TEXTURE);
+   undo_record_tex(x,y,RvR_ray_map_ceil_tex_at(x,y));
+   RvR_ray_map_ceil_tex_set(x,y,tex);
+   undo_end();
+}
+
+void editor_ed_floor_wall_tex(int16_t x, int16_t y, uint16_t tex)
+{
+   if(!RvR_ray_map_inbounds(x,y))
+      return;
+
+   if(RvR_ray_map_wall_ftex_at(x,y)==tex)
+      return;
+
+   undo_begin(ED_FLOOR_WALL_TEXTURE);
+   undo_record_tex(x,y,RvR_ray_map_wall_ftex_at(x,y));
+   RvR_ray_map_wall_ftex_set(x,y,tex);
+   undo_end();
+}
+
+void editor_ed_ceiling_wall_tex(int16_t x, int16_t y, uint16_t tex)
+{
+   if(!RvR_ray_map_inbounds(x,y))
+      return;
+
+   if(RvR_ray_map_wall_ctex_at(x,y)==tex)
+      return;
+
+   undo_begin(ED_CEILING_WALL_TEXTURE);
+   undo_record_tex(x,y,RvR_ray_map_wall_ctex_at(x,y));
+   RvR_ray_map_wall_ctex_set(x,y,tex);
+   undo_end();
+}
+
+void editor_ed_flood_floor_tex(int16_t x, int16_t y, uint16_t tex)
+{
+   if(!RvR_ray_map_inbounds(x,y))
+      return;
+
+   RvR_fix22 height = RvR_ray_map_floor_height_at(x,y);
+   uint16_t ftex = RvR_ray_map_floor_tex_at(x,y);
+
+   if(ftex==tex)
+      return;
+
+   undo_begin(ED_FLOOD_FLOOR_TEXTURE);
+   flood_floor_tex(x,y,tex,ftex,height);
+
+   undo_write(ftex);
+   undo_end();
+}
+
+void editor_ed_flood_ceiling_tex(int16_t x, int16_t y, uint16_t tex)
+{
+   if(!RvR_ray_map_inbounds(x,y))
+      return;
+
+   RvR_fix22 height = RvR_ray_map_ceiling_height_at(x,y);
+   uint16_t ctex = RvR_ray_map_ceil_tex_at(x,y);
+
+   if(ctex==tex)
+      return;
+
+   undo_begin(ED_FLOOD_CEILING_TEXTURE);
+   flood_ceiling_tex(x,y,tex,ctex,height);
+
+   undo_write(ctex);
+   undo_end();
+}
+
+void editor_ed_flood_floor_wall_tex(int16_t x, int16_t y, uint16_t tex)
+{
+   if(!RvR_ray_map_inbounds(x,y))
+      return;
+
+   RvR_fix22 height = RvR_ray_map_floor_height_at(x,y);
+   uint16_t ftex = RvR_ray_map_wall_ftex_at(x,y);
+
+   if(ftex==tex)
+      return;
+
+   undo_begin(ED_FLOOD_FLOOR_WALL_TEXTURE);
+   flood_wall_ftex(x,y,tex,ftex,height);
+
+   undo_write(ftex);
+   undo_end();
+}
+
+void editor_ed_flood_ceiling_wall_tex(int16_t x, int16_t y, uint16_t tex)
+{
+   if(!RvR_ray_map_inbounds(x,y))
+      return;
+
+   RvR_fix22 height = RvR_ray_map_ceiling_height_at(x,y);
+   uint16_t ctex = RvR_ray_map_wall_ctex_at(x,y);
+
+   if(ctex==tex)
+      return;
+
+   undo_begin(ED_FLOOD_CEILING_WALL_TEXTURE);
+   flood_wall_ctex(x,y,tex,ctex,height);
+
+   undo_write(ctex);
+   undo_end();
 }
 //-------------------------------------
 

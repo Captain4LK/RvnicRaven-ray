@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "../../src/RvnicRaven.h"
+#include "config.h"
 #include "color.h"
 #include "texture.h"
 #include "draw.h"
@@ -39,6 +40,7 @@ static int menu = 0;
 
 static uint16_t texture_selected = 0;
 static int texture_selection_scroll = 0;
+static int brush = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -61,23 +63,14 @@ void editor3d_update()
       if(!RvR_core_key_down(RVR_KEY_LCTRL))
          mouse_world_pos(mx,my,&wx,&wy,&wlocation);
 
-      /*if(RvR_core_key_down(RVR_KEY_LCTRL))
-      {
-         wx = camera.pos.x/1024;
-         wy = camera.pos.y/1024;
-      }*/
-      //TODO: locking selection (L key?)
-
       if(RvR_core_key_pressed(RVR_KEY_PGUP))
       {
          if(wlocation==0||wlocation==2)
          {
             if(RvR_core_key_down(RVR_KEY_LSHIFT))
                editor_ed_flood_floor(wx,wy,1);
-               //floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
             else
                editor_ed_floor(wx,wy,1);
-               //RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)+128);
          }
          if(wlocation==1||wlocation==3)
          {
@@ -85,7 +78,6 @@ void editor3d_update()
                editor_ed_flood_ceiling(wx,wy,1);
             else
                editor_ed_ceiling(wx,wy,1);
-            //RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)+128);
          }
       }
       else if(RvR_core_key_pressed(RVR_KEY_PGDN))
@@ -93,10 +85,8 @@ void editor3d_update()
          if(wlocation==0||wlocation==2)
          {
             if(RvR_core_key_down(RVR_KEY_LSHIFT))
-               //floor_height_flood_fill(RvR_ray_map_floor_tex_at(wx,wy),RvR_ray_map_ceil_tex_at(wx,wy),RvR_ray_map_floor_height_at(wx,wy),RvR_ray_map_ceiling_height_at(wx,wy),wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
                editor_ed_flood_floor(wx,wy,-1);
             else
-               //RvR_ray_map_floor_height_set(wx,wy,RvR_ray_map_floor_height_at(wx,wy)-128);
                editor_ed_floor(wx,wy,-1);
          }
          if(wlocation==1||wlocation==3)
@@ -105,7 +95,43 @@ void editor3d_update()
                editor_ed_flood_ceiling(wx,wy,-1);
             else
                editor_ed_ceiling(wx,wy,-1);
-            //RvR_ray_map_ceiling_height_set(wx,wy,RvR_ray_map_ceiling_height_at(wx,wy)-128);
+         }
+      }
+
+      //To prevent accidental texture editing after selecting a texture
+      if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
+         brush = 1;
+      if(RvR_core_mouse_released(RVR_BUTTON_LEFT))
+         brush = 0;
+      if(brush)
+      {
+         if(wlocation==0)
+         {
+            if(RvR_core_key_down(RVR_KEY_LSHIFT))
+               editor_ed_flood_floor_tex(wx,wy,texture_selected);
+            else
+               editor_ed_floor_tex(wx,wy,texture_selected);
+         }
+         else if(wlocation==1)
+         {
+            if(RvR_core_key_down(RVR_KEY_LSHIFT))
+               editor_ed_flood_ceiling_tex(wx,wy,texture_selected);
+            else
+               editor_ed_ceiling_tex(wx,wy,texture_selected);
+         }
+         else if(wlocation==2)
+         {
+            if(RvR_core_key_down(RVR_KEY_LSHIFT))
+               editor_ed_flood_floor_wall_tex(wx,wy,texture_selected);
+            else
+               editor_ed_floor_wall_tex(wx,wy,texture_selected);
+         }
+         else if(wlocation==3)
+         {
+            if(RvR_core_key_down(RVR_KEY_LSHIFT))
+               editor_ed_flood_ceiling_wall_tex(wx,wy,texture_selected);
+            else
+               editor_ed_ceiling_wall_tex(wx,wy,texture_selected);
          }
       }
 
@@ -126,9 +152,15 @@ void editor3d_update()
       if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
          menu = 0;
 
-      if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
-      {
+      texture_selection_scroll+=RvR_core_mouse_wheel_scroll()*-4;
 
+      if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT)&&mx/64<RVR_XRES/64)
+      {
+         int index = texture_list_used_wrap(texture_list_used.data_last-(mx/64+(texture_selection_scroll+my/64)*RVR_XRES/64));
+         texture_selected = texture_list_used.data[index];
+         texture_list_used_add(texture_selected);
+         menu = 0;
+         brush = 0;
       }
    }
    else if(menu==2)
@@ -136,8 +168,18 @@ void editor3d_update()
       if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
          menu = 0;
 
-      if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
+      texture_selection_scroll+=RvR_core_mouse_wheel_scroll()*-4;
+
+      if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT)&&mx/64<RVR_XRES/64)
       {
+         unsigned index = mx/64+(texture_selection_scroll+my/64)*RVR_XRES/64;
+         if(index<texture_list.data_used)
+         {
+            texture_selected = texture_list.data[index];
+            texture_list_used_add(texture_selected);
+            menu = 0;
+            brush = 0;
+         }
       }
    }
 }
@@ -254,9 +296,9 @@ void editor3d_draw()
       {
          for(int x = 0;x<RVR_XRES/64;x++)
          {
-            int index = y*(RVR_XRES/64)+x;
-            if(index<texture_list_used.data_used)
-               draw_fit64(x*64,y*64,texture_list_used.data[index].tex);
+            int index = texture_selection_scroll*(RVR_XRES/64)+y*(RVR_XRES/64)+x;
+            index = texture_list_used_wrap(texture_list_used.data_last-index);
+            draw_fit64(x*64,y*64,texture_list_used.data[index]);
          }
       }
 
@@ -271,7 +313,7 @@ void editor3d_draw()
       {
          for(int x = 0;x<RVR_XRES/64;x++)
          {
-            int index = y*(RVR_XRES/64)+x;
+            unsigned index = texture_selection_scroll*(RVR_XRES/64)+y*(RVR_XRES/64)+x;
             if(index<texture_list.data_used)
                draw_fit64(x*64,y*64,texture_list.data[index]);
          }

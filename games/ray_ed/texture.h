@@ -21,13 +21,8 @@ typedef struct
 
 typedef struct
 {
-   struct
-   {
-      uint16_t tex;
-      uint32_t count;
-   }*data;
-   unsigned data_used;
-   unsigned data_size;
+   uint16_t data[TEXTURE_MRU_SIZE];
+   unsigned data_last;
 }Texture_list_used;
 
 extern Texture_list texture_list;
@@ -36,5 +31,7 @@ extern Texture_list_used texture_list_used;
 void texture_list_create();
 void texture_list_used_create();
 void texture_list_used_add(uint16_t tex);
+
+#define texture_list_used_wrap(a) ((a)&(TEXTURE_MRU_SIZE-1))
 
 #endif

@@ -22,6 +22,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "../../src/RvnicRaven.h"
+#include "config.h"
 #include "color.h"
 #include "texture.h"
 #include "map.h"
@@ -69,7 +70,7 @@ int main(int argc, char **argv)
    colors_find();
    texture_list_create();
    texture_list_used_create();
-   printf("%d\n",texture_list_used.data_used);
+   //printf("%d\n",texture_list_used.data_used);
 
    char path[512];
    path_pop(argv[0],path,NULL);
