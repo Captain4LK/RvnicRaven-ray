@@ -55,6 +55,8 @@ typedef struct
    RvR_vec2 s_pos;
    uint16_t s_depth; //Depth can be at max 1024*8, so we don't need to use the full 32bits, making faster sorting possible (radix)
    uint16_t tex;
+   uint16_t scale_x;
+   uint16_t scale_y;
 }ray_sprite;
 //-------------------------------------
 
@@ -231,8 +233,8 @@ void RvR_ray_draw()
       ray_sprite sp = ray_sprite_stack.data[i];
       RvR_fix22 depth = sp.s_depth;
       RvR_texture *texture = RvR_texture_get(sp.tex);
-      int size_vertical = RvR_ray_perspective_scale_vertical(texture->height*3,depth);
-      int size_horizontal = RvR_ray_perspective_scale_horizontal(texture->width*2,depth);
+      int size_vertical = RvR_ray_perspective_scale_vertical((RVR_YRES*1024)/1024,depth);
+      int size_horizontal = RvR_ray_perspective_scale_vertical((RVR_YRES*1024)/1024,depth);
       int sx = 0;
       int sy = 0;
       int ex = size_horizontal;
@@ -261,7 +263,7 @@ void RvR_ray_draw()
       v_start = sy*v_step;
 
       //Draw
-      const uint8_t * restrict col = RvR_shade_table(RvR_min(63,10+22+(depth>>8)));
+      const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>8));
       uint8_t * restrict dst = NULL;
       const uint8_t * restrict tex = NULL;
 
@@ -527,13 +529,21 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
          p.tex_coords.x = hit.texture_coord;
 
          //draw floor wall
-         if(f_pos_y>0&&f_z1_world!=f_z2_world)  //still pixels left?
+         if(f_z1_world!=f_z2_world)
          {
-            limit = ray_draw_wall(f_pos_y,f_z1_screen,f_z2_screen,c_pos_y+1,
-                                          RVR_YRES,
-                                          //^ purposfully allow outside screen bounds here
-                                          f_z2_world-f_z1_world
-                                          ,-1,&p);
+            if(f_pos_y>0)  //still pixels left?
+            {
+               limit = ray_draw_wall(f_pos_y,f_z1_screen,f_z2_screen,c_pos_y+1,
+                                             RVR_YRES,
+                                             //^ purposfully allow outside screen bounds here
+                                             f_z2_world-f_z1_world
+                                             ,-1,&p);
+               if(f_pos_y>limit)
+                  f_pos_y = limit;
+
+               f_z1_world = f_z2_world; //for the next iteration
+                           //^ purposfully allow outside screen bounds here
+            }
 
             if(ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][2]>limit)
             {
@@ -546,21 +556,26 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
                ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][2] = limit_f;
                ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][3] = p.depth;
             }
+         }
 
-            if(f_pos_y>limit)
-               f_pos_y = limit;
-
-            f_z1_world = f_z2_world; //for the next iteration
-         }               //^ purposfully allow outside screen bounds here
 
          //draw ceiling wall
-         if(c_pos_y<RVR_YRES-1&&c_z1_world!=c_z2_world) //pixels left?
+         if(c_z1_world!=c_z2_world)
          {
-            limit = ray_draw_wall(c_pos_y,c_z1_screen,c_z2_screen,
-                              -1,f_pos_y-1,
-                              //^ puposfully allow outside screen bounds here
-                              c_z1_world-c_z2_world 
-                              ,1,&p);
+            if(c_pos_y<RVR_YRES-1) //pixels left?
+            {
+               limit = ray_draw_wall(c_pos_y,c_z1_screen,c_z2_screen,
+                                 -1,f_pos_y-1,
+                                 //^ puposfully allow outside screen bounds here
+                                 c_z1_world-c_z2_world 
+                                 ,1,&p);
+
+               if(c_pos_y<limit)
+                  c_pos_y = limit;
+
+               c_z1_world = c_z2_world; //for the next iteration
+                          //^ puposfully allow outside screen bounds here 
+            }
 
             p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)));
             if(ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][0]<limit)
@@ -575,11 +590,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
                ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][1] = p.depth;
             }
 
-            if(c_pos_y<limit)
-               c_pos_y = limit;
-
-            c_z1_world = c_z2_world; //for the next iteration
-         }              //^ puposfully allow outside screen bounds here 
+         }
       }
    }
 }
@@ -603,8 +614,8 @@ static ray_pixel_info ray_map_to_screen(RvR_vec3 world_position)
 
    RvR_fix22 tmp = to_point.x;
 
-   to_point.x = (to_point.x*cos-to_point.y*sin)/1024; 
-   to_point.y = (tmp*sin+to_point.y*cos)/1024; 
+   to_point.x = (to_point.x*cos+to_point.y*sin)/1024; 
+   to_point.y = (tmp*sin-to_point.y*cos)/1024; 
 
    result.depth = to_point.x;
 

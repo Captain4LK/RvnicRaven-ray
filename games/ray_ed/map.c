@@ -13,6 +13,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
+#include <inttypes.h>
 
 #include "../../external/cute_path.h"
 #include "../../external/cute_files.h"
@@ -32,6 +34,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 RvR_ray_map *map = NULL;
+Map_sprite *map_sprites = NULL;
 
 static struct
 {
@@ -40,7 +43,9 @@ static struct
    unsigned data_size;
 }path_list = {0};
 static Map_list map_list = {0};
-static char map_name[9];
+static char map_path[64];
+
+static Map_sprite *map_sprite_pool = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -49,10 +54,11 @@ static void map_list_add(const char *path);
 
 //Function implementations
 
-void map_load(uint16_t id)
+void map_load(const char *path)
 {
-   snprintf(map_name,9,"MAP%05d",id);
-   RvR_ray_map_load(id);
+   map_set_path(path);
+   //snprintf(map_name,9,"MAP%05d",id);
+   RvR_ray_map_load_path(map_path);
    
    map = RvR_ray_map_get();
    printf("Map dimensions: %ux%u\n",map->width,map->height);
@@ -60,11 +66,13 @@ void map_load(uint16_t id)
    camera.pos.x = map->width*512+512;
    camera.pos.y = map->height*512+512;
    camera.pos.z = INT16_MIN;
+
+   editor_undo_reset();
 }
 
 void map_new(uint16_t width, uint16_t height)
 {
-   snprintf(map_name,9,"MAP%05d",UINT16_MAX);
+   snprintf(map_path,64,"map%"PRIu64".map",(uint64_t)time(NULL));
    RvR_ray_map_create(width,height);
    map = RvR_ray_map_get();
    printf("Map dimensions: %ux%u\n",map->width,map->height);
@@ -72,19 +80,12 @@ void map_new(uint16_t width, uint16_t height)
    camera.pos.x = map->width*512+512;
    camera.pos.y = map->height*512+512;
    camera.pos.z = INT16_MIN;
+
+   editor_undo_reset();
 }
 
 void map_save()
 {
-   const char *path = RvR_lump_get_path("PAL00000");
-   char path_new[512] = {0};
-   path_pop(path,path_new,NULL);
-
-   strcat(path_new,"/");
-   strcat(path_new,map_name);
-   strcat(path_new,".rvr");
-   puts(path_new);
-
    RvR_ray_map_cache *map_cache = RvR_ray_map_cache_get();
    map_cache->floor_color = map->floor_color;
    map_cache->sky_tex = map->sky_tex;
@@ -98,13 +99,19 @@ void map_save()
       map_cache->ceiling[i] = map->ceiling[i]/128;
    }
 
-   RvR_ray_map_save(path_new);
+   puts(map_path);
+   RvR_ray_map_save(map_path);
 }
 
-void map_set_name(const char *name)
+void map_set_path(const char *path)
 {
-   strncpy(map_name,name,8);
-   map_name[8] = '\0';
+   strncpy(map_path,path,64);
+   map_path[63] = '\0';
+}
+
+const char *map_path_get()
+{
+   return map_path;
 }
 
 void map_path_add(const char *path)
@@ -171,5 +178,74 @@ int map_tile_comp(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, RvR_fix22 che
       return 0;
 
    return 1;
+}
+
+void map_sky_tex_set(uint16_t tex)
+{
+   map->sky_tex = tex;
+}
+
+Map_list *map_list_get()
+{
+   char path[64];
+   map_list.data_used = 0;
+
+   for(int i = 0;i<path_list.data_used;i++)
+   {
+      cf_dir_t dir = {0};
+      cf_dir_open(&dir,path_list.data[i]);
+
+      while(dir.has_next)
+      {
+         cf_file_t file;
+         cf_read_file(&dir,&file);
+         if(cf_match_ext(&file,".map"))
+         {
+            snprintf(path,64,"%s%s",path_list.data[i],file.name);
+            map_list_add(path);
+         }
+
+         cf_dir_next(&dir);
+      }
+
+      cf_dir_close(&dir);
+   }
+
+   return &map_list;
+}
+
+Map_sprite *map_sprite_new()
+{
+   if(map_sprite_pool==NULL)
+   {
+      Map_sprite *ms = RvR_malloc(sizeof(*ms)*256);
+      memset(ms,0,sizeof(*ms)*256);
+
+      for(int i = 0;i<255;i++)
+         ms[i].next = &ms[i+1];
+      map_sprite_pool = &ms[0];
+   }
+
+   Map_sprite *ms = map_sprite_pool;
+   map_sprite_pool = ms->next;
+   ms->next = NULL;
+   ms->prev_next = NULL;
+
+   return ms;
+}
+
+void map_sprite_add(Map_sprite *sp)
+{
+   sp->prev_next = &map_sprites;
+   if(map_sprites!=NULL)
+      map_sprites->prev_next = &sp->next;
+
+   sp->next = map_sprites;
+   map_sprites = sp;
+}
+
+void map_sprite_free(Map_sprite *sp)
+{
+
 }
 //-------------------------------------

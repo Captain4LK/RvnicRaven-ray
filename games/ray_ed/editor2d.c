@@ -37,6 +37,9 @@ static int menu = 0;
 static char menu_input[512] = {0};
 static uint16_t menu_new_width = 0;
 static uint16_t menu_new_height = 0;
+
+static Map_list *map_list = NULL;
+static int map_list_scroll = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -46,9 +49,6 @@ static uint16_t menu_new_height = 0;
 
 void editor2d_update()
 {
-   if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
-      menu = !menu;
-
    //Big mess
    //Probably the worst code I've written this year...
    if(menu!=0)
@@ -64,6 +64,9 @@ void editor2d_update()
             menu = 0;
          break;
       case 1:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+            menu = 0;
+
          if(RvR_core_key_pressed(RVR_KEY_N))
          {
             menu = 2;
@@ -71,12 +74,22 @@ void editor2d_update()
          else if(RvR_core_key_pressed(RVR_KEY_S))
          {
             map_save();
+            menu = -2;
          }
          else if(RvR_core_key_pressed(RVR_KEY_A))
          {
             menu = 5;
             menu_input[0] = '\0';
-            RvR_core_text_input_start(menu_input,9);
+            RvR_core_text_input_start(menu_input,64);
+         }
+         else if(RvR_core_key_pressed(RVR_KEY_Q))
+         {
+            menu = 6;
+         }
+         else if(RvR_core_key_pressed(RVR_KEY_L))
+         {
+            map_list = map_list_get();
+            menu = 8;
          }
          break;
       case 2:
@@ -147,15 +160,54 @@ void editor2d_update()
          if(RvR_core_key_pressed(RVR_KEY_ENTER))
          {
             RvR_core_text_input_end();
-            map_set_name(menu_input);
+            map_set_path(menu_input);
             map_save();
-            menu = -2;
+            menu = 0;
+         }
+         break;
+      case 6:
+         if(RvR_core_key_pressed(RVR_KEY_Y))
+            menu = 7;
+         else if(RvR_core_key_pressed(RVR_KEY_N))
+            menu = 0;
+         break;
+      case 7:
+         if(RvR_core_key_pressed(RVR_KEY_Y))
+         {
+            map_save();
+            RvR_core_quit();
+         }
+         else if(RvR_core_key_pressed(RVR_KEY_N))
+         {
+            RvR_core_quit();
+         }
+         break;
+      case 8:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+         {
+            menu = 0;
+         }
+         else if(RvR_core_key_pressed(RVR_KEY_DOWN)&&map_list_scroll<map_list->data_used-1)
+         {
+            map_list_scroll++;
+         }
+         else if(RvR_core_key_pressed(RVR_KEY_UP)&&map_list_scroll>0)
+         {
+            map_list_scroll--;
+         }
+         else if(RvR_core_key_pressed(RVR_KEY_ENTER))
+         {
+            map_load(map_list->data[map_list_scroll]);
+            menu = 0;
          }
          break;
       }
 
       return;
    }
+
+   if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+      menu = !menu;
 
    if(RvR_core_mouse_pressed(RVR_BUTTON_RIGHT))
    {
@@ -216,11 +268,25 @@ void editor2d_draw()
 {
    RvR_draw_clear(color_black);
 
+   if(menu==8)
+   {
+      int scroll = 0;
+      if(map_list_scroll>RVR_YRES/10)
+         scroll = map_list_scroll-RVR_YRES-10;
+      for(int i = 0;i<=RVR_YRES/10;i++)
+      {
+         int index = i+scroll;
+         if(index<map_list->data_used)
+            RvR_draw_string(5,i*10,1,map_list->data[i],index==map_list_scroll?color_white:color_light_gray);
+      }
+      return;
+   }
+
    int sx = scroll_x/grid_size;
    int sy = scroll_y/grid_size;
-   for(int y = 0;y<=RVR_YRES/grid_size+1;y++)
+   for(int y = -1;y<=RVR_YRES/grid_size+1;y++)
    {
-      for(int x = 0;x<=RVR_XRES/grid_size+1;x++)
+      for(int x = -1;x<=RVR_XRES/grid_size+1;x++)
       {
          {
             int tx = (x+sx)*grid_size-scroll_x;
@@ -266,12 +332,12 @@ void editor2d_draw()
    RvR_draw_vertical_line(mx,my-1,my-4,color_magenta);
    RvR_draw_vertical_line(mx,my+1,my+4,color_magenta);
 
-      RvR_draw_rectangle_fill(0,RVR_YRES-12,RVR_XRES,12,color_dark_gray);
-      char tmp[512];
+   RvR_draw_rectangle_fill(0,RVR_YRES-12,RVR_XRES,12,color_dark_gray);
+   char tmp[512];
       
    switch(menu)
    {
-   case -2: snprintf(tmp,512,"Saved map to %s.rvr",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case -2: snprintf(tmp,512,"Saved map to %s",map_path_get()); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case -1: RvR_draw_string(5,RVR_YRES-10,1,"Invalid input",color_white); break;
    case 0: snprintf(tmp,512,"x: %d y:%d ang:%d",camera.pos.x,camera.pos.y,camera.direction); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case 1: RvR_draw_string(5,RVR_YRES-10,1,"(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit",color_white); break;
@@ -279,6 +345,8 @@ void editor2d_draw()
    case 3: snprintf(tmp,512,"Map width: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case 4: snprintf(tmp,512,"Map height: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case 5: snprintf(tmp,512,"Save as: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 6: RvR_draw_string(5,RVR_YRES-10,1,"Are you sure you want to quit? (Y/N)",color_white); break;
+   case 7: RvR_draw_string(5,RVR_YRES-10,1,"Save changes? (Y/N)",color_white); break;
    }
 }
 //-------------------------------------

@@ -25,6 +25,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define GRAVITY 16
 #define MAX_VERTICAL_SPEED 256
 #define JUMP_SPEED 128
+
+#define CAMERA_SHEAR_MAX_PIXELS ((CAMERA_SHEAR_MAX*RVR_YRES)/1024)
 //-------------------------------------
 
 //Typedefs
@@ -71,13 +73,13 @@ void player_update()
    //Strafing
    if(RvR_core_key_down(config_strafe_left))
    {
-      move_offset.x-=direction.y;
-      move_offset.y+=direction.x;
+      move_offset.x+=direction.y;
+      move_offset.y-=direction.x;
    }
    else if(RvR_core_key_down(config_strafe_right))
    {
-      move_offset.x+=direction.y;
-      move_offset.y-=direction.x;
+      move_offset.x-=direction.y;
+      move_offset.y+=direction.x;
    }
    
    //Mouse look: x-axis
@@ -93,7 +95,7 @@ void player_update()
       shearing = !shearing;
    //Mouse look: y-axis
    if(y!=0&&shearing)
-      player.shear = RvR_max(RvR_min(player.shear-(y*config_mouse_sensitivity_vertical)/128,config_camera_max_shear),-config_camera_max_shear);
+      player.shear = RvR_max(RvR_min(player.shear-(y*config_mouse_sensitivity_vertical)/128,CAMERA_SHEAR_MAX_PIXELS),-CAMERA_SHEAR_MAX_PIXELS);
 
    //Only for testing --> flying basically
    player.vertical_speed-=GRAVITY;

@@ -28,6 +28,8 @@ void editor_undo();
 void editor_redo();
 void camera_update();
 
+void editor_undo_reset();
+
 //Editing
 //Height
 void editor_ed_floor(int16_t x, int16_t y, int fac);

@@ -166,7 +166,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
          }
          h.fheight = 0;
          h.cheight = (127*1024)/8;
-         h.floor_tex = 0;
+         h.floor_tex = RvR_ray_map_sky_tex();
          h.ceil_tex = RvR_ray_map_sky_tex();
 
          switch(h.direction)

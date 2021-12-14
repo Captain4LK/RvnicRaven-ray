@@ -59,12 +59,12 @@ void RvR_ray_map_create(uint16_t width, uint16_t height)
    ray_map_cache.sky_tex = 0;
    ray_map_cache.sprite_count = 0;
 
-   for(int y = 1;y<ray_map_cache.height-1;y++)
+   for(int y = 0;y<ray_map_cache.height;y++)
    {
-      for(int x = 1;x<ray_map_cache.width-1;x++)
+      for(int x = 0;x<ray_map_cache.width;x++)
       {
          ray_map_cache.floor[y*ray_map_cache.width+x] = 0;
-         ray_map_cache.ceiling[y*ray_map_cache.width+x] = 127;
+         ray_map_cache.ceiling[y*ray_map_cache.width+x] = 32;
       }
    }
 
@@ -200,7 +200,7 @@ void RvR_ray_map_reset_full()
 
 void RvR_ray_map_load_path(const char *path)
 {
-   int size = 0;
+   int32_t size = 0;
    uint8_t endian;
    uint8_t *mem = RvR_decompress_path(path,&size,&endian);
 
@@ -208,6 +208,8 @@ void RvR_ray_map_load_path(const char *path)
    RvR_rw_init_const_mem(&rw,mem,size);
    RvR_rw_endian(&rw,endian);
    RvR_ray_map_load_rw(&rw);
+
+   RvR_rw_close(&rw);
    RvR_free(mem);
 }
 
@@ -229,8 +231,8 @@ void RvR_ray_map_load(uint16_t id)
    RvR_rw_init_const_mem(&rw,mem_decomp,size_out);
    RvR_rw_endian(&rw,endian);
    RvR_ray_map_load_rw(&rw);
-   RvR_rw_close(&rw);
 
+   RvR_rw_close(&rw);
    RvR_free(mem_decomp);
 }
 

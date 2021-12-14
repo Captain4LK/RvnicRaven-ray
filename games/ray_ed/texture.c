@@ -54,6 +54,7 @@ void texture_list_create()
          continue;
 
       RvR_texture_load(i);
+      RvR_texture_lock(i);
       RvR_texture *tex = RvR_texture_get(i);
 
       if(tex->width==1<<RVR_RAY_TEXTURE_SKY_W)
@@ -71,7 +72,6 @@ void texture_list_create()
          continue;
       }
 
-      RvR_texture_lock(i);
       texture_list.data[texture_list.data_used++] = i;
       if(texture_list.data_used==texture_list.data_size)
       {

@@ -60,17 +60,14 @@ int main(int argc, char **argv)
    RvR_core_mouse_show(0);
    RvR_core_key_repeat(1);
 
-   //RvR_pak_create_from_csv("data_demo/main.csv","test.pak");
-   //RvR_pak_add("test.pak");
    RvR_pak_add(argv[1]);
    RvR_palette_load(0);
    RvR_font_load(0xF000);
 
-   map_load(0);
+   map_new(64,64);
    colors_find();
    texture_list_create();
    texture_list_used_create();
-   //printf("%d\n",texture_list_used.data_used);
 
    char path[512];
    path_pop(argv[0],path,NULL);
@@ -94,6 +91,9 @@ int main(int argc, char **argv)
 
       RvR_core_render_present();
    }
+
+   map_set_path("autosave.map");
+   map_save();
 
    return 0;
 }

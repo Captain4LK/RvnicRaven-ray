@@ -103,9 +103,11 @@ void game_update()
       }
       else
       {
+         RvR_vec3 pos = e->pos;
+         //pos.x+=512;
          //TODO: calculate rotation
          if(e->ai.state->sprite!=SPRITE_MAX)
-            RvR_ray_draw_sprite(e->pos,sprite_rot(e->ai.state->sprite,0));
+            RvR_ray_draw_sprite(pos,sprite_rot(e->ai.state->sprite,0));
       }
       e = e->next;
    }

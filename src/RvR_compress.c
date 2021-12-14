@@ -144,7 +144,7 @@ void *RvR_decompress(FILE *in, int32_t *length, uint8_t *endian)
    int size = 0;
    fseek(in,0,SEEK_END);
    size = ftell(in)-5;
-   fseek(in,4,SEEK_SET);
+   fseek(in,5,SEEK_SET);
    buffer_in = RvR_malloc(size+1);
    uint8_t *buffer_out = RvR_malloc((*length)+1);
    fread(buffer_in,size,1,in);

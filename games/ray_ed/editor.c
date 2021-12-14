@@ -64,8 +64,6 @@ static uint16_t *undo_buffer = NULL;
 static int undo_len = 0;
 static int undo_pos = 0;
 static int redo_len = 0;
-static int undo_availible_valid = 0;
-static int undoing = 0;
 static uint32_t undo_entry_len = 0;
 //-------------------------------------
 
@@ -130,12 +128,17 @@ void editor_init()
 
    RvR_texture_create(UINT16_MAX-1,1<<RVR_RAY_TEXTURE,1<<RVR_RAY_TEXTURE);
    RvR_texture_create(UINT16_MAX-2,1<<RVR_RAY_TEXTURE,1<<RVR_RAY_TEXTURE_HIGH);
+   RvR_texture_lock(UINT16_MAX-1);
+   RvR_texture_lock(UINT16_MAX-2);
 }
 
 void editor_update()
 {
    if(RvR_core_key_pressed(RVR_KEY_NP_ENTER))
       editor_mode = !editor_mode;
+
+   if(RvR_core_key_down(RVR_KEY_LCTRL)&&RvR_core_key_pressed(RVR_KEY_S))
+      map_save();
 
    if(editor_mode==0)
       editor2d_update();
@@ -239,6 +242,13 @@ void editor_redo()
    undo_write((len>>16)&UINT16_MAX);
    undo_write(len&UINT16_MAX);
    undo_buffer[undo_pos] = JUNK_RECORD;
+}
+
+void editor_undo_reset()
+{
+   undo_len = 0;
+   undo_pos = 0;
+   redo_len = 0;
 }
 
 void camera_update()
@@ -526,7 +536,6 @@ static void undo_write(uint16_t val)
    undo_len+=(undo_len<UNDO_BUFFER_SIZE-2);
    redo_len-=(redo_len>0);
    undo_entry_len++;
-   undo_availible_valid = 0;
 }
 
 static void redo_write(uint16_t val)
@@ -536,7 +545,6 @@ static void redo_write(uint16_t val)
    undo_pos = WRAP(pos-1);
    redo_len+=(redo_len<UNDO_BUFFER_SIZE-2);
    undo_len-=(undo_len>0);
-   undo_availible_valid = 0;
 }
 
 static void undo_begin(Ed_action action)
@@ -544,15 +552,11 @@ static void undo_begin(Ed_action action)
    redo_len = 0;
    undo_write(UNDO_RECORD);
    undo_write(action);
-   undoing = 1;
    undo_entry_len = 0;
 }
 
 static void undo_end()
 {
-   if(!undoing)
-      return;
-
    int pos = WRAP(undo_pos-1);
    //int pos = (undo_pos-1)&(UNDO_BUFFER_SIZE-1);
    if(undo_buffer[pos]==UNDO_RECORD)
@@ -569,7 +573,6 @@ static void undo_end()
       undo_write(lo);
    }
    undo_buffer[undo_pos] = JUNK_RECORD;
-   undoing = 0;
 }
 
 static void undo_record_height(int16_t x, int16_t y, RvR_fix22 height)

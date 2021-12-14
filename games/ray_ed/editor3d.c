@@ -62,6 +62,14 @@ void editor3d_update()
       //Get real world tile position of mouse
       if(!RvR_core_key_down(RVR_KEY_LCTRL))
          mouse_world_pos(mx,my,&wx,&wy,&wlocation);
+      if(RvR_core_key_down(RVR_KEY_1))
+         wlocation = 0;
+      else if(RvR_core_key_down(RVR_KEY_2))
+         wlocation = 1;
+      else if(RvR_core_key_down(RVR_KEY_3))
+         wlocation = 2;
+      else if(RvR_core_key_down(RVR_KEY_4))
+         wlocation = 3;
 
       if(RvR_core_key_pressed(RVR_KEY_PGUP))
       {
@@ -154,13 +162,23 @@ void editor3d_update()
 
       texture_selection_scroll+=RvR_core_mouse_wheel_scroll()*-4;
 
-      if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT)&&mx/64<RVR_XRES/64)
+      if(mx/64<RVR_XRES/64)
       {
-         int index = texture_list_used_wrap(texture_list_used.data_last-(mx/64+(texture_selection_scroll+my/64)*RVR_XRES/64));
-         texture_selected = texture_list_used.data[index];
-         texture_list_used_add(texture_selected);
-         menu = 0;
-         brush = 0;
+         if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
+         {
+            int index = texture_list_used_wrap(texture_list_used.data_last-(mx/64+(texture_selection_scroll+my/64)*RVR_XRES/64));
+            texture_selected = texture_list_used.data[index];
+            texture_list_used_add(texture_selected);
+            menu = 0;
+            brush = 0;
+         }
+         if(RvR_core_key_pressed(RVR_KEY_S))
+         {
+            int index = texture_list_used_wrap(texture_list_used.data_last-(mx/64+(texture_selection_scroll+my/64)*RVR_XRES/64));
+            map_sky_tex_set(texture_list_used.data[index]);
+            menu = 0;
+            brush = 0;
+         }
       }
    }
    else if(menu==2)
@@ -170,15 +188,28 @@ void editor3d_update()
 
       texture_selection_scroll+=RvR_core_mouse_wheel_scroll()*-4;
 
-      if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT)&&mx/64<RVR_XRES/64)
+      if(mx/64<RVR_XRES/64)
       {
-         unsigned index = mx/64+(texture_selection_scroll+my/64)*RVR_XRES/64;
-         if(index<texture_list.data_used)
+         if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
          {
-            texture_selected = texture_list.data[index];
-            texture_list_used_add(texture_selected);
-            menu = 0;
-            brush = 0;
+            unsigned index = mx/64+(texture_selection_scroll+my/64)*RVR_XRES/64;
+            if(index<texture_list.data_used)
+            {
+               texture_selected = texture_list.data[index];
+               texture_list_used_add(texture_selected);
+               menu = 0;
+               brush = 0;
+            }
+         }
+         if(RvR_core_key_pressed(RVR_KEY_S))
+         {
+            unsigned index = mx/64+(texture_selection_scroll+my/64)*RVR_XRES/64;
+            if(index<texture_list.data_used)
+            {
+               map_sky_tex_set(texture_list.data[index]);
+               menu = 0;
+               brush = 0;
+            }
          }
       }
    }
