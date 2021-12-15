@@ -53,6 +53,7 @@ typedef struct
 typedef struct
 {
    RvR_vec2 s_pos;
+   RvR_vec2 w_pos;
    uint16_t s_depth; //Depth can be at max 1024*8, so we don't need to use the full 32bits, making faster sorting possible (radix)
    uint16_t tex;
    uint16_t scale_x;
@@ -111,7 +112,7 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex)
 
    //Clip sprite
    //The more clipping we do here, the faster the sprite sorting will be
-   if(p.depth<0||p.depth>8*1024)
+   if(p.depth<0||p.depth>24*1024)
       return;
    //TODO: find a better way to do this, which requires
    //less tolerance (needed here to handle really close sprites)
@@ -123,6 +124,8 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex)
    s.s_pos = p.position;
    s.s_depth = p.depth;
    s.tex = tex;
+   s.w_pos.x = pos.x;
+   s.w_pos.y = pos.y;
 
    ray_sprite_stack_push(s);
 }
@@ -137,7 +140,7 @@ void RvR_ray_draw()
       ray_depth_buffer[0][i][0] = 0;
       ray_depth_buffer[0][i][2] = RVR_YRES;
    }
-   for(int i = 1;i<16;i++)
+   for(int i = 1;i<32;i++)
       memcpy(ray_depth_buffer[i],ray_depth_buffer[0],sizeof(ray_depth_buffer[0]));
 
    //Clear planes
@@ -233,8 +236,11 @@ void RvR_ray_draw()
       ray_sprite sp = ray_sprite_stack.data[i];
       RvR_fix22 depth = sp.s_depth;
       RvR_texture *texture = RvR_texture_get(sp.tex);
-      int size_vertical = RvR_ray_perspective_scale_vertical((RVR_YRES*1024)/1024,depth);
-      int size_horizontal = RvR_ray_perspective_scale_vertical((RVR_YRES*1024)/1024,depth);
+
+      RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
+      RvR_fix22 scale_horizontal = RVR_YRES*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
+      int size_vertical = RvR_ray_perspective_scale_vertical((scale_vertical)/1024,depth);
+      int size_horizontal = RvR_ray_perspective_scale_vertical((scale_horizontal)/1024,depth);
       int sx = 0;
       int sy = 0;
       int ex = size_horizontal;
@@ -247,17 +253,29 @@ void RvR_ray_draw()
       RvR_fix22 v_step = (texture->height*1024-1)/RvR_non_zero(size_vertical);
       RvR_fix22 v_start = 0;
 
-      //Clip coordinates to screen
+      //Floor and ceiling clip
+      RvR_vec3 floor_wpos;
+      floor_wpos.x = sp.w_pos.x;
+      floor_wpos.y = sp.w_pos.y;
+      floor_wpos.z = RvR_ray_map_floor_height_at(sp.w_pos.x/1024,sp.w_pos.y/1024);
+      int clip_bottom = ray_map_to_screen(floor_wpos).position.y;
+      floor_wpos.z = RvR_ray_map_ceiling_height_at(sp.w_pos.x/1024,sp.w_pos.y/1024);
+      int clip_top = ray_map_to_screen(floor_wpos).position.y;
+
+      clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
+      clip_top = clip_top<0?0:clip_top;
+
+      //Clip coordinates to screen/clip_top and clip_bottom
       if(x<0)
          sx = -x;
-      if(y<0)
-         sy = -y;
+      if(y<clip_top)
+         sy = clip_top-y;
       if(x+ex>RVR_XRES)
          ex = size_horizontal+(RVR_XRES-x-ex);
-      if(y+ey>RVR_YRES)
-         ey = size_vertical+(RVR_YRES-y-ey);
+      if(y+ey>clip_bottom)
+         ey = size_vertical+(clip_bottom-y-ey);
       x = x<0?0:x;
-      y = y<0?0:y;
+      y = y<clip_top?clip_top:y;
 
       u = sx*u_step;
       v_start = sy*v_step;
@@ -525,7 +543,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
       if(!drawing_horizon) //don't draw walls for horizon plane
       {
          p.depth = distance;
-         p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)));
+         p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*(1024/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION))*1024));
          p.tex_coords.x = hit.texture_coord;
 
          //draw floor wall
@@ -577,7 +595,8 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
                           //^ puposfully allow outside screen bounds here 
             }
 
-            p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)));
+            //p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)));
+            //p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS-1)*(1024/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION))*1024));
             if(ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][0]<limit)
             {
                ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][0] = limit;

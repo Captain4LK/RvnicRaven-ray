@@ -303,6 +303,13 @@ void editor3d_draw()
             RvR_ray_map_wall_ctex_set(wx,wy,UINT16_MAX-2);
       }
       //-------------------------------------
+
+      Map_sprite *s = map_sprites;
+      while(s!=NULL)
+      {
+         RvR_ray_draw_sprite(s->pos,s->type);
+         s = s->next;
+      }
       
       RvR_ray_draw();
 

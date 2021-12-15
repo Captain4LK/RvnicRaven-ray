@@ -56,12 +56,32 @@ static void map_list_add(const char *path);
 
 void map_load(const char *path)
 {
+   //Free old sprites
+   while(map_sprites!=NULL)
+      map_sprite_free(map_sprites);
+
    map_set_path(path);
-   //snprintf(map_name,9,"MAP%05d",id);
    RvR_ray_map_load_path(map_path);
    
    map = RvR_ray_map_get();
    printf("Map dimensions: %ux%u\n",map->width,map->height);
+
+   //Load sprites
+   for(int i = 0;i<RvR_ray_map_sprite_count();i++)
+   {
+      RvR_ray_map_sprite *s = RvR_ray_map_sprite_get(i);
+      Map_sprite *ms = map_sprite_new();
+
+      ms->type = s->type;
+      ms->extra0 = s->extra0;
+      ms->extra1 = s->extra1;
+      ms->extra2 = s->extra2;
+      ms->extra3 = s->extra3;
+      ms->direction = s->direction;
+      ms->pos = s->pos;
+
+      map_sprite_add(ms);
+   }
 
    camera.pos.x = map->width*512+512;
    camera.pos.y = map->height*512+512;
@@ -72,6 +92,10 @@ void map_load(const char *path)
 
 void map_new(uint16_t width, uint16_t height)
 {
+   //Free old sprites
+   while(map_sprites!=NULL)
+      map_sprite_free(map_sprites);
+
    snprintf(map_path,64,"map%"PRIu64".map",(uint64_t)time(NULL));
    RvR_ray_map_create(width,height);
    map = RvR_ray_map_get();
@@ -97,6 +121,30 @@ void map_save()
    {
       map_cache->floor[i] = map->floor[i]/128;
       map_cache->ceiling[i] = map->ceiling[i]/128;
+   }
+
+   //Save sprites
+   //count
+   int sprite_count = 0;
+   Map_sprite *s = map_sprites;
+   while(s!=NULL)
+   {
+      s = s->next;
+      sprite_count++;
+   }
+   map_cache->sprite_count = sprite_count;
+   map_cache->sprites = RvR_realloc(map_cache->sprites,sizeof(*map_cache->sprites)*map_cache->sprite_count);
+   s = map_sprites;
+   for(int i = 0;s!=NULL;i++)
+   {
+      map_cache->sprites[i].type = s->type;
+      map_cache->sprites[i].pos = s->pos;
+      map_cache->sprites[i].direction = s->direction;
+      map_cache->sprites[i].extra0 = s->extra0;
+      map_cache->sprites[i].extra1 = s->extra1;
+      map_cache->sprites[i].extra2 = s->extra2;
+      map_cache->sprites[i].extra3 = s->extra3;
+      s = s->next;
    }
 
    puts(map_path);
@@ -246,6 +294,14 @@ void map_sprite_add(Map_sprite *sp)
 
 void map_sprite_free(Map_sprite *sp)
 {
+   if(sp==NULL)
+      return;
 
+   *sp->prev_next = sp->next;
+   if(sp->next!=NULL)
+      sp->next->prev_next = sp->prev_next;
+
+   sp->next = map_sprite_pool;
+   map_sprite_pool = sp;
 }
 //-------------------------------------
