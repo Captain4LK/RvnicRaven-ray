@@ -14,9 +14,22 @@
 |Z+LALT|Look down|
 |+LSHIFT|faster movement|
 
-# Editing
+# Editing (3d)
 
 |Key|Function|
 |---|---|
 |U|undo|
 |R|redo|
+|LCTRL|lock selection|
+|V|enter texture list (press once for most recently used, twice for all textures)|
+|PGUP|raise floor/ceiling/sprite, +LSHIFT for flood fill|
+|PGDOWN|lower floor/ceiling/sprite, +LSHIFT for flood fill|
+|LMOUSE|change texture of selected tile/sprite|
+
+# Editing (2d)
+
+|Key|Function|
+|RMOUSE|move camera|
+|LMOUSE|move selected sprite|
+|S|place sprite|
+|1 - 4|change sprite tags|

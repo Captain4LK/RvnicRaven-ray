@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <inttypes.h>
 //-------------------------------------
 
 //Internal includes
@@ -40,6 +41,8 @@ static uint16_t menu_new_height = 0;
 
 static Map_list *map_list = NULL;
 static int map_list_scroll = 0;
+
+static Map_sprite *sprite_sel = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -49,6 +52,9 @@ static int map_list_scroll = 0;
 
 void editor2d_update()
 {
+   int mx,my;
+   RvR_core_mouse_pos(&mx,&my);
+
    //Big mess
    //Probably the worst code I've written this year...
    if(menu!=0)
@@ -201,6 +207,46 @@ void editor2d_update()
             menu = 0;
          }
          break;
+      case 9:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+            menu = 0;
+         if(RvR_core_key_pressed(RVR_KEY_ENTER))
+         {
+            RvR_core_text_input_end();
+            sprite_sel->extra0 = atoi(menu_input);
+            menu = 0;
+         }
+         break;
+      case 10:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+            menu = 0;
+         if(RvR_core_key_pressed(RVR_KEY_ENTER))
+         {
+            RvR_core_text_input_end();
+            sprite_sel->extra1 = atoi(menu_input);
+            menu = 0;
+         }
+         break;
+      case 11:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+            menu = 0;
+         if(RvR_core_key_pressed(RVR_KEY_ENTER))
+         {
+            RvR_core_text_input_end();
+            sprite_sel->extra2 = atoi(menu_input);
+            menu = 0;
+         }
+         break;
+      case 12:
+         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
+            menu = 0;
+         if(RvR_core_key_pressed(RVR_KEY_ENTER))
+         {
+            RvR_core_text_input_end();
+            sprite_sel->extra3 = atoi(menu_input);
+            menu = 0;
+         }
+         break;
       }
 
       return;
@@ -209,12 +255,87 @@ void editor2d_update()
    if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
       menu = !menu;
 
+   //Find selected sprite
+   sprite_sel = map_sprites;
+   while(sprite_sel!=NULL)
+   {
+      int sx = (sprite_sel->pos.x*grid_size)/1024-scroll_x;
+      int sy = (sprite_sel->pos.y*grid_size)/1024-scroll_y;
+      if(mx>sx-grid_size/4&&mx<sx+grid_size/4&&my>sy-grid_size/4&&my<sy+grid_size/4)
+         break;
+      sprite_sel = sprite_sel->next;
+   }
+
+   if(RvR_core_key_pressed(RVR_KEY_1)&&sprite_sel!=NULL)
+   {
+      menu = 9;
+      snprintf(menu_input,512,"%"PRIi32,sprite_sel->extra0);
+      RvR_core_text_input_start(menu_input,512);
+   }
+   else if(RvR_core_key_pressed(RVR_KEY_2)&&sprite_sel!=NULL)
+   {
+      menu = 10;
+      snprintf(menu_input,512,"%"PRIi32,sprite_sel->extra1);
+      RvR_core_text_input_start(menu_input,512);
+   }
+   else if(RvR_core_key_pressed(RVR_KEY_3)&&sprite_sel!=NULL)
+   {
+      menu = 11;
+      snprintf(menu_input,512,"%"PRIi32,sprite_sel->extra2);
+      RvR_core_text_input_start(menu_input,512);
+   }
+   else if(RvR_core_key_pressed(RVR_KEY_4)&&sprite_sel!=NULL)
+   {
+      menu = 12;
+      snprintf(menu_input,512,"%"PRIi32,sprite_sel->extra3);
+      RvR_core_text_input_start(menu_input,512);
+   }
+
+   static Map_sprite *sprite_move = NULL;
+   if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT)&&sprite_sel!=NULL)
+      sprite_move = sprite_sel;
+   if(RvR_core_mouse_released(RVR_BUTTON_LEFT))
+      sprite_move = NULL;
+
+   if(sprite_move!=NULL)
+   {
+      sprite_move->pos.x = ((mx+scroll_x)*1024)/grid_size;
+      sprite_move->pos.y = ((my+scroll_y)*1024)/grid_size;
+      sprite_move->pos.z = RvR_ray_map_floor_height_at(sprite_move->pos.x/1024,sprite_move->pos.y/1024);
+   }
+   else if(sprite_sel!=NULL)
+   {
+      if(RvR_core_key_pressed(RVR_KEY_DEL))
+      {
+         map_sprite_free(sprite_sel);
+         sprite_sel = NULL;
+      }
+      else if(RvR_core_key_pressed(RVR_KEY_PERIOD))
+         sprite_sel->direction-=RvR_core_key_down(RVR_KEY_LSHIFT)?32:8;
+      else if(RvR_core_key_pressed(RVR_KEY_COMMA))
+         sprite_sel->direction+=RvR_core_key_down(RVR_KEY_LSHIFT)?32:8;
+   }
+
+   if(RvR_core_key_pressed(RVR_KEY_S))
+   {
+      Map_sprite *ms = map_sprite_new();
+
+      ms->type = 0;
+      ms->direction = 0;
+      ms->extra0 = 0;
+      ms->extra1 = 0;
+      ms->extra2 = 0;
+      ms->extra3 = 0;
+      ms->pos.x = ((mx+scroll_x)*1024)/grid_size;
+      ms->pos.y = ((my+scroll_y)*1024)/grid_size;
+      ms->pos.z = RvR_ray_map_floor_height_at(ms->pos.x/1024,ms->pos.y/1024);
+
+      map_sprite_add(ms);
+   }
+
    if(RvR_core_mouse_pressed(RVR_BUTTON_RIGHT))
    {
       mouse_scroll = 1;
-
-      int mx,my;
-      RvR_core_mouse_pos(&mx,&my);
       RvR_core_mouse_relative(1);
       
       camera.pos.x = ((scroll_x+mx)*1024)/grid_size;
@@ -230,11 +351,11 @@ void editor2d_update()
 
    if(mouse_scroll)
    {
-      int mx,my;
-      RvR_core_mouse_relative_pos(&mx,&my);
+      int rx,ry;
+      RvR_core_mouse_relative_pos(&rx,&ry);
 
-      camera.pos.x+=(mx*1024)/grid_size;
-      camera.pos.y+=(my*1024)/grid_size;
+      camera.pos.x+=(rx*1024)/grid_size;
+      camera.pos.y+=(ry*1024)/grid_size;
    }
    else
    {
@@ -305,6 +426,22 @@ void editor2d_draw()
       }
    }
 
+   //Draw sprites
+   Map_sprite *sp = map_sprites;
+   while(sp!=NULL)
+   {
+      int x = (sp->pos.x*grid_size)/1024-scroll_x;
+      int y = (sp->pos.y*grid_size)/1024-scroll_y;
+      if(x>-grid_size*2&&x<RVR_XRES+grid_size*2&&y>-grid_size*2&&y<RVR_YRES+grid_size*2)
+      {
+         RvR_draw_circle(x,y,grid_size/4,color_white);
+         RvR_vec2 direction = RvR_vec2_rot(sp->direction);
+         RvR_draw_line(x,y,x+(direction.x*(grid_size/2))/1024,y+(direction.y*(grid_size/2))/1024,color_white);
+      }
+
+      sp = sp->next;
+   }
+
    //Draw camera
    RvR_vec2 direction = RvR_vec2_rot(camera.direction);
    int dsx = (direction.x*grid_size)/1024;
@@ -347,6 +484,10 @@ void editor2d_draw()
    case 5: snprintf(tmp,512,"Save as: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case 6: RvR_draw_string(5,RVR_YRES-10,1,"Are you sure you want to quit? (Y/N)",color_white); break;
    case 7: RvR_draw_string(5,RVR_YRES-10,1,"Save changes? (Y/N)",color_white); break;
+   case 9: snprintf(tmp,512,"Sprite (type %"PRIu16") extra0: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 10: snprintf(tmp,512,"Sprite (type %"PRIu16") extra1: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 11: snprintf(tmp,512,"Sprite (type %"PRIu16") extra2: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 12: snprintf(tmp,512,"Sprite (type %"PRIu16") extra3: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    }
 }
 //-------------------------------------

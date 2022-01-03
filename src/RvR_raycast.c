@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -44,199 +44,157 @@ static RvR_fix22 ray_fov_correction_factor(RvR_fix22 fov);
 
 void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16_t *hit_results_len)
 {
+   *hit_results_len = 0;
+
    RvR_vec2 current_pos = ray.start;
    RvR_vec2 current_square;
 
-   current_square.x = RvR_div_round_down(ray.start.x,1024);
-   current_square.y = RvR_div_round_down(ray.start.y,1024);
+   current_square.x = ray.start.x/1024;
+   current_square.y = ray.start.y/1024;
 
-   *hit_results_len = 0;
-
-   //DDA variables
-   RvR_vec2 next_side_dist; //dist. from start to the next side in given axis
    RvR_vec2 delta;
-   RvR_vec2 step; //-1 or 1 for each axis
-   int8_t step_horizontal = 0; //whether the last step was hor. or vert.
+   delta.x = RvR_abs((1024*1024)/RvR_non_zero(ray.direction.x));
+   delta.y = RvR_abs((1024*1024)/RvR_non_zero(ray.direction.y));
 
-   next_side_dist.x = 0;
-   next_side_dist.y = 0;
+   RvR_vec2 step;
+   RvR_vec2 side_dist;
+   int side;
 
-   RvR_fix22 dir_vec_length_norm = RvR_len2(ray.direction)*1024;
-
-   delta.x = RvR_abs(dir_vec_length_norm/RvR_non_zero(ray.direction.x));
-   delta.y = RvR_abs(dir_vec_length_norm/RvR_non_zero(ray.direction.y));
-
-   //Init DDA
    if(ray.direction.x<0)
    {
       step.x = -1;
-      next_side_dist.x = (RvR_wrap(ray.start.x,1024)*delta.x)/1024;
+      side_dist.x = ((ray.start.x-current_square.x*1024)*delta.x)/1024;
    }
    else
    {
       step.x = 1;
-      next_side_dist.x = (RvR_wrap(1024-ray.start.x,1024)*delta.x)/1024;
+      side_dist.x = ((current_square.x*1024+1024-ray.start.x)*delta.x)/1024;
    }
 
    if(ray.direction.y<0)
    {
       step.y = -1;
-      next_side_dist.y = (RvR_wrap(ray.start.y,1024)*delta.y)/1024;
+      side_dist.y = ((ray.start.y-current_square.y*1024)*delta.y)/1024;
    }
    else
    {
       step.y = 1;
-      next_side_dist.y = (RvR_wrap(1024-ray.start.y,1024)*delta.y)/1024;
+      side_dist.y = ((current_square.y*1024+1024-ray.start.y)*delta.y)/1024;
    }
 
-   //DDA loop
-#define RECIP_SCALE 65536
-
-   //RvR_fix22 ray_dir_x_recip = RECIP_SCALE/RvR_non_zero(ray.direction.x);
-   //RvR_fix22 ray_dir_y_recip = RECIP_SCALE/RvR_non_zero(ray.direction.y);
-   //^ we precompute reciprocals to avoid divisions in the loop
-
-   int first = 1;
    for(unsigned i = 0;i<RVR_RAY_MAX_STEPS;i++)
    {
-      if(!first)//current_type!=square_type)
-      {
-         //collision
-         RvR_ray_hit_result h;
-
-         h.position = current_pos;
-         h.square   = current_square;
-         if(step_horizontal)
-         {
-            h.position.x = current_square.x*1024;
-            h.direction = 3;
-
-            if(step.x==-1)
-            {
-               h.direction = 1;
-               h.position.x+=1024;
-            }
-
-            RvR_fix22 diff = h.position.x-ray.start.x;
-
-            h.position.y = ray.start.y+(ray.direction.y*diff)/RvR_non_zero(ray.direction.x);
-            //avoid division by multiplying with reciprocal
-            //h.position.y = ray.start.y+(ray.direction.y*diff*ray_dir_x_recip)/RECIP_SCALE;
-
-            /* Here we compute the fish eye corrected distance (perpendicular to
-            the projection plane) as the Euclidean distance (of hit from camera
-            position) divided by the length of the ray direction vector. This can
-            be computed without actually computing Euclidean distances as a
-            hypothenuse A (distance) divided by hypothenuse B (length) is equal to
-            leg A (distance along principal axis) divided by leg B (length along
-            the same principal axis). */
-
-            h.distance = (diff*1024)/RvR_non_zero(ray.direction.x);
-         }
-         else
-         {
-            h.position.y = current_square.y*1024;
-            h.direction = 2;
-
-            if(step.y==-1)
-            {
-               h.direction = 0;
-               h.position.y+=1024;
-            }
-
-            RvR_fix22 diff = h.position.y-ray.start.y;
-
-            h.position.x = ray.start.x+(ray.direction.x*diff)/RvR_non_zero(ray.direction.y);
-            //h.position.x = ray.start.x+(ray.direction.x*diff*ray_dir_y_recip)/RECIP_SCALE;
-
-            h.distance = (diff*1024)/RvR_non_zero(ray.direction.y);
-
-#undef CORRECT
-         }
-         
-         if(RvR_ray_map_inbounds(current_square.x,current_square.y))
-         {
-            h.wall_ftex = RvR_ray_map_wall_ftex_at_us(current_square.x,current_square.y);
-            h.wall_ctex = RvR_ray_map_wall_ctex_at_us(current_square.x,current_square.y);
-         }
-         else
-         {
-            h.wall_ftex = 0;
-            h.wall_ctex = 0;
-         }
-         h.fheight = 0;
-         h.cheight = (127*1024)/8;
-         h.floor_tex = RvR_ray_map_sky_tex();
-         h.ceil_tex = RvR_ray_map_sky_tex();
-
-         switch(h.direction)
-         {
-         case 0:
-            h.texture_coord = (-1*h.position.x)&1023;
-            if(RvR_ray_map_inbounds(current_square.x,current_square.y+1))
-            {
-               h.fheight = RvR_ray_map_floor_height_at_us(current_square.x,current_square.y+1);
-               h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x,current_square.y+1);
-               h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x,h.square.y+1);
-               h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x,h.square.y+1);
-            }
-            break;
-         case 1:
-            h.texture_coord = (h.position.y)&1023;
-            if(RvR_ray_map_inbounds(current_square.x+1,current_square.y))
-            {
-               h.fheight = RvR_ray_map_floor_height_at_us(current_square.x+1,current_square.y);
-               h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x+1,current_square.y);
-               h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x+1,h.square.y);
-               h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x+1,h.square.y);
-            }
-            break;
-         case 2:
-            h.texture_coord = (h.position.x)&1023;
-            if(RvR_ray_map_inbounds(current_square.x,current_square.y-1))
-            {
-               h.fheight = RvR_ray_map_floor_height_at_us(current_square.x,current_square.y-1);
-               h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x,current_square.y-1);
-               h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x,h.square.y-1);
-               h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x,h.square.y-1);
-            }
-            break;
-         case 3:
-            h.texture_coord = (-1*h.position.y)&1023;
-            if(RvR_ray_map_inbounds(current_square.x-1,current_square.y))
-            {
-               h.fheight = RvR_ray_map_floor_height_at_us(current_square.x-1,current_square.y);
-               h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x-1,current_square.y);
-               h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x-1,h.square.y);
-               h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x-1,h.square.y);
-            }
-            break;
-         default:
-            h.texture_coord = 0;
-            break;
-         }
-
-         hit_results[*hit_results_len] = h;
-         *hit_results_len+=1;
-
-         if(*hit_results_len>=RVR_RAY_MAX_STEPS)
-            break;
-      }
-
       // DDA step
-      if(next_side_dist.x<next_side_dist.y)
+      if(side_dist.x<side_dist.y)
       {
-         next_side_dist.x+=delta.x;
+         side_dist.x+=delta.x;
          current_square.x+=step.x;
-         step_horizontal = 1;
+         side = 0;
       }
       else
       {
-         next_side_dist.y+=delta.y;
+         side_dist.y+=delta.y;
          current_square.y+=step.y;
-         step_horizontal = 0;
+         side = 1;
       }
-      first = 0;
+
+      RvR_ray_hit_result h;
+      h.position = current_pos;
+      h.square   = current_square;
+
+      if(!side)
+      {
+         h.distance = (side_dist.x-delta.x);
+         h.position.y = ray.start.y+(h.distance*ray.direction.y)/1024;
+         h.position.x = current_square.x*1024;
+         h.direction = 3;
+         if(step.x==-1)
+         {
+            h.direction = 1;
+            h.position.x+=1024;
+         }
+      }
+      else
+      {
+         h.distance = (side_dist.y-delta.y);
+         h.position.x = ray.start.x+(h.distance*ray.direction.x)/1024;
+         h.position.y = current_square.y*1024;
+         h.direction = 2;
+         if(step.y==-1)
+         {
+            h.direction = 0;
+            h.position.y+=1024;
+         }
+      }
+      
+      if(RvR_ray_map_inbounds(current_square.x,current_square.y))
+      {
+         h.wall_ftex = RvR_ray_map_wall_ftex_at_us(current_square.x,current_square.y);
+         h.wall_ctex = RvR_ray_map_wall_ctex_at_us(current_square.x,current_square.y);
+      }
+      else
+      {
+         h.wall_ftex = RvR_ray_map_sky_tex();
+         h.wall_ctex = RvR_ray_map_sky_tex();
+      }
+
+      h.fheight = 0;
+      h.cheight = (127*1024)/8;
+      h.floor_tex = RvR_ray_map_sky_tex();
+      h.ceil_tex = RvR_ray_map_sky_tex();
+
+      switch(h.direction)
+      {
+      case 0:
+         h.texture_coord = (h.position.x)&1023;
+         if(RvR_ray_map_inbounds(current_square.x,current_square.y+1))
+         {
+            h.fheight = RvR_ray_map_floor_height_at_us(current_square.x,current_square.y+1);
+            h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x,current_square.y+1);
+            h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x,h.square.y+1);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x,h.square.y+1);
+         }
+         break;
+      case 1:
+         h.texture_coord = (-h.position.y)&1023;
+         if(RvR_ray_map_inbounds(current_square.x+1,current_square.y))
+         {
+            h.fheight = RvR_ray_map_floor_height_at_us(current_square.x+1,current_square.y);
+            h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x+1,current_square.y);
+            h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x+1,h.square.y);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x+1,h.square.y);
+         }
+         break;
+      case 2:
+         h.texture_coord = (-h.position.x)&1023;
+         if(RvR_ray_map_inbounds(current_square.x,current_square.y-1))
+         {
+            h.fheight = RvR_ray_map_floor_height_at_us(current_square.x,current_square.y-1);
+            h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x,current_square.y-1);
+            h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x,h.square.y-1);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x,h.square.y-1);
+         }
+         break;
+      case 3:
+         h.texture_coord = (h.position.y)&1023;
+         if(RvR_ray_map_inbounds(current_square.x-1,current_square.y))
+         {
+            h.fheight = RvR_ray_map_floor_height_at_us(current_square.x-1,current_square.y);
+            h.cheight = RvR_ray_map_ceiling_height_at_us(current_square.x-1,current_square.y);
+            h.floor_tex = RvR_ray_map_floor_tex_at_us(h.square.x-1,h.square.y);
+            h.ceil_tex = RvR_ray_map_ceil_tex_at_us(h.square.x-1,h.square.y);
+         }
+         break;
+      default:
+         h.texture_coord = 0;
+         break;
+      }
+
+      hit_results[*hit_results_len] = h;
+      *hit_results_len+=1;
+
+      if(*hit_results_len>=RVR_RAY_MAX_STEPS)
+         break;
    }
 }
 
@@ -278,6 +236,8 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
       current_dx+=dx;
       current_dy+=dy;
    }
+
+   //printf("(%d %d) (%d %d) %d %d\n",dir1.x,dir1.y,dir0.x+(current_dx-dx)/RVR_XRES,dir0.y+(current_dy-dy)/RVR_XRES,dx,dy);
 }
 
 RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 distance)
@@ -286,7 +246,9 @@ RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 dista
    if(correction_factor==0)
       correction_factor = ray_fov_correction_factor(RVR_RAY_VERTICAL_FOV);
 
-   return distance!=0?((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024)):0;
+   if(distance==0)
+      return 0;
+   return ((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024));
 }
 
 RvR_fix22 RvR_ray_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix22 sc_size)
@@ -295,7 +257,9 @@ RvR_fix22 RvR_ray_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix
    if(correction_factor==0)
       correction_factor = ray_fov_correction_factor(RVR_RAY_VERTICAL_FOV);
 
-   return sc_size!=0?((org_size*1024)/RvR_non_zero((correction_factor*sc_size)/1024)):RvR_fix22_infinity;
+   if(sc_size==0)
+      return RvR_fix22_infinity;
+   return ((org_size*1024)/RvR_non_zero((correction_factor*sc_size)/1024));
 }
 
 RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 distance)
@@ -304,9 +268,12 @@ RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 dis
    if(correction_factor==0)
       correction_factor = ray_fov_correction_factor(RVR_RAY_HORIZONTAL_FOV);
 
-   return distance!=0?((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024)):0;
+   if(distance==0)
+      return 0;
+   return ((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024));
 }
 
+//TODO: remove
 void RvR_ray_move_with_collision(RvR_vec3 offset, int8_t compute_height, int8_t force, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height)
 {
    int8_t moves_in_plane = offset.x!=0||offset.y!=0;
@@ -526,7 +493,10 @@ RvR_vec3 RvR_ray_get_position()
 
 static RvR_fix22 ray_fov_correction_factor(RvR_fix22 fov)
 {
-   uint16_t table[9] = {1,208,408,692,1024,1540,2304,5376,30000};
+   return RvR_fix22_tan(fov/2);
+
+   //Old:
+   /*uint16_t table[9] = {1,208,408,692,1024,1540,2304,5376,30000};
 
    fov = RvR_min(1024/2-1,fov);
 
@@ -535,6 +505,6 @@ static RvR_fix22 ray_fov_correction_factor(RvR_fix22 fov)
    uint32_t v1 = table[index];
    uint32_t v2 = table[index+1];
 
-   return v1+((v2-v1)*t)/1024;
+   return v1+((v2-v1)*t)/1024;*/
 }
 //-------------------------------------

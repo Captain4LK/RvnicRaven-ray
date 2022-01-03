@@ -99,6 +99,7 @@ void RvR_compress(FILE *in, FILE *out)
 
    buffer_in = RvR_malloc(size+1);
    buffer_out = RvR_malloc(size+1);
+   memset(buffer_out,0,size+1);
 
    fread(buffer_in,size,1,in);
    buffer_in[size] = 0;
@@ -124,6 +125,7 @@ void RvR_compress_path(const char *path_in, const char *path_out)
 void RvR_mem_compress(void *mem, int32_t length, FILE *out)
 {
    uint8_t *buffer_out = RvR_malloc(length+1);
+   memset(buffer_out,0,length+1);
    uint8_t endian = RVR_ENDIAN;
 
    fwrite(&length,4,1,out);

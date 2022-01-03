@@ -14,6 +14,9 @@
    ``gcc -c src/RvR_all.c -std=c99 -Wall -Wextra -Wshadow -pedantic -O3 -flto``
    Windows mingw cross compile:
    ``i686-w64-mingw32-gcc -c src/RvR_all.c -std=c99 -Wall -Wextra -Wshadow -pedantic -O3 -flto``
+   ``x86_64-w64-mingw32-gcc -c src/RvR_all.c -std=c99 -Wall -Wextra -Wshadow -pedantic -O3 -flto``
+   Emscripten:
+   ``emcc -c src/RvR_all.c -std=c99 -Wall -Wextra -Wshadow -pedantic -O3 -flto -s USE_SDL=2``
 
 # Building the example games
 

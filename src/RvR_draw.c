@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -162,6 +162,43 @@ void RvR_draw_rectangle_fill(int x, int y, int width, int height, uint8_t index)
          *dst = index;
 }
 
+void RvR_draw_circle(int x, int y, int radius, uint8_t index)
+{
+   int x_ = 0;
+   int y_ = radius;
+   int d = 1-radius;
+
+   RvR_draw(x,y+radius,index);
+   RvR_draw(x,y-radius,index);
+   RvR_draw(x+radius,y,index);
+   RvR_draw(x-radius,y,index);
+
+   while(x_<y_)
+   {
+      if(d<0)
+      {
+         d = d+2*x_+3;
+         x_+=1;
+      }
+      else
+      {
+         d = d+2*(x_-y_)+5;
+         x_+=1;
+         y_-=1;
+      }
+
+      RvR_draw(x+x_,y+y_,index);
+      RvR_draw(x+x_,y-y_,index);
+      RvR_draw(x-x_,y+y_,index);
+      RvR_draw(x-x_,y-y_,index);
+
+      RvR_draw(x+y_,y+x_,index);
+      RvR_draw(x+y_,y-x_,index);
+      RvR_draw(x-y_,y+x_,index);
+      RvR_draw(x-y_,y-x_,index);
+   }
+}
+
 void RvR_draw_set_font(RvR_texture *t)
 {
    draw_font = t;
@@ -174,7 +211,7 @@ void RvR_draw_string(int x, int y, int scale, const char *text, uint8_t index)
    int sx = 0;
    int sy = 0;
 
-   for(int i = 0;text[i];i++)
+   for(int i = 0;text[i]&&i<1024;i++)
    {
       if(text[i]=='\n')
       {

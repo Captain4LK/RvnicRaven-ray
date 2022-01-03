@@ -20,6 +20,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "config.h"
 #include "color.h"
 #include "map.h"
+#include "texture.h"
 #include "editor.h"
 #include "editor2d.h"
 #include "editor3d.h"
@@ -1229,6 +1230,9 @@ static void flood_wall_ctex(int16_t x, int16_t y, uint16_t ctex, uint16_t tex, R
 
 void editor_ed_floor_tex(int16_t x, int16_t y, uint16_t tex)
 {
+   if(!texture_valid(tex))
+      return;
+
    if(!RvR_ray_map_inbounds(x,y))
       return;
 
@@ -1243,6 +1247,9 @@ void editor_ed_floor_tex(int16_t x, int16_t y, uint16_t tex)
 
 void editor_ed_ceiling_tex(int16_t x, int16_t y, uint16_t tex)
 {
+   if(!texture_valid(tex))
+      return;
+
    if(!RvR_ray_map_inbounds(x,y))
       return;
 
@@ -1257,6 +1264,9 @@ void editor_ed_ceiling_tex(int16_t x, int16_t y, uint16_t tex)
 
 void editor_ed_floor_wall_tex(int16_t x, int16_t y, uint16_t tex)
 {
+   if(!texture_valid(tex))
+      return;
+
    if(!RvR_ray_map_inbounds(x,y))
       return;
 
@@ -1271,6 +1281,9 @@ void editor_ed_floor_wall_tex(int16_t x, int16_t y, uint16_t tex)
 
 void editor_ed_ceiling_wall_tex(int16_t x, int16_t y, uint16_t tex)
 {
+   if(!texture_valid(tex))
+      return;
+
    if(!RvR_ray_map_inbounds(x,y))
       return;
 
@@ -1285,6 +1298,9 @@ void editor_ed_ceiling_wall_tex(int16_t x, int16_t y, uint16_t tex)
 
 void editor_ed_flood_floor_tex(int16_t x, int16_t y, uint16_t tex)
 {
+   if(!texture_valid(tex))
+      return;
+
    if(!RvR_ray_map_inbounds(x,y))
       return;
 
@@ -1303,6 +1319,9 @@ void editor_ed_flood_floor_tex(int16_t x, int16_t y, uint16_t tex)
 
 void editor_ed_flood_ceiling_tex(int16_t x, int16_t y, uint16_t tex)
 {
+   if(!texture_valid(tex))
+      return;
+
    if(!RvR_ray_map_inbounds(x,y))
       return;
 
@@ -1321,6 +1340,9 @@ void editor_ed_flood_ceiling_tex(int16_t x, int16_t y, uint16_t tex)
 
 void editor_ed_flood_floor_wall_tex(int16_t x, int16_t y, uint16_t tex)
 {
+   if(!texture_valid(tex))
+      return;
+
    if(!RvR_ray_map_inbounds(x,y))
       return;
 
@@ -1339,6 +1361,9 @@ void editor_ed_flood_floor_wall_tex(int16_t x, int16_t y, uint16_t tex)
 
 void editor_ed_flood_ceiling_wall_tex(int16_t x, int16_t y, uint16_t tex)
 {
+   if(!texture_valid(tex))
+      return;
+
    if(!RvR_ray_map_inbounds(x,y))
       return;
 

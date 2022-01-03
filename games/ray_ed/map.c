@@ -22,8 +22,10 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "../../src/RvnicRaven.h"
+#include "config.h"
 #include "map.h"
 #include "editor.h"
+#include "texture.h"
 //-------------------------------------
 
 //#defines
@@ -38,12 +40,12 @@ Map_sprite *map_sprites = NULL;
 
 static struct
 {
-   char (*data)[64];
+   char (*data)[128];
    unsigned data_used;
    unsigned data_size;
 }path_list = {0};
 static Map_list map_list = {0};
-static char map_path[64];
+static char map_path[128];
 
 static Map_sprite *map_sprite_pool = NULL;
 //-------------------------------------
@@ -96,9 +98,13 @@ void map_new(uint16_t width, uint16_t height)
    while(map_sprites!=NULL)
       map_sprite_free(map_sprites);
 
-   snprintf(map_path,64,"map%"PRIu64".map",(uint64_t)time(NULL));
+   snprintf(map_path,127,"map%"PRIu64".map",(uint64_t)time(NULL));
    RvR_ray_map_create(width,height);
    map = RvR_ray_map_get();
+   //printf("%d\n",texture_sky);
+   map->sky_tex = texture_sky;
+   for(int i = 0;i<map->width*map->height;i++)
+      map->ceil_tex[i] = texture_sky;
    printf("Map dimensions: %ux%u\n",map->width,map->height);
 
    camera.pos.x = map->width*512+512;
@@ -153,8 +159,8 @@ void map_save()
 
 void map_set_path(const char *path)
 {
-   strncpy(map_path,path,64);
-   map_path[63] = '\0';
+   strncpy(map_path,path,128);
+   map_path[127] = '\0';
 }
 
 const char *map_path_get()
@@ -175,7 +181,7 @@ void map_path_add(const char *path)
       if(strcmp(path,path_list.data[i])==0)
          return;
 
-   strncpy(path_list.data[path_list.data_used],path,64);
+   strncpy(path_list.data[path_list.data_used],path,127);
    path_list.data_used++;
 
    if(path_list.data_used>=path_list.data_size)
@@ -198,7 +204,7 @@ static void map_list_add(const char *path)
       if(strcmp(path,map_list.data[i])==0)
          return;
 
-   strncpy(map_list.data[map_list.data_used],path,64);
+   strncpy(map_list.data[map_list.data_used],path,127);
    map_list.data_used++;
 
    if(map_list.data_used>=map_list.data_size)
@@ -235,21 +241,23 @@ void map_sky_tex_set(uint16_t tex)
 
 Map_list *map_list_get()
 {
-   char path[64];
+   char path[128];
    map_list.data_used = 0;
 
    for(int i = 0;i<path_list.data_used;i++)
    {
       cf_dir_t dir = {0};
+      RvR_log_line("map_list_get ","opening directory %s\n",path_list.data[i]);
       cf_dir_open(&dir,path_list.data[i]);
 
       while(dir.has_next)
       {
          cf_file_t file;
          cf_read_file(&dir,&file);
+         RvR_log_line("map_list_get ","found file %s\n",file.path);
          if(cf_match_ext(&file,".map"))
          {
-            snprintf(path,64,"%s%s",path_list.data[i],file.name);
+            snprintf(path,128,"%s%s",path_list.data[i],file.name);
             map_list_add(path);
          }
 

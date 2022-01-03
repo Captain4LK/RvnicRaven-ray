@@ -190,48 +190,48 @@ RvR_err:
 
 static RvR_key config_strtokey(const char *s)
 {
-   uint64_t hash_key = RvR_fnv64a(s);
-   //printf("ikey: %s;%luU\n",s,hash_key);
+   uint32_t hash_key = RvR_fnv32a(s);
+   RvR_log("ikey: %s;%u\n",s,hash_key);
 
    switch(hash_key)
    {
-   case 12638187200555641996U: return RVR_KEY_A; //"a"
-   case 12638190499090526629U: return RVR_KEY_B; //"b"
-   case 12638189399578898418U: return RVR_KEY_C; //"c"
-   case 12638183902020757363U: return RVR_KEY_D; //"d"
-   case 12638182802509129152U: return RVR_KEY_E; //"e"
-   case 12638186101044013785U: return RVR_KEY_F; //"f"
-   case 12638185001532385574U: return RVR_KEY_G; //"g"
-   case 12638197096160295895U: return RVR_KEY_H; //"h"
-   case 12638195996648667684U: return RVR_KEY_I; //"i"
-   case 12638199295183552317U: return RVR_KEY_J; //"j"
-   case 12638198195671924106U: return RVR_KEY_K; //"k"
-   case 12638192698113783051U: return RVR_KEY_L; //"l"
-   case 12638191598602154840U: return RVR_KEY_M; //"m"
-   case 12638194897137039473U: return RVR_KEY_N; //"n"
-   case 12638193797625411262U: return RVR_KEY_O; //"o"
-   case 12638205892253321583U: return RVR_KEY_P; //"p"
-   case 12638204792741693372U: return RVR_KEY_Q; //"q"
-   case 12638208091276578005U: return RVR_KEY_R; //"r"
-   case 12638206991764949794U: return RVR_KEY_S; //"s"
-   case 12638201494206808739U: return RVR_KEY_T; //"t"
-   case 12638200394695180528U: return RVR_KEY_U; //"u"
-   case 12638203693230065161U: return RVR_KEY_V; //"v"
-   case 12638202593718436950U: return RVR_KEY_W; //"w"
-   case 12638214688346347271U: return RVR_KEY_X; //"x"
-   case 12638213588834719060U: return RVR_KEY_Y; //"y"
-   case 12638216887369603693U: return RVR_KEY_Z; //"z"
-   case 12638135523509116079U: return RVR_KEY_0; //"0"
-   case 12638134423997487868U: return RVR_KEY_1; //"1"
-   case 12638137722532372501U: return RVR_KEY_2; //"2"
-   case 12638136623020744290U: return RVR_KEY_3; //"3"
-   case 12638131125462603235U: return RVR_KEY_4; //"4"
-   case 12638130025950975024U: return RVR_KEY_5; //"5"
-   case 12638133324485859657U: return RVR_KEY_6; //"6"
-   case 12638132224974231446U: return RVR_KEY_7; //"7"
-   case 12638144319602141767U: return RVR_KEY_8; //"8"
-   case 12638143220090513556U: return RVR_KEY_9; //"9"
-   case  4858524775536387045U: return RVR_KEY_SPACE; //"space"
+   case 0xe40c292c: return RVR_KEY_A; //'a'
+   case 0xe70c2de5: return RVR_KEY_B; //'b'
+   case 0xe60c2c52: return RVR_KEY_C; //'c'
+   case 0xe10c2473: return RVR_KEY_D; //'d'
+   case 0xe00c22e0: return RVR_KEY_E; //'e'
+   case 0xe30c2799: return RVR_KEY_F; //'f'
+   case 0xe20c2606: return RVR_KEY_G; //'g'
+   case 0xed0c3757: return RVR_KEY_H; //'h'
+   case 0xec0c35c4: return RVR_KEY_I; //'i'
+   case 0xef0c3a7d: return RVR_KEY_J; //'j'
+   case 0xee0c38ea: return RVR_KEY_K; //'k'
+   case 0xe90c310b: return RVR_KEY_L; //'l'
+   case 0xe80c2f78: return RVR_KEY_M; //'m'
+   case 0xeb0c3431: return RVR_KEY_N; //'n'
+   case 0xea0c329e: return RVR_KEY_O; //'o'
+   case 0xf50c43ef: return RVR_KEY_P; //'p'
+   case 0xf40c425c: return RVR_KEY_Q; //'q'
+   case 0xf70c4715: return RVR_KEY_R; //'r'
+   case 0xf60c4582: return RVR_KEY_S; //'s'
+   case 0xf10c3da3: return RVR_KEY_T; //'t'
+   case 0xf00c3c10: return RVR_KEY_U; //'u'
+   case 0xf30c40c9: return RVR_KEY_V; //'v'
+   case 0xf20c3f36: return RVR_KEY_W; //'w'
+   case 0xfd0c5087: return RVR_KEY_X; //'x'
+   case 0xfc0c4ef4: return RVR_KEY_Y; //'y'
+   case 0xff0c53ad: return RVR_KEY_Z; //'z'
+   case 0x350ca8af: return RVR_KEY_0; //'0'
+   case 0x340ca71c: return RVR_KEY_1; //'1'
+   case 0x370cabd5: return RVR_KEY_2; //'2'
+   case 0x360caa42: return RVR_KEY_3; //'3'
+   case 0x310ca263: return RVR_KEY_4; //'4'
+   case 0x300ca0d0: return RVR_KEY_5; //'5'
+   case 0x330ca589: return RVR_KEY_6; //'6'
+   case 0x320ca3f6: return RVR_KEY_7; //'7'
+   case 0x3d0cb547: return RVR_KEY_8; //'8'
+   case 0x3c0cb3b4: return RVR_KEY_9; //'9'
+   case 0x3553e285: return RVR_KEY_SPACE; //'space'
    default: return RVR_KEY_NONE;
    }
 }

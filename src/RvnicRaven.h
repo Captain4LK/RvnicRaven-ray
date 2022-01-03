@@ -48,9 +48,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define RVR_RAY_HORIZONTAL_FOV 256
 #define RVR_RAY_VERTICAL_FOV 330
 
-//Depth buffer precision is (1<<RVR_RAY_DEPTH_BUFFER_PRECISION), lower value means higher precision, range: [0,10]
-#define RVR_RAY_DEPTH_BUFFER_PRECISION 9
-
 //Texture resolution for walls/ceilings/floors, calculated as 1<<RVR_RAY_TEXTURE
 #define RVR_RAY_TEXTURE 6
 
@@ -84,7 +81,7 @@ typedef enum
    RVR_KEY_O,RVR_KEY_P,RVR_KEY_Q,RVR_KEY_R,RVR_KEY_S,RVR_KEY_T,RVR_KEY_U,
    RVR_KEY_V,RVR_KEY_W,RVR_KEY_X,RVR_KEY_Y,RVR_KEY_Z,
    RVR_KEY_0,RVR_KEY_1,RVR_KEY_2,RVR_KEY_3,RVR_KEY_4,RVR_KEY_5,
-   RVR_KEY_6,RVR_KEY_7,RVR_KEY_8,RVR_KEY_9,
+   RVR_KEY_6,RVR_KEY_7,RVR_KEY_8,RVR_KEY_9, RVR_KEY_COMMA, RVR_KEY_PERIOD,
    RVR_KEY_F1,RVR_KEY_F2,RVR_KEY_F3,RVR_KEY_F4,RVR_KEY_F5,RVR_KEY_F6,
    RVR_KEY_F7,RVR_KEY_F8,RVR_KEY_F9,RVR_KEY_F10,RVR_KEY_F11,RVR_KEY_F12,
    RVR_KEY_UP,RVR_KEY_DOWN,RVR_KEY_LEFT,RVR_KEY_RIGHT,
@@ -283,6 +280,7 @@ void RvR_draw_texture(RvR_texture *t, int x, int y);
 void RvR_draw_texture2(RvR_texture *t, int x, int y);
 void RvR_draw_rectangle(int x, int y, int width, int height, uint8_t index);
 void RvR_draw_rectangle_fill(int x, int y, int width, int height, uint8_t index);
+void RvR_draw_circle(int x, int y, int radius, uint8_t index);
 void RvR_draw_set_font(RvR_texture *t);
 void RvR_draw_string(int x, int y, int scale, const char *text, uint8_t index);
 void RvR_draw(int x, int y, uint8_t index); //do not use, access framebuffer directly if possible
@@ -314,7 +312,7 @@ const char *RvR_error_get_string();
 
 void RvR_log(const char *w, ...);
 
-#define RvR_log_line(w,...) do { char RvR_log_line_tmp[512]; snprintf(RvR_log_line_tmp,512,__VA_ARGS__); RvR_log(w "(%s:%u): %s",__FILE__,__LINE__,RvR_log_line_tmp); } while(0)
+#define RvR_log_line(w,...) do { char RvR_log_line_tmp[512]; snprintf(RvR_log_line_tmp,512,__VA_ARGS__); RvR_log(w " (%s:%u): %s",__FILE__,__LINE__,RvR_log_line_tmp); } while(0)
 
 #define RvR_error_fail(X) do { RvR_error_set(__FILE__,__LINE__,(X)); goto RvR_err; } while(0)
 
@@ -327,15 +325,9 @@ void RvR_log(const char *w, ...);
 uint64_t RvR_fnv64a(const char *str);
 uint64_t RvR_fnv64a_str(const char *str, uint64_t hval);
 uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval);
-uint64_t RvR_fnv64(const char *str);
-uint64_t RvR_fnv64_str(const char *str, uint64_t hval);
-uint64_t RvR_fnv64_buf(const void *buf, size_t len, uint64_t hval);
 uint32_t RvR_fnv32a(const char *str);
 uint32_t RvR_fnv32a_str(const char *str, uint32_t hval);
 uint32_t RvR_fnv32a_buf(const void *buf, size_t len, uint32_t hval);
-uint32_t RvR_fnv32(const char *str);
-uint32_t RvR_fnv32_str(const char *str, uint32_t hval);
-uint32_t RvR_fnv32_buf(const void *buf, size_t len, uint32_t hval);
 
 //RvnicRaven provides a custom memory allocater
 //If RvR_malloc_init doesn't get called, all other
@@ -363,6 +355,7 @@ RvR_fix22 RvR_fix22_sin(RvR_fix22 a);
 RvR_fix22 RvR_fix22_tan(RvR_fix22 a);
 RvR_fix22 RvR_fix22_ctg(RvR_fix22 a);
 RvR_fix22 RvR_fix22_sqrt(RvR_fix22 a);
+RvR_fix22 RvR_fix22_atan2(RvR_fix22 x, RvR_fix22 y);
 
 RvR_fix16 RvR_fix16_from_int(int a);
 int       RvR_fix16_to_int(RvR_fix16 a);
@@ -489,6 +482,38 @@ typedef struct
    RvR_fix22 texture_coord;
 }RvR_ray_hit_result;
 
+typedef struct RvR_ray_depth_buffer_entry
+{
+   RvR_fix22 depth;
+   int32_t limit;
+
+   struct RvR_ray_depth_buffer_entry *next;
+}RvR_ray_depth_buffer_entry;
+
+typedef struct
+{
+   RvR_ray_depth_buffer_entry *floor[RVR_XRES];
+   RvR_ray_depth_buffer_entry *ceiling[RVR_XRES];
+}RvR_ray_depth_buffer;
+
+typedef struct
+{
+   RvR_vec2 position;
+   RvR_vec2 tex_coords;
+   RvR_fix22 depth;
+   int8_t is_horizon;
+   RvR_ray_hit_result hit;
+}RvR_ray_pixel_info;
+
+//typedef struct
+//{
+   //RvR_depth_buffer
+
+/*typedef struct
+{
+   RvR_depth_buffer_entry entries[XRES][RVR_RAY_MAX_STEPS*(1<<(10-RVR_RAY_DEPTH_BUFFER_PRECISION))];
+}RvR_depth_buffer;*/
+
 typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
 
 //RvnicRaven raycast types end
@@ -547,7 +572,10 @@ uint16_t  RvR_ray_map_ceil_tex_at_us(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_floor_height_at_us(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y);
 
-void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex);
+RvR_ray_depth_buffer *RvR_ray_draw_depth_buffer();
+RvR_ray_pixel_info RvR_ray_map_to_screen(RvR_vec3 world_position);
+
+void RvR_ray_draw_sprite(RvR_vec3 pos, int32_t tex);
 void RvR_ray_draw();
 void RvR_ray_draw_debug(uint8_t index);
 

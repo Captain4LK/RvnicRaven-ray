@@ -35,6 +35,7 @@ uint16_t RvR_endian_swap16(uint16_t n, uint8_t endian)
 {
    if(endian!=RVR_ENDIAN)
       return (n>>8)|(n<<8);
+
    return n;
 }
 
@@ -42,6 +43,7 @@ uint32_t RvR_endian_swap32(uint32_t n, uint8_t endian)
 {
    if(endian!=RVR_ENDIAN)
       return (n>>24)|(n<<24)|((n>>8)&0xff00)|((n&0xff00)<<8);
+
    return n;
 }
 
@@ -57,6 +59,7 @@ uint64_t RvR_endian_swap64(uint64_t n, uint8_t endian)
 
       return n;
    }
+
    return n;
 }
 //-------------------------------------

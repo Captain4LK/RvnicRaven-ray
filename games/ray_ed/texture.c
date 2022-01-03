@@ -30,6 +30,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Variables
 Texture_list texture_list = {0};
 Texture_list_used texture_list_used = {0};
+uint16_t texture_sky = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -57,20 +58,8 @@ void texture_list_create()
       RvR_texture_lock(i);
       RvR_texture *tex = RvR_texture_get(i);
 
-      if(tex->width==1<<RVR_RAY_TEXTURE_SKY_W)
-      {
-         if(tex->height!=1<<RVR_RAY_TEXTURE_SKY_H)
-            continue;
-      }
-      else if(tex->width==1<<RVR_RAY_TEXTURE)
-      {
-         if(tex->height!=1<<RVR_RAY_TEXTURE&&tex->height!=1<<RVR_RAY_TEXTURE_HIGH)
-            continue;
-      }
-      else
-      {
-         continue;
-      }
+      if(tex->width==1<<RVR_RAY_TEXTURE_SKY_W&&tex->height==1<<RVR_RAY_TEXTURE_SKY_H)
+         texture_sky = i;
 
       texture_list.data[texture_list.data_used++] = i;
       if(texture_list.data_used==texture_list.data_size)
@@ -116,5 +105,22 @@ void texture_list_used_add(uint16_t tex)
 
    texture_list_used.data_last = texture_list_used_wrap(texture_list_used.data_last+1);
    texture_list_used.data[texture_list_used.data_last] = tex;
+}
+
+int texture_valid(uint16_t tex)
+{
+   RvR_texture *texture = RvR_texture_get(tex);
+   if(texture==NULL)
+      return 0;
+
+   if(texture->width==1<<RVR_RAY_TEXTURE&&texture->height==1<<RVR_RAY_TEXTURE)
+      return 1;
+   if(texture->width==1<<RVR_RAY_TEXTURE&&texture->height==1<<RVR_RAY_TEXTURE_HIGH)
+      return 1;
+
+   if(texture->width==1<<RVR_RAY_TEXTURE_SKY_W&&texture->height==1<<RVR_RAY_TEXTURE_SKY_H)
+      return 1;
+
+   return 0;
 }
 //-------------------------------------

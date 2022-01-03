@@ -30,7 +30,6 @@ Therefore it is safe to say that the FNV authors have no patent claims on the FN
 //External includes
 #include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 //-------------------------------------
 
 //Internal includes
@@ -55,20 +54,23 @@ Therefore it is safe to say that the FNV authors have no patent claims on the FN
 
 uint64_t RvR_fnv64a(const char *str)
 {
-   uint64_t hval = 0xcbf29ce484222325ULL;
-   unsigned char *s = (unsigned char *)str;
-
-   while(*s)
+   if(str==NULL)
    {
-      hval^=(uint64_t)*s++;
-      hval*=FNV_64_PRIME;
+      RvR_log_line("RvR_fnv64a","argument NULL where non-NULL expected");
+      return FNV_64_PRIME;
    }
 
-   return hval;
+   return RvR_fnv64a_str(str,0xcbf29ce484222325ULL);
 }
 
 uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
 {
+   if(str==NULL)
+   {
+      RvR_log_line("RvR_fnv64a_str","argument NULL where non-NULL expected");
+      return FNV_64_PRIME;
+   }
+
    unsigned char *s = (unsigned char *)str;
 
    while(*s)
@@ -82,6 +84,12 @@ uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
 
 uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval)
 {
+   if(buf==NULL)
+   {
+      RvR_log_line("RvR_fnv64a_buf","argument NULL where non-NULL expected");
+      return FNV_64_PRIME;
+   }
+
    unsigned char *bs = (unsigned char *)buf;
    unsigned char *be = bs+len;
 
@@ -89,47 +97,6 @@ uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval)
    {
       hval^=(uint64_t)*bs++;
       hval*=FNV_64_PRIME;
-   }
-
-   return hval;
-}
-
-uint64_t RvR_fnv64(const char *str)
-{
-   uint64_t hval = 0xcbf29ce484222325ULL;
-   unsigned char *s = (unsigned char *)str;
-
-   while(*s)
-   {
-      hval*=FNV_64_PRIME;
-      hval^=(uint64_t)*s++;
-   }
-
-   return hval;
-}
-
-uint64_t RvR_fnv64_str(const char *str, uint64_t hval)
-{
-   unsigned char *s = (unsigned char *)str;
-
-   while(*s)
-   {
-      hval*=FNV_64_PRIME;
-      hval^=(uint64_t)*s++;
-   }
-
-   return hval;
-}
-
-uint64_t RvR_fnv64_buf(const void *buf, size_t len, uint64_t hval)
-{
-   unsigned char *bs = (unsigned char *)buf;
-   unsigned char *be = bs+len;
-
-   while(bs<be)
-   {
-      hval*=FNV_64_PRIME;
-      hval^=(uint64_t)*bs++;
    }
 
    return hval;
@@ -137,20 +104,23 @@ uint64_t RvR_fnv64_buf(const void *buf, size_t len, uint64_t hval)
 
 uint32_t RvR_fnv32a(const char *str)
 {
-   uint32_t hval = 0x811c9dc5;
-   unsigned char *s = (unsigned char *)str;
-
-   while(*s) 
+   if(str==NULL)
    {
-      hval^=(uint32_t)*s++;
-      hval *= FNV_32_PRIME;
+      RvR_log_line("RvR_fnv32a","argument NULL where non-NULL expected");
+      return FNV_32_PRIME;
    }
 
-   return hval;
+   return RvR_fnv32a_str(str,0x811c9dc5);
 }
 
 uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
 {
+   if(str==NULL)
+   {
+      RvR_log_line("RvR_fnv32a_str","argument NULL where non-NULL expected");
+      return FNV_32_PRIME;
+   }
+
    unsigned char *s = (unsigned char *)str;
 
    while(*s) 
@@ -164,6 +134,12 @@ uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
 
 uint32_t RvR_fnv32a_buf(const void *buf, size_t len, uint32_t hval)
 {
+   if(buf==NULL)
+   {
+      RvR_log_line("RvR_fnv32a_buf","argument NULL where non-NULL expected");
+      return FNV_32_PRIME;
+   }
+
    unsigned char *bs = (unsigned char *)buf;
    unsigned char *be = bs+len;
 
@@ -171,47 +147,6 @@ uint32_t RvR_fnv32a_buf(const void *buf, size_t len, uint32_t hval)
    {
       hval^=(uint32_t)*bs++;
       hval *= FNV_32_PRIME;
-   }
-
-   return hval;
-}
-
-uint32_t RvR_fnv32(const char *str)
-{
-   uint32_t hval = 0x811c9dc5;
-   unsigned char *s = (unsigned char *)str;
-
-   while(*s)
-   {
-      hval*=FNV_32_PRIME;
-      hval^=(uint32_t)*s++;
-   }
-
-   return hval;
-}
-
-uint32_t RvR_fnv32_str(const char *str, uint32_t hval)
-{
-   unsigned char *s = (unsigned char *)str;
-
-   while(*s)
-   {
-      hval*=FNV_32_PRIME;
-      hval^=(uint32_t)*s++;
-   }
-
-   return hval;
-}
-
-uint32_t RvR_fnv32_buf(const void *buf, size_t len, uint32_t hval)
-{
-   unsigned char *bs = (unsigned char *)buf;
-   unsigned char *be = bs+len;
-
-   while(bs<be)
-   {
-      hval*=FNV_32_PRIME;
-      hval^=(uint32_t)*bs++;
    }
 
    return hval;

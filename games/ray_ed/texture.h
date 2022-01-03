@@ -27,10 +27,13 @@ typedef struct
 
 extern Texture_list texture_list;
 extern Texture_list_used texture_list_used;
+extern uint16_t texture_sky;
 
 void texture_list_create();
 void texture_list_used_create();
 void texture_list_used_add(uint16_t tex);
+
+int texture_valid(uint16_t tex);
 
 #define texture_list_used_wrap(a) ((a)&(TEXTURE_MRU_SIZE-1))
 

@@ -45,14 +45,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 int main(int argc, char **argv)
 {
-   if(argc<2)
+   if(argc<1)
    {
       puts("No pak path specified!");
       return -1;
    }
 
    //Init memory manager
-   RvR_malloc_init(1<<25,1<<26);
+   //RvR_malloc_init(1<<25,1<<26);
 
    //Init RvnicRaven core
    RvR_core_init("Rayed",0);
@@ -60,20 +60,20 @@ int main(int argc, char **argv)
    RvR_core_mouse_show(0);
    RvR_core_key_repeat(1);
 
-   RvR_pak_add(argv[1]);
+   RvR_pak_add("data/main.csv");
    RvR_palette_load(0);
    RvR_font_load(0xF000);
 
-   map_new(64,64);
    colors_find();
    texture_list_create();
+   map_new(64,64);
    texture_list_used_create();
 
    char path[512];
    path_pop(argv[0],path,NULL);
    strcat(path,"/");
    map_path_add(path);
-   path_pop(argv[1],path,NULL);
+   path_pop("data/main.csv",path,NULL);
    strcat(path,"/");
    map_path_add(path);
 

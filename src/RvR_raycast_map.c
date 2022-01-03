@@ -399,7 +399,7 @@ RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y)
    if(x>=0&&x<ray_map.width&&y>=0&&y<ray_map.height)
       return ray_map.floor[y*ray_map.width+x];
 
-   return 0;
+   return 127*128;
 }
 
 RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y)

@@ -46,6 +46,8 @@ static int brush = 0;
 //Function prototypes
 static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *location);
 void floor_height_flood_fill(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, RvR_fix22 cheight, int x, int y, RvR_fix22 theight);
+
+static Map_sprite *sprite_selected();
 //-------------------------------------
 
 //Function implementations
@@ -61,7 +63,20 @@ void editor3d_update()
 
       //Get real world tile position of mouse
       if(!RvR_core_key_down(RVR_KEY_LCTRL))
+      {
          mouse_world_pos(mx,my,&wx,&wy,&wlocation);
+      }
+
+      Map_sprite *sprite_selec = sprite_selected();
+      if(sprite_selec!=NULL)
+         wlocation = 4;
+      else if(RvR_core_key_down(RVR_KEY_LCTRL)&&wlocation==4)
+      {
+         wlocation = 0;
+         wx = -1;
+         wy = -1;
+      }
+
       if(RvR_core_key_down(RVR_KEY_1))
          wlocation = 0;
       else if(RvR_core_key_down(RVR_KEY_2))
@@ -87,6 +102,8 @@ void editor3d_update()
             else
                editor_ed_ceiling(wx,wy,1);
          }
+         if(wlocation==4&&sprite_selec!=NULL)
+            sprite_selec->pos.z+=64;
       }
       else if(RvR_core_key_pressed(RVR_KEY_PGDN))
       {
@@ -104,11 +121,18 @@ void editor3d_update()
             else
                editor_ed_ceiling(wx,wy,-1);
          }
+         if(wlocation==4&&sprite_selec!=NULL)
+            sprite_selec->pos.z-=64;
       }
 
       //To prevent accidental texture editing after selecting a texture
       if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
-         brush = 1;
+      {
+         if(wlocation==4&&sprite_selec!=NULL)
+            sprite_selec->type = texture_selected;
+         else
+            brush = 1;
+      }
       if(RvR_core_mouse_released(RVR_BUTTON_LEFT))
          brush = 0;
       if(brush)
@@ -223,7 +247,7 @@ void editor3d_draw()
    if(menu==0)
    {
       //Highlight selected tile
-      static uint16_t texture_highlight_old = 0;
+      static uint16_t texture_highlight_old = 65535;
       uint16_t texture_highlight = 0;
 
       if(wlocation==0)
@@ -546,5 +570,99 @@ void floor_height_flood_fill(uint16_t ftex, uint16_t ctex, RvR_fix22 fheight, Rv
       floor_height_flood_fill(ftex,ctex,fheight,cheight,x,y-1,theight);
       floor_height_flood_fill(ftex,ctex,fheight,cheight,x,y+1,theight);
    }
+}
+
+static Map_sprite *sprite_selected()
+{
+   int mx,my;
+   Map_sprite *min = NULL;
+   RvR_fix22 depth_min = INT32_MAX;
+   Map_sprite *sp = map_sprites;
+   RvR_core_mouse_pos(&mx,&my);
+
+   while(sp!=NULL)
+   {
+      RvR_ray_pixel_info px = RvR_ray_map_to_screen(sp->pos);
+
+      if(px.depth<0||px.depth>24*1024||px.position.x<-2*RVR_XRES||px.position.x>4*RVR_XRES||px.depth>depth_min)
+         goto next;
+
+      RvR_texture *texture = RvR_texture_get(sp->type);
+      RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
+      RvR_fix22 scale_horizontal = RVR_YRES*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
+      int size_vertical = RvR_ray_perspective_scale_vertical((scale_vertical)/1024,px.depth);
+      int size_horizontal = RvR_ray_perspective_scale_vertical((scale_horizontal)/1024,px.depth);
+
+      //Reject based on non-clipped bounding rect
+      if(mx<px.position.x-size_horizontal/2||mx>px.position.x+size_horizontal/2)
+         goto next;
+      if(my<px.position.y-size_vertical||my>px.position.y)
+         goto next;
+
+      //Clip specific part of sprite
+      int y = px.position.y-size_vertical;
+      int sy = 0;
+      int ey = size_vertical;
+
+      //Floor and ceiling clip
+      RvR_vec3 floor_wpos;
+      floor_wpos.x = sp->pos.x;
+      floor_wpos.y = sp->pos.y;
+      floor_wpos.z = RvR_ray_map_floor_height_at(sp->pos.x/1024,sp->pos.y/1024);
+      int clip_bottom = RvR_ray_map_to_screen(floor_wpos).position.y;
+      floor_wpos.z = RvR_ray_map_ceiling_height_at(sp->pos.x/1024,sp->pos.y/1024);
+      int clip_top = RvR_ray_map_to_screen(floor_wpos).position.y;
+      clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
+      clip_top = clip_top<0?0:clip_top;
+
+      //Clip coordinates to screen/clip_top and clip_bottom
+      //if(x<0)
+         //sx = -x;
+      if(y<clip_top)
+         sy = clip_top-y;
+      //if(x+ex>RVR_XRES)
+         //ex = size_horizontal+(RVR_XRES-x-ex);
+      if(y+ey>clip_bottom)
+         ey = size_vertical+(clip_bottom-y-ey);
+      //x = x<0?0:x;
+      y = y<clip_top?clip_top:y;
+
+      //Clip against walls
+      int ey1 = ey;
+      int ys = y;
+
+      //Clip floor
+      RvR_ray_depth_buffer_entry *clip = RvR_ray_draw_depth_buffer()->floor[mx];
+      while(clip!=NULL)
+      {
+         if(px.depth>clip->depth&&y+(ey1-sy)>clip->limit)
+            ey1 = clip->limit-y+sy;
+         clip = clip->next;
+      }
+
+      //Clip ceiling
+      clip = RvR_ray_draw_depth_buffer()->ceiling[mx];
+      while(clip!=NULL)
+      {
+         if(px.depth>clip->depth&&ys<clip->limit)
+         {
+            int diff = ys-clip->limit;
+            ys = clip->limit;
+            ey1+=diff;
+         }
+         clip = clip->next;
+      }
+
+      if(my>sy&&my<ys+ey1)
+      {
+         min = sp;
+         depth_min = px.depth;
+      }
+
+next:
+      sp = sp->next;
+   }
+
+   return min;
 }
 //-------------------------------------

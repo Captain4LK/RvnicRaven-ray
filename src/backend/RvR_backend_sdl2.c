@@ -39,6 +39,7 @@ static SDL_Window *sdl_window;
 static SDL_Renderer *renderer;
 static SDL_Texture *layer_texture;
 static int pixel_scale;
+static float scale;
 static int window_width;
 static int window_height;
 static int view_x;
@@ -91,7 +92,7 @@ void RvR_backend_init(const char *title, int scale)
 
    if(SDL_Init(flags)<0)
    {
-      RvR_log("RvR_backend_sdl2: failed to init sdl2: %s",SDL_GetError());
+      RvR_log_line("SDL_Init ","%s\n",SDL_GetError());
       exit(-1);
    }
 
@@ -101,7 +102,7 @@ void RvR_backend_init(const char *title, int scale)
 
       if(SDL_GetDisplayUsableBounds(0,&max_size)<0)
       {
-         RvR_log("RvR_backend_sdl2: failed to get max dimensions: %s",SDL_GetError());
+         RvR_log_line("SDL_GetDisplayUsableBounds ","%s\n",SDL_GetError());
       }
       else
       {
@@ -118,29 +119,30 @@ void RvR_backend_init(const char *title, int scale)
    if(pixel_scale<=0)
       pixel_scale = 1;
 
-   sdl_window = SDL_CreateWindow(title,SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,RVR_XRES*pixel_scale,RVR_YRES*pixel_scale,0);
-
+   sdl_window = SDL_CreateWindow(title,SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,RVR_XRES*pixel_scale,RVR_YRES*pixel_scale,SDL_WINDOW_RESIZABLE);
    if(sdl_window==NULL)
    {
-      RvR_log("RvR_backend_sdl2: failed to create window: %s",SDL_GetError());
+      RvR_log_line("SDL_CreateWindow ","%s\n",SDL_GetError());
       exit(-1);
    }
 
    renderer = SDL_CreateRenderer(sdl_window, -1, SDL_RENDERER_ACCELERATED);
-   if(!renderer)
+   if(renderer==NULL)
    {
-      RvR_log("RvR_backend_sdl2: failed to create renderer: %s",SDL_GetError());
+      RvR_log_line("SDL_CreateRenderer ","%s\n",SDL_GetError());
+      //RvR_log("RvR_backend_sdl2: failed to create renderer: %s",SDL_GetError());
       exit(-1);
    }
 
-   SDL_SetRenderDrawColor(renderer,0,0,0,0);
+   if(SDL_SetRenderDrawColor(renderer,0,0,0,0)!=0)
+      RvR_log_line("SDL_SetRenderDrawColor ","%s\n",SDL_GetError());
 
    layer_texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STREAMING,RVR_XRES,RVR_YRES);
    if(layer_texture==NULL)
-      RvR_log("RvR_backend_sdl2: failed to create texture for framebuffer %s",SDL_GetError());
+      RvR_log_line("SDL_CreateTexture ","%s\n",SDL_GetError());
 
    if(SDL_SetTextureBlendMode(layer_texture,SDL_BLENDMODE_BLEND)<0)
-      RvR_log("RvR_backend_sdl2: failed to set texture blend mode: %s",SDL_GetError());
+      RvR_log_line("SDL_SetTextureBlendMode ","%s\n",SDL_GetError());
 
    backend_update_viewport();
 
@@ -194,6 +196,7 @@ void RvR_backend_init(const char *title, int scale)
    key_map[SDL_SCANCODE_BACKSPACE] = RVR_KEY_BACK;
    key_map[SDL_SCANCODE_ESCAPE] = RVR_KEY_ESCAPE;
    key_map[SDL_SCANCODE_TAB] = RVR_KEY_TAB;
+   key_map[SDL_SCANCODE_DELETE] = RVR_KEY_DEL;
    key_map[SDL_SCANCODE_LGUI] = RVR_KEY_HOME;
    key_map[SDL_SCANCODE_END] = RVR_KEY_END;
    key_map[SDL_SCANCODE_PAGEUP] = RVR_KEY_PGUP;
@@ -217,6 +220,9 @@ void RvR_backend_init(const char *title, int scale)
    key_map[SDL_SCANCODE_7] = RVR_KEY_7;
    key_map[SDL_SCANCODE_8] = RVR_KEY_8;
    key_map[SDL_SCANCODE_9] = RVR_KEY_9;
+   
+   key_map[SDL_SCANCODE_COMMA] = RVR_KEY_COMMA;
+   key_map[SDL_SCANCODE_PERIOD] = RVR_KEY_PERIOD;
 
    key_map[SDL_SCANCODE_KP_0] = RVR_KEY_NP0;
    key_map[SDL_SCANCODE_KP_1] = RVR_KEY_NP1;
@@ -281,6 +287,7 @@ void RvR_backend_init(const char *title, int scale)
 
 void RvR_backend_update()
 {
+#ifndef __EMSCRIPTEN__
    frametime = SDL_GetTicks()-framestart;
 
    if(framedelay>frametime)
@@ -288,6 +295,8 @@ void RvR_backend_update()
 
    delta = (float)(SDL_GetTicks()-framestart)/1000.0f;
    framestart = SDL_GetTicks();
+
+#endif
 
    mouse_wheel = 0;
    memcpy(old_key_state,new_key_state,sizeof(new_key_state));
@@ -381,12 +390,12 @@ void RvR_backend_update()
 
    x-=view_x;
    y-=view_y;
-   mouse_x = x/pixel_scale;
-   mouse_y = y/pixel_scale;
+   mouse_x = x/scale;
+   mouse_y = y/scale;
 
    SDL_GetRelativeMouseState(&mouse_x_rel,&mouse_y_rel);
-   mouse_x_rel = mouse_x_rel/pixel_scale;
-   mouse_y_rel = mouse_y_rel/pixel_scale;
+   mouse_x_rel = mouse_x_rel/scale;
+   mouse_y_rel = mouse_y_rel/scale;
 
    if(mouse_x>=RVR_XRES)
      mouse_x = RVR_XRES-1;
@@ -401,12 +410,13 @@ void RvR_backend_update()
 
 void RvR_backend_render_present()
 {
-   SDL_RenderClear(renderer);
+   if(SDL_RenderClear(renderer)!=0)
+      RvR_log_line("SDL_RenderClear ","%s\n",SDL_GetError());
 
-   float width = (float)RVR_XRES*pixel_scale;
-   float height = (float)RVR_YRES*pixel_scale;
-   float x = 0.0f;
-   float y = 0.0f;
+   float width = (float)view_width;
+   float height = (float)view_height;
+   float x = view_x;
+   float y = view_y;
    SDL_Rect dst_rect;
    dst_rect.x = x;
    dst_rect.y = y;
@@ -415,14 +425,19 @@ void RvR_backend_render_present()
 
    void *data;
    int stride;
-   SDL_LockTexture(layer_texture,NULL,&data,&stride);
+
+   if(SDL_LockTexture(layer_texture,NULL,&data,&stride)!=0)
+      RvR_log_line("SDL_LockTexture ","%s\n",SDL_GetError());
+
    RvR_color * restrict pix = data;
    const RvR_color * restrict pal = RvR_palette();
    for(int i = 0;i<RVR_XRES*RVR_YRES;i++)
       pix[i] = pal[framebuffer[i]];
+
    SDL_UnlockTexture(layer_texture);
 
-   SDL_RenderCopy(renderer,layer_texture,NULL,&dst_rect);
+   if(SDL_RenderCopy(renderer,layer_texture,NULL,&dst_rect)!=0)
+      RvR_log_line("SDL_RenderCopy ","%s\n",SDL_GetError());
 
    SDL_RenderPresent(renderer);
 }
@@ -430,37 +445,57 @@ void RvR_backend_render_present()
 void RvR_backend_mouse_relative(int relative)
 {
    if(SDL_SetRelativeMouseMode(relative)<0)
-      RvR_log("RvR_backend_sdl2: failed to set relative mouse mode: %s",SDL_GetError());
+      RvR_log_line("SDL_SetRelativeMouseMode ","%s\n",SDL_GetError());
+      //RvR_log("RvR_backend_sdl2: failed to set relative mouse mode: %s",SDL_GetError());
 }
 
 void RvR_backend_mouse_show(int show)
 {
    if(SDL_ShowCursor(show?SDL_ENABLE:SDL_DISABLE)<0)
-      RvR_log("RvR_backend_sdl2: failed to show/hide cursor: %s",SDL_GetError());
+      RvR_log_line("SDL_ShowCursor ","%s\n",SDL_GetError());
+      //RvR_log("RvR_backend_sdl2: failed to show/hide cursor: %s",SDL_GetError());
 }
 
 static void backend_update_viewport()
 {
    SDL_GetWindowSize(sdl_window,&window_width,&window_height);
 
-   view_width = RVR_XRES*pixel_scale;
-   view_height = RVR_YRES*pixel_scale;
+   float ratio = (float)window_width/(float)window_height;
+   //float width_adjust = ((float)RVR_XRES/(float)RVR_YRES)*(float)window_width;
+   //float height_adjust = ((float)RVR_XRES/(float)RVR_YRES)*(float)window_height;
+
+   if(ratio>(float)RVR_XRES/(float)RVR_YRES)
+   {
+      view_height = window_height;
+      view_width = ((float)RVR_XRES/(float)RVR_YRES)*(float)window_height;
+   }
+   else
+   {
+      view_width = window_width;
+      view_height = ((float)RVR_YRES/(float)RVR_XRES)*(float)window_width;
+   }
+
+   //view_height = window_height;
+   //view_width = ((float)RVR_XRES/(float)RVR_YRES)*(float)window_height;
+   //view_width = RVR_XRES*pixel_scale;
+   //view_height = RVR_YRES*pixel_scale;
 
    view_x = (window_width-view_width)/2;
    view_y = (window_height-view_height)/2;
 
-   SDL_Rect v;
+   scale = (float)view_width/(float)RVR_XRES;
+
+   /*SDL_Rect v;
    v.x = view_x;
    v.y = view_y;
    v.w = view_width;
-   v.h = view_height;
-   if(SDL_RenderSetViewport(renderer,&v)<0)
-      RvR_log("RvR_backend_sdl2: failed to set render viewport: %s",SDL_GetError());
+   v.h = view_height;*/
+   //if(SDL_RenderSetViewport(renderer,&v)<0)
+      //RvR_log("RvR_backend_sdl2: failed to set render viewport: %s",SDL_GetError());
 }
 
 static int get_gamepad_index(int which)
 {
-
    for(int i = 0;i<MAX_CONTROLLERS;i++)
       if(gamepads[i].connected&&gamepads[i].id==which)
          return i;
@@ -534,8 +569,8 @@ void RvR_backend_mouse_set_pos(int x, int y)
 {
    mouse_x = x;
    mouse_y = y;
-   x*=pixel_scale;
-   y*=pixel_scale;
+   x*=scale;
+   y*=scale;
 
    SDL_WarpMouseInWindow(sdl_window,x,y);
 }

@@ -14,7 +14,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 typedef struct
 {
-   char (*data)[64];
+   char (*data)[128];
    int data_used;
    unsigned data_size;
 }Map_list;

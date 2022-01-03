@@ -242,7 +242,7 @@ void *RvR_lump_get(const char *name, unsigned *size)
          FILE *f = fopen(pak_paths.data[lumps.data[i].path],"rb");
          if(!f)
          {
-            RvR_log("RvR_pak: failed to open %s\n",lumps.data[i].path);
+            RvR_log("RvR_pak: failed to open %s\n",pak_paths.data[lumps.data[i].path]);
             *size = 0;
             return NULL;
          }
@@ -288,6 +288,8 @@ static void add_json_path(const char *path)
    char lump_name[256];
    char lump_path[256];
    FILE *f = fopen(path,"r");
+   if(f==NULL)
+      RvR_log_line("fopen ","failed to open %s\n",path);
 
    path_pop(path,base_path,NULL);
    strcat(base_path,"/");
