@@ -148,7 +148,7 @@ void RvR_texture_create(uint16_t id, int width, int height)
 void RvR_font_load(uint16_t id)
 {
    RvR_texture_load(id);
-   textures_timeout[id] = PERMANENT;
+   RvR_texture_lock(id);
 
    if(RvR_texture_get(id))
       RvR_draw_set_font(RvR_texture_get(id));
@@ -158,8 +158,7 @@ void RvR_font_load(uint16_t id)
 
 void RvR_font_unload(uint16_t id)
 {
-   if(textures[id]!=NULL)
-      textures_timeout[id] = 0;
+   RvR_texture_unlock(id);
 }
 
 static RvR_texture *texture_load(RvR_rw *rw)

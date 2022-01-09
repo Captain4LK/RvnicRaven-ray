@@ -16,8 +16,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Core
 //Framebuffer resolution
-#define RVR_XRES 640
-#define RVR_YRES 480
+#define RVR_XRES 320
+#define RVR_YRES 240
 
 //Fps, RvnicRaven must use a fixed timestep
 #define RVR_FPS 30
@@ -312,7 +312,7 @@ const char *RvR_error_get_string();
 
 void RvR_log(const char *w, ...);
 
-#define RvR_log_line(w,...) do { char RvR_log_line_tmp[512]; snprintf(RvR_log_line_tmp,512,__VA_ARGS__); RvR_log(w " (%s:%u): %s",__FILE__,__LINE__,RvR_log_line_tmp); } while(0)
+#define RvR_log_line(w,...) do { char RvR_log_line_tmp[512]; snprintf(RvR_log_line_tmp,512,__VA_ARGS__); RvR_log(w " (%s:%u): %s\n",__FILE__,__LINE__,RvR_log_line_tmp); } while(0)
 
 #define RvR_error_fail(X) do { RvR_error_set(__FILE__,__LINE__,(X)); goto RvR_err; } while(0)
 
@@ -388,13 +388,13 @@ RvR_fix22 RvR_len2(RvR_vec2 v);
 int32_t RvR_div_round_down(int32_t a, int32_t b);
 int32_t RvR_abs(int32_t a);
 int32_t RvR_wrap(int32_t a, int32_t mod);
-int32_t RvR_clamp(int32_t a, int32_t min, int32_t max);
 
 #define RvR_non_zero(a) ((a)+((a)==0)) ///< To prevent zero divisions.
 #define RvR_zero_clamp(x) ((x)*((x)>=0))
 #define RvR_min(a,b) ((a)<(b)?(a):(b))
 #define RvR_max(a,b) ((a)>(b)?(a):(b))
 #define RvR_sign(a) (a<0?-1:1)
+#define RvR_clamp(a,min,max) (RvR_max((min),RvR_min((max),(a))))
 
 void        RvR_pak_add(const char *path);
 void        RvR_pak_create_from_csv(const char *path_csv, const char *path_pak);
@@ -504,15 +504,6 @@ typedef struct
    int8_t is_horizon;
    RvR_ray_hit_result hit;
 }RvR_ray_pixel_info;
-
-//typedef struct
-//{
-   //RvR_depth_buffer
-
-/*typedef struct
-{
-   RvR_depth_buffer_entry entries[XRES][RVR_RAY_MAX_STEPS*(1<<(10-RVR_RAY_DEPTH_BUFFER_PRECISION))];
-}RvR_depth_buffer;*/
 
 typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
 

@@ -386,21 +386,6 @@ int32_t RvR_wrap(int32_t a, int32_t mod)
    int32_t cmp = a<0;
    return cmp*mod+(a%mod)-cmp;
 }
-
-int32_t RvR_clamp(int32_t a, int32_t min, int32_t max)
-{
-   if(a>=min)
-   {
-      if(a<=max)
-         return a;
-      else
-         return max;
-   }
-   else
-   {
-      return min;
-   }
-}
 //-------------------------------------
 
 #undef TYPE_NAME

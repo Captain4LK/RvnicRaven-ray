@@ -84,7 +84,7 @@ static Pak_buffer *pak_buffer = NULL;
 //Function prototypes
 static void lumps_push(Lump l);
 static uint32_t pak_paths_push(const char *path);
-static void add_json_path(const char *path);
+static void add_csv_path(const char *path);
 static void add_pak_path(const char *path);
 static uint8_t pak_xor_string(const char *str, size_t len);
 
@@ -112,7 +112,7 @@ void RvR_pak_add(const char *path)
    path_pop_ext(path,NULL,ext);
 
    if(strncmp(ext,"csv",32)==0)
-      add_json_path(path);
+      add_csv_path(path);
    else if(strncmp(ext,"pak",32)==0)
       add_pak_path(path);
 }
@@ -280,8 +280,8 @@ int RvR_lump_exists(const char *name)
    return 0;
 }
 
-//Parse a json file and add all lumps to list
-static void add_json_path(const char *path)
+//Parse a csv file and add all lumps to list
+static void add_csv_path(const char *path)
 {
    char base_path[256] = {0};
    char tmp[256] = "";

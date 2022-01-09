@@ -38,6 +38,11 @@ static void ray_map_free_level();
 
 void RvR_ray_map_create(uint16_t width, uint16_t height)
 {
+   if(width<=0)
+      width = 1;
+   if(height<=0)
+      height = 1;
+
    ray_map_free_cache();
 
    ray_map_cache.width = width;
