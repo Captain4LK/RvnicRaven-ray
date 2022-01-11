@@ -27,6 +27,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 static int core_running = 1;
+static uint32_t core_frame = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -66,6 +67,8 @@ int RvR_core_running()
 
 void RvR_core_update()
 {
+   core_frame++;
+
    RvR_backend_update();
 }
 
@@ -139,11 +142,6 @@ void RvR_core_mouse_set_pos(int x, int y)
    RvR_backend_mouse_set_pos(x, y);
 }
 
-uint8_t *RvR_core_framebuffer()
-{
-   return RvR_backend_framebuffer();
-}
-
 void RvR_core_text_input_start(char *text, int max_length)
 {
    RvR_backend_text_input_start(text,max_length);
@@ -152,5 +150,15 @@ void RvR_core_text_input_start(char *text, int max_length)
 void RvR_core_text_input_end()
 {
    RvR_backend_text_input_end();
+}
+
+uint8_t *RvR_core_framebuffer()
+{
+   return RvR_backend_framebuffer();
+}
+
+uint32_t RvR_core_frame()
+{
+   return core_frame;
 }
 //-------------------------------------

@@ -233,6 +233,7 @@ void RvR_core_text_input_start(char *text, int max_length);
 void RvR_core_text_input_end();
 
 uint8_t *RvR_core_framebuffer();
+uint32_t RvR_core_frame();
 
 void RvR_rw_init_file(RvR_rw *rw, FILE *f);
 void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode);
