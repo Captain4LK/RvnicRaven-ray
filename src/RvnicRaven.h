@@ -39,6 +39,15 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define RvR_fix22_infinity 2000000000
 //-------------------------------------
 
+//RvnicRaven lisp
+
+//Lisp profiling
+#define RVR_LISP_PROFILE 1
+
+//Lisp type checking
+#define RVR_LISP_TYPE_CHECK 1
+//-------------------------------------
+
 //RvnicRaven raycasting
 
 //Basically render distance
@@ -416,6 +425,133 @@ void RvR_font_load(uint16_t id);
 void RvR_font_unload(uint16_t id);
 
 //RvnicRaven core functions end
+//-------------------------------------
+
+//RvnicRaven lisp types
+typedef enum
+{
+   RVR_L_BAD_CELL,   // error catching type
+   RVR_L_CONS_CELL, RVR_L_NUMBER, RVR_L_SYMBOL,     RVR_L_SYS_FUNCTION, RVR_L_USER_FUNCTION,
+   RVR_L_STRING, RVR_L_CHARACTER, RVR_L_C_FUNCTION, RVR_L_C_BOOL,       RVR_L_L_FUNCTION, RVR_L_POINTER,
+   RVR_L_OBJECT_VAR, RVR_L_1D_ARRAY,
+   RVR_L_FIXED_POINT, RVR_L_COLLECTED_OBJECT
+}RvR_lisp_type;
+
+typedef enum
+{
+   RVR_LISP_PERM_SPACE,
+   RVR_LISP_TMP_SPACE,
+   RVR_LISP_USER_SPACE,
+   RVR_LISP_GC_SPACE,
+}RvR_lisp_space;
+
+//TODO: use union?
+typedef struct RvR_lisp_object
+{
+   //LObject
+   uint32_t type;
+   
+   //LObjectVar
+   int index;
+
+   //LList
+   struct RvR_lisp_object *cdr, *car;
+
+   //LNumber
+   uint32_t num;
+
+   //LRedirect
+   struct RvR_lisp_object *ref;
+
+   //LString
+   char *str;
+
+   //LSymbol
+#if RVR_LISP_PROFILE
+   float time_taken;
+#endif
+   struct RvR_lisp_object *value;
+   struct RvR_lisp_object *function;
+   struct RvR_lisp_object *name;
+   struct RvR_lisp_object *left, *right;
+
+   //LSysFunction
+   int min_args;
+   int max_args;
+   int fun_number;
+
+   //LUserFunction
+   struct RvR_lisp_object *arg_list;
+   struct RvR_lisp_object *block_list;
+
+   //LArray
+   size_t len;
+   struct RvR_lisp_object **data;
+   
+   //LChar
+   uint16_t ch;
+
+   //LPointer
+   void *addr;
+
+   //LFixedPoint
+   int32_t x;
+}RvR_lisp_object;
+//RvnicRaven lisp types end
+//-------------------------------------
+
+//RvnicRaven lisp functions
+
+uint32_t RvR_lisp_item_type(void *x);
+void RvR_lisp_object_print(RvR_lisp_object *o);
+uint32_t RvR_lisp_fixed_point_get(RvR_lisp_object *o);
+
+void RvR_lisp_break(const char *format, ...);
+void RvR_lisp_print_trace_stack(int max_levels);
+void *RvR_lisp_mark_heap(int heap);
+void RvR_lisp_restore_heap(void *val, int heap);
+void *RvR_lisp_eval_block(void *list);
+RvR_lisp_object *RvR_lisp_eval(RvR_lisp_object *o);
+
+RvR_lisp_object *RvR_lisp_array_create(size_t len, void *rest);
+RvR_lisp_object *RvR_lisp_fixed_point_create(int32_t x);
+RvR_lisp_object *RvR_lisp_object_var_create(int index);
+RvR_lisp_object *RvR_lisp_pointer_create(void *addr);
+RvR_lisp_object *RvR_lisp_char_create(uint16_t ch);
+RvR_lisp_object *RvR_lisp_strings_create(const char *string);
+RvR_lisp_object *RvR_lisp_stringsl_create(const char *string, int length);
+RvR_lisp_object *RvR_lisp_stringl_create(int length);
+RvR_lisp_object *RvR_lisp_user_function_create(RvR_lisp_object *arg_list, RvR_lisp_object *block_list);
+RvR_lisp_object *RvR_lisp_sys_function_create(int min_args, int max_args, int fun_number);
+RvR_lisp_object *RvR_lisp_c_function_create(int min_args, int max_args, int fun_number);
+RvR_lisp_object *RvR_lisp_c_bool_create(int min_args, int max_args, int fun_number);
+RvR_lisp_object *RvR_lisp_user_lisp_function_create(int min_args, int max_args, int fun_number);
+RvR_lisp_object *RvR_lisp_symbol_create(char *name);
+RvR_lisp_object *RvR_lisp_number_create(uint32_t num);
+RvR_lisp_object *RvR_lisp_list_create();
+
+void    *RvR_lisp_nth(int num, void *list);
+void    *RvR_lisp_pointer_value(void *pointer);
+int32_t  RvR_lisp_number_value(void *number);
+uint16_t RvR_lisp_character_value(void *c);
+uint32_t RvR_lisp_fixed_point_value(void *c);
+
+void *RvR_lisp_atom(void *i);
+RvR_lisp_object *RvR_lisp_cdr(void *c);
+RvR_lisp_object *RvR_lisp_car(void *c);
+void *RvR_lisp_eq(void *n1, void *n2);
+void *RvR_lisp_equal(void *n1, void *n2);
+
+char            *RvR_lisp_string_get(RvR_lisp_object *o);
+void            *RvR_lisp_pointer_get(RvR_lisp_object *o);
+RvR_lisp_object *RvR_lisp_array_get(RvR_lisp_object *o, int x);
+RvR_lisp_object *RvR_lisp_symbol_find(const char *name);
+RvR_lisp_object *RvR_lisp_symbol_find_or_create(const char *name);
+void            *RvR_lisp_assoc(void *item, void *list);
+size_t           RvR_lisp_list_get_length(RvR_lisp_object *list);
+void             RvR_lisp_symbol_function_set(RvR_lisp_object *sym, RvR_lisp_object *fun);
+
+//RvnicRaven lisp functions end
 //-------------------------------------
 
 //RvnicRaven raycast types
