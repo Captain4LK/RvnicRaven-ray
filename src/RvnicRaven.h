@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -46,6 +46,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Lisp type checking
 #define RVR_LISP_TYPE_CHECK 1
+
+//Max token length
+#define RVR_LISP_MAX_TOKEN_LEN 200
 //-------------------------------------
 
 //RvnicRaven raycasting
@@ -458,7 +461,7 @@ typedef struct RvR_lisp_object
    struct RvR_lisp_object *cdr, *car;
 
    //LNumber
-   uint32_t num;
+   int32_t num;
 
    //LRedirect
    struct RvR_lisp_object *ref;
@@ -504,7 +507,7 @@ typedef struct RvR_lisp_object
 
 uint32_t RvR_lisp_item_type(void *x);
 void RvR_lisp_object_print(RvR_lisp_object *o);
-uint32_t RvR_lisp_fixed_point_get(RvR_lisp_object *o);
+int32_t RvR_lisp_fixed_point_get(RvR_lisp_object *o);
 
 void RvR_lisp_break(const char *format, ...);
 void RvR_lisp_print_trace_stack(int max_levels);
@@ -512,6 +515,9 @@ void *RvR_lisp_mark_heap(int heap);
 void RvR_lisp_restore_heap(void *val, int heap);
 void *RvR_lisp_eval_block(void *list);
 RvR_lisp_object *RvR_lisp_eval(RvR_lisp_object *o);
+RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
+RvR_lisp_object *RvR_lisp_eval_user_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
+RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
 
 RvR_lisp_object *RvR_lisp_array_create(size_t len, void *rest);
 RvR_lisp_object *RvR_lisp_fixed_point_create(int32_t x);
@@ -527,14 +533,14 @@ RvR_lisp_object *RvR_lisp_c_function_create(int min_args, int max_args, int fun_
 RvR_lisp_object *RvR_lisp_c_bool_create(int min_args, int max_args, int fun_number);
 RvR_lisp_object *RvR_lisp_user_lisp_function_create(int min_args, int max_args, int fun_number);
 RvR_lisp_object *RvR_lisp_symbol_create(char *name);
-RvR_lisp_object *RvR_lisp_number_create(uint32_t num);
+RvR_lisp_object *RvR_lisp_number_create(int32_t num);
 RvR_lisp_object *RvR_lisp_list_create();
 
 void    *RvR_lisp_nth(int num, void *list);
 void    *RvR_lisp_pointer_value(void *pointer);
 int32_t  RvR_lisp_number_value(void *number);
 uint16_t RvR_lisp_character_value(void *c);
-uint32_t RvR_lisp_fixed_point_value(void *c);
+int32_t RvR_lisp_fixed_point_value(void *c);
 
 void *RvR_lisp_atom(void *i);
 RvR_lisp_object *RvR_lisp_cdr(void *c);
@@ -550,6 +556,23 @@ RvR_lisp_object *RvR_lisp_symbol_find_or_create(const char *name);
 void            *RvR_lisp_assoc(void *item, void *list);
 size_t           RvR_lisp_list_get_length(RvR_lisp_object *list);
 void             RvR_lisp_symbol_function_set(RvR_lisp_object *sym, RvR_lisp_object *fun);
+RvR_lisp_object *RvR_lisp_add_c_object(void *symbol, int index);
+RvR_lisp_object *RvR_lisp_add_c_function(const char *name, int min_args, int max_args, int number);
+RvR_lisp_object *RvR_lisp_add_c_bool_function(const char *name, int min_args, int max_args, int number);
+RvR_lisp_object *RvR_lisp_add_lisp_function(const char *name, int min_args, int max_args, int number);
+
+int RvR_lisp_read_token(const char **s, char *buffer);
+int RvR_lisp_end_of_program(const char *s);
+void RvR_lisp_push_onto_list(void *object, void **list);
+RvR_lisp_object *RvR_lisp_compile(const char **s);
+
+void RvR_lisp_tmp_space();
+void RvR_lisp_perm_space();
+void RvR_lisp_use_user_space(void *addr, long size);
+void RvR_lisp_clear_tmp();
+
+void RvR_lisp_init();
+void RvR_lisp_uninit();
 
 //RvnicRaven lisp functions end
 //-------------------------------------
