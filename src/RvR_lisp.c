@@ -285,7 +285,7 @@ static uint8_t *lisp_cstart, *lisp_cend, *lisp_collected_start, *lisp_collected_
 
 struct
 {
-   void ***data;
+   RvR_lisp_object ***data;
    unsigned data_size;
    unsigned data_used;
 }lisp_ptr_ref = {0};
@@ -302,8 +302,8 @@ struct
 static void lisp_l1print(void *block);
 static void lisp_lprint_string(const char *st);
 static void lisp_where_print(int max_level);
-static void lisp_ptr_ref_push(void **ref);
-static void **lisp_ptr_ref_pop(size_t total);
+static void lisp_ptr_ref_push(RvR_lisp_object **ref);
+static RvR_lisp_object **lisp_ptr_ref_pop(size_t total);
 static void lisp_need_perm_space(const char *why);
 static size_t lisp_get_free_size(int which_space);
 static void *lisp_malloc(size_t size, int which_space);
@@ -1931,7 +1931,7 @@ static void lisp_where_print(int max_level)
    }
 }
 
-static void lisp_ptr_ref_push(void **ref)
+static void lisp_ptr_ref_push(RvR_lisp_object **ref)
 {
    if(lisp_ptr_ref.data==NULL)
    {
@@ -1949,7 +1949,7 @@ static void lisp_ptr_ref_push(void **ref)
    }
 }
 
-static void **lisp_ptr_ref_pop(size_t total)
+static RvR_lisp_object **lisp_ptr_ref_pop(size_t total)
 {
    if(total>lisp_ptr_ref.data_used)
    {
@@ -2043,7 +2043,7 @@ static void lisp_collect_symbols(RvR_lisp_object *root)
       return;
 
    root->value = lisp_collect_object(root->value);
-   root->function = lisp_collect_object(root->value);
+   root->function = lisp_collect_object(root->function);
    root->name = lisp_collect_object(root->name);
    lisp_collect_symbols(root->left);
    lisp_collect_symbols(root->right);
