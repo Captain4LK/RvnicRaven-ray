@@ -433,7 +433,7 @@ void RvR_font_unload(uint16_t id);
 //RvnicRaven lisp types
 typedef enum
 {
-   RVR_L_BAD_CELL,   // error catching type
+   RVR_L_BAD_CELL,   //error catching type
    RVR_L_CONS_CELL, RVR_L_NUMBER, RVR_L_SYMBOL,     RVR_L_SYS_FUNCTION, RVR_L_USER_FUNCTION,
    RVR_L_STRING, RVR_L_CHARACTER, RVR_L_C_FUNCTION, RVR_L_C_BOOL,       RVR_L_L_FUNCTION, RVR_L_POINTER,
    RVR_L_OBJECT_VAR, RVR_L_1D_ARRAY,
@@ -448,78 +448,128 @@ typedef enum
    RVR_LISP_GC_SPACE,
 }RvR_lisp_space;
 
-//TODO: use union?
 typedef struct RvR_lisp_object
 {
    //LObject
    uint32_t type;
-   
-   //LObjectVar
-   int index;
 
-   //LList
-   struct RvR_lisp_object *cdr, *car;
+   union
+   {
+      //LObjectVar
+      struct
+      {
+         int32_t index;
+      }var;
 
-   //LNumber
-   int32_t num;
+      //LList
+      struct
+      {
+         struct RvR_lisp_object *cdr, *car;
+      }list;
 
-   //LRedirect
-   struct RvR_lisp_object *ref;
+      //LNumber
+      struct
+      {
+         int32_t num;
+      }num;
 
-   //LString
-   char *str;
+      //LRedirect
+      struct
+      {
+         struct RvR_lisp_object *ref;
+      }ref;
 
-   //LSymbol
+      //LString
+      struct
+      {
+         char *str;
+      }str;
+
+      //LSymbol
+      struct
+      {
+         struct RvR_lisp_object *value;
+         struct RvR_lisp_object *function;
+         struct RvR_lisp_object *name;
+         struct RvR_lisp_object *left, *right;
+
 #if RVR_LISP_PROFILE
-   float time_taken;
+         float time_taken;
 #endif
-   struct RvR_lisp_object *value;
-   struct RvR_lisp_object *function;
-   struct RvR_lisp_object *name;
-   struct RvR_lisp_object *left, *right;
+      }sym;
 
-   //LSysFunction
-   int min_args;
-   int max_args;
-   int fun_number;
+      //LSysfunction
+      struct
+      {
+         int32_t min_args;
+         int32_t max_args;
+         int32_t fun_number;
+      }sys;
 
-   //LUserFunction
-   struct RvR_lisp_object *arg_list;
-   struct RvR_lisp_object *block_list;
+      //LUserFunction
+      struct
+      {
+         struct RvR_lisp_object *arg_list;
+         struct RvR_lisp_object *block_list;
+      }usr;
 
-   //LArray
-   size_t len;
-   struct RvR_lisp_object **data;
-   
-   //LChar
-   uint16_t ch;
+      //LArray
+      struct
+      {
+         struct RvR_lisp_object **data;
+         size_t len;
+      }arr;
 
-   //LPointer
-   void *addr;
+      //LChar
+      struct
+      {
+         uint16_t ch;
+      }ch;
 
-   //LFixedPoint
-   int32_t x;
+      //LPointer
+      struct
+      {
+         void *addr;
+      }addr;
+
+      //LFixedPoint
+      struct
+      {
+         int32_t x;
+      }fix;
+   }obj;
 }RvR_lisp_object;
+
 //RvnicRaven lisp types end
 //-------------------------------------
 
 //RvnicRaven lisp functions
 
-uint32_t RvR_lisp_item_type(void *x);
-void RvR_lisp_object_print(RvR_lisp_object *o);
-int32_t RvR_lisp_fixed_point_get(RvR_lisp_object *o);
+//Util
+uint32_t RvR_lisp_item_type(RvR_lisp_object *x); //Get type of object
+void     RvR_lisp_object_print(RvR_lisp_object *o);  //Print a objects contents
+void     RvR_lisp_push_onto_list(RvR_lisp_object *object, RvR_lisp_object **list);
+void     RvR_lisp_init();
+void     RvR_lisp_uninit();
 
-void RvR_lisp_break(const char *format, ...);
-void RvR_lisp_print_trace_stack(int max_levels);
+//Errors
+void     RvR_lisp_break(const char *format, ...); //Break execution and start debugger
+void     RvR_lisp_print_trace_stack(int max_levels);
+
+//Memory managment
 void *RvR_lisp_mark_heap(int heap);
-void RvR_lisp_restore_heap(void *val, int heap);
-void *RvR_lisp_eval_block(void *list);
-RvR_lisp_object *RvR_lisp_eval(RvR_lisp_object *o);
-RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
-RvR_lisp_object *RvR_lisp_eval_user_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
-RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
+void  RvR_lisp_restore_heap(void *val, int heap);
+void  RvR_lisp_tmp_space();
+void  RvR_lisp_perm_space();
+void  RvR_lisp_use_user_space(void *addr, long size);
+void  RvR_lisp_clear_tmp();
 
-RvR_lisp_object *RvR_lisp_array_create(size_t len, void *rest);
+//Compiling
+int RvR_lisp_read_token(const char **s, char *buffer);
+int RvR_lisp_end_of_program(const char *s);
+
+//Object creation/modification
+RvR_lisp_object *RvR_lisp_array_create(size_t len, RvR_lisp_object *rest);
 RvR_lisp_object *RvR_lisp_fixed_point_create(int32_t x);
 RvR_lisp_object *RvR_lisp_object_var_create(int index);
 RvR_lisp_object *RvR_lisp_pointer_create(void *addr);
@@ -535,44 +585,48 @@ RvR_lisp_object *RvR_lisp_user_lisp_function_create(int min_args, int max_args, 
 RvR_lisp_object *RvR_lisp_symbol_create(char *name);
 RvR_lisp_object *RvR_lisp_number_create(int32_t num);
 RvR_lisp_object *RvR_lisp_list_create();
-
-void    *RvR_lisp_nth(int num, void *list);
-void    *RvR_lisp_pointer_value(void *pointer);
-int32_t  RvR_lisp_number_value(void *number);
-uint16_t RvR_lisp_character_value(void *c);
-int32_t RvR_lisp_fixed_point_value(void *c);
-
-void *RvR_lisp_atom(void *i);
-RvR_lisp_object *RvR_lisp_cdr(void *c);
-RvR_lisp_object *RvR_lisp_car(void *c);
-void *RvR_lisp_eq(void *n1, void *n2);
-void *RvR_lisp_equal(void *n1, void *n2);
-
-char            *RvR_lisp_string_get(RvR_lisp_object *o);
-void            *RvR_lisp_pointer_get(RvR_lisp_object *o);
-RvR_lisp_object *RvR_lisp_array_get(RvR_lisp_object *o, int x);
-RvR_lisp_object *RvR_lisp_symbol_find(const char *name);
-RvR_lisp_object *RvR_lisp_symbol_find_or_create(const char *name);
-void            *RvR_lisp_assoc(void *item, void *list);
-size_t           RvR_lisp_list_get_length(RvR_lisp_object *list);
+RvR_lisp_object *RvR_lisp_assoc(RvR_lisp_object *item, RvR_lisp_object *list);
 void             RvR_lisp_symbol_function_set(RvR_lisp_object *sym, RvR_lisp_object *fun);
-RvR_lisp_object *RvR_lisp_add_c_object(void *symbol, int index);
+RvR_lisp_object *RvR_lisp_add_c_object(RvR_lisp_object *symbol, int index);
 RvR_lisp_object *RvR_lisp_add_c_function(const char *name, int min_args, int max_args, int number);
 RvR_lisp_object *RvR_lisp_add_c_bool_function(const char *name, int min_args, int max_args, int number);
 RvR_lisp_object *RvR_lisp_add_lisp_function(const char *name, int min_args, int max_args, int number);
 
-int RvR_lisp_read_token(const char **s, char *buffer);
-int RvR_lisp_end_of_program(const char *s);
-void RvR_lisp_push_onto_list(void *object, void **list);
+//"Getters"
+RvR_lisp_object *RvR_lisp_cdr(RvR_lisp_object *o);
+RvR_lisp_object *RvR_lisp_car(RvR_lisp_object *o);
+char            *RvR_lisp_string(RvR_lisp_object *o);
+void            *RvR_lisp_pointer(RvR_lisp_object *o);
+int32_t          RvR_lisp_fixed_point(RvR_lisp_object *o);
+RvR_lisp_object *RvR_lisp_nth(int num, RvR_lisp_object *list);
+void            *RvR_lisp_pointer_value(RvR_lisp_object *pointer);
+int32_t          RvR_lisp_number_value(RvR_lisp_object *number);
+uint16_t         RvR_lisp_character_value(RvR_lisp_object *c);
+int32_t          RvR_lisp_fixed_point_value(RvR_lisp_object *c);
+RvR_lisp_object *RvR_lisp_array_get(RvR_lisp_object *o, int x);
+RvR_lisp_object *RvR_lisp_symbol_find(const char *name);
+RvR_lisp_object *RvR_lisp_symbol_find_or_create(const char *name);
+size_t           RvR_lisp_list_length(RvR_lisp_object *list);
+
+//"Setters"
+void RvR_lisp_symbol_number_set(RvR_lisp_object *sym, int32_t num);
+void RvR_lisp_symbol_value_set(RvR_lisp_object *sym, RvR_lisp_object *val);
+
+//Execution
+RvR_lisp_object *RvR_lisp_eval(RvR_lisp_object *o);
+RvR_lisp_object *RvR_lisp_eval_block(RvR_lisp_object *list);
+RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
+RvR_lisp_object *RvR_lisp_eval_user_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
+RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
+
+void *RvR_lisp_atom(void *i);
+
+RvR_lisp_object *RvR_lisp_eq(RvR_lisp_object *n1, RvR_lisp_object *n2);
+RvR_lisp_object *RvR_lisp_equal(RvR_lisp_object *n1, RvR_lisp_object *n2);
+
+
 RvR_lisp_object *RvR_lisp_compile(const char **s);
 
-void RvR_lisp_tmp_space();
-void RvR_lisp_perm_space();
-void RvR_lisp_use_user_space(void *addr, long size);
-void RvR_lisp_clear_tmp();
-
-void RvR_lisp_init();
-void RvR_lisp_uninit();
 
 //RvnicRaven lisp functions end
 //-------------------------------------
