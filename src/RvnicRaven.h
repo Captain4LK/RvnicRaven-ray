@@ -540,6 +540,20 @@ typedef struct RvR_lisp_object
    }obj;
 }RvR_lisp_object;
 
+typedef struct
+{
+   uint32_t type;
+
+   union
+   {
+      int32_t num;
+
+      uint16_t ch;
+
+
+   }obj;
+}RvR_lisp_obj;
+
 //RvnicRaven lisp types end
 //-------------------------------------
 
