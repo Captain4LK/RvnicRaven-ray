@@ -554,6 +554,13 @@ typedef struct
    }obj;
 }RvR_lisp_obj;
 
+typedef void (*RvR_lisp_cinit_func) (void);
+typedef int (*RvR_lisp_ccall_func) (int number, RvR_lisp_object *arg);
+typedef RvR_lisp_object *(*RvR_lisp_lcall_func) (int number, RvR_lisp_object *arg);
+typedef RvR_lisp_object *(*RvR_lisp_lget_func) (int number);
+typedef void (*RvR_lisp_lset_func) (int number, RvR_lisp_object *arg);
+typedef void (*RvR_lisp_lprint_func) (int number);
+
 //RvnicRaven lisp types end
 //-------------------------------------
 
@@ -563,7 +570,7 @@ typedef struct
 uint32_t RvR_lisp_item_type(RvR_lisp_object *x); //Get type of object
 void     RvR_lisp_object_print(RvR_lisp_object *o);  //Print a objects contents
 void     RvR_lisp_push_onto_list(RvR_lisp_object *object, RvR_lisp_object **list);
-void     RvR_lisp_init();
+void     RvR_lisp_init(RvR_lisp_cinit_func init, RvR_lisp_ccall_func ccall, RvR_lisp_lcall_func lcall, RvR_lisp_lset_func lset, RvR_lisp_lget_func lget, RvR_lisp_lprint_func lprint);
 void     RvR_lisp_uninit();
 
 //Errors

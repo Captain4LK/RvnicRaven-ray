@@ -283,6 +283,13 @@ static char lisp_n[RVR_LISP_MAX_TOKEN_LEN] = {0};
 
 static uint8_t *lisp_cstart, *lisp_cend, *lisp_collected_start, *lisp_collected_end;
 
+static RvR_lisp_cinit_func lisp_cinit = NULL;
+static RvR_lisp_ccall_func lisp_ccall = NULL;
+static RvR_lisp_lcall_func lisp_lcall = NULL;
+static RvR_lisp_lset_func lisp_lset = NULL;
+static RvR_lisp_lget_func lisp_lget = NULL;
+static RvR_lisp_lprint_func lisp_lprint = NULL;
+
 struct
 {
    RvR_lisp_object ***data;
@@ -433,7 +440,7 @@ void RvR_lisp_object_print(RvR_lisp_object *o)
       }
       break;
    case RVR_L_OBJECT_VAR:
-      //TODO: l_obj_print
+      lisp_lprint(o->obj.var.index);
       break;
    case RVR_L_1D_ARRAY:
       {
@@ -665,7 +672,7 @@ RvR_lisp_object *RvR_lisp_eval(RvR_lisp_object *o)
          {
             ret = o->obj.sym.value;
             if(RvR_lisp_item_type(ret)==RVR_L_OBJECT_VAR)
-               ret = NULL; //TODO
+               ret = lisp_lget(ret->obj.var.index);
          }
          break;
       case RVR_L_CONS_CELL:
@@ -971,7 +978,8 @@ int32_t RvR_lisp_number_value(RvR_lisp_object *number)
    {
    case RVR_L_NUMBER: return number->obj.num.num;
    case RVR_L_FIXED_POINT: return (number->obj.fix.x)>>16;
-   //TODO
+   case RVR_L_STRING: return *RvR_lisp_string(number);
+   case RVR_L_CHARACTER: return RvR_lisp_character_value(number);
    default:
       RvR_lisp_object_print(number);
       RvR_lisp_break(" is not a number\n");
@@ -1037,7 +1045,6 @@ RvR_lisp_object *RvR_lisp_eq(RvR_lisp_object *n1, RvR_lisp_object *n2)
       return n1->obj.ch.ch==n2->obj.ch.ch?lisp_true_symbol:NULL;
    if(n1==n2)
       return lisp_true_symbol;
-   //if(t1==RVR_L_POINTER) //TODO
 
    return NULL;
 }
@@ -1608,7 +1615,7 @@ RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *a
       ret = RvR_lisp_eval_sys_function(fun,arg_list);
       break;
    case RVR_L_L_FUNCTION:
-      //TODO: ret = lcaller
+      ret = lisp_lcall(fun->obj.sys.fun_number,arg_list);
       break;
    case RVR_L_USER_FUNCTION:
       lisp_ptr_ref_pop(1); //arg_list
@@ -1638,9 +1645,12 @@ RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *a
          arg_list = RvR_lisp_cdr(arg_list);
       }
 
-      //TODO: ccaller
-      //if(t==RVR_L_C_FUNCTION)
-      ret = NULL;
+      if(t==RVR_L_C_FUNCTION)
+         ret = RvR_lisp_number_create(lisp_ccall(fun->obj.sys.fun_number,first));
+      else if(lisp_ccall(fun->obj.sys.fun_number,first))
+         ret = lisp_true_symbol;
+      else
+         ret = NULL;
 
       lisp_ptr_ref_pop(1); //arg_list
       lisp_ptr_ref_pop(1); //cur
@@ -1978,7 +1988,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
                RvR_lisp_symbol_value_set(i,set_to);
             break;
          case RVR_L_OBJECT_VAR:
-            //TODO
+            lisp_lset(i->obj.sym.value->obj.var.index,set_to);
             break;
          default:
             RvR_lisp_symbol_value_set(i,set_to);
@@ -3107,8 +3117,16 @@ void RvR_lisp_use_user_space(void *addr, long size)
    lisp_space_size[RVR_LISP_USER_SPACE] = size;
 }
 
-void RvR_lisp_init()
+void RvR_lisp_init(RvR_lisp_cinit_func init, RvR_lisp_ccall_func ccall, RvR_lisp_lcall_func lcall, RvR_lisp_lset_func lset, RvR_lisp_lget_func lget, RvR_lisp_lprint_func lprint)
 {
+   //Set function pointers
+   lisp_cinit = init;
+   lisp_ccall = ccall;
+   lisp_lcall = lcall;
+   lisp_lset = lset;
+   lisp_lget = lget;
+   lisp_lprint = lprint;
+
    lisp_symbol_root = NULL;
    lisp_total_user_functions = 0;
 
@@ -3157,7 +3175,8 @@ void RvR_lisp_init()
    for(size_t i = 0;i<sizeof(lisp_sys_funcs)/sizeof(*lisp_sys_funcs);i++)
       lisp_add_sys_function(lisp_sys_funcs[i].name,lisp_sys_funcs[i].min_args,lisp_sys_funcs[i].max_args,i);
 
-   //clisp_init //TODO
+   lisp_cinit();
+
    lisp_current_space = RVR_LISP_TMP_SPACE;
    RvR_log("Lisp: %d symbols defined, %d system functions, ""%d pre-compiled functions\n",lisp_symbol_count,sizeof(lisp_sys_funcs)/sizeof(*lisp_sys_funcs),lisp_total_user_functions);
 }
