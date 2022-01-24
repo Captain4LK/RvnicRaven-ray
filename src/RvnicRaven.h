@@ -41,6 +41,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //RvnicRaven lisp
 
+//New:
+
+#define RVR_LISP_TRACE_EXECUTION 1
+
+#define RVR_LISP_STACK_MAX 256
+
+//Old:
+
 //Lisp profiling
 #define RVR_LISP_PROFILE 1
 
@@ -256,6 +264,7 @@ void RvR_rw_close(RvR_rw *rw);
 void RvR_rw_flush(RvR_rw *rw);
 int RvR_rw_seek(RvR_rw *rw, long offset, int origin);
 long RvR_rw_tell(RvR_rw *rw);
+int RvR_rw_eof(RvR_rw *rw);
 size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count);
 size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count);
 
@@ -430,14 +439,36 @@ void RvR_font_unload(uint16_t id);
 //RvnicRaven core functions end
 //-------------------------------------
 
+//RvnicRaven vm types
+typedef struct RvR_vm RvR_vm;
+typedef intptr_t (*RvR_vm_func_call) (RvR_vm *vm, intptr_t *args);
+
+struct RvR_vm
+{
+   int32_t *code;
+   RvR_vm_func_call callback;
+
+   int instruction_count;
+   intptr_t *instruction_pointers;
+};
+//RvnicRaven vm types end
+//-------------------------------------
+
+//RvnicRaven vm functions
+void RvR_vm_create(RvR_vm *vm, RvR_rw *code, RvR_vm_func_call callback);
+void RvR_vm_free(RvR_vm *vm);
+void RvR_vm_call(RvR_vm *vm, uint8_t opcode, ...);
+//RvnicRaven vm functions end
+//-------------------------------------
+
 //RvnicRaven lisp types
 typedef enum
 {
-   RVR_L_BAD_CELL,   //error catching type
-   RVR_L_CONS_CELL, RVR_L_NUMBER, RVR_L_SYMBOL,     RVR_L_SYS_FUNCTION, RVR_L_USER_FUNCTION,
-   RVR_L_STRING, RVR_L_CHARACTER, RVR_L_C_FUNCTION, RVR_L_C_BOOL,       RVR_L_L_FUNCTION, RVR_L_POINTER,
-   RVR_L_OBJECT_VAR, RVR_L_1D_ARRAY,
-   RVR_L_FIXED_POINT, RVR_L_COLLECTED_OBJECT
+   RVR_LISP_BAD_CELL,   //error catching type
+   RVR_LISP_CONS_CELL, RVR_LISP_NUMBER, RVR_LISP_SYMBOL,     RVR_LISP_SYS_FUNCTION, RVR_LISP_USER_FUNCTION,
+   RVR_LISP_STRING, RVR_LISP_CHARACTER, RVR_LISP_C_FUNCTION, RVR_LISP_C_BOOL,       RVR_LISP_L_FUNCTION, RVR_LISP_POINTER,
+   RVR_LISP_OBJECT_VAR, RVR_LISP_1D_ARRAY,
+   RVR_LISP_FIXED_POINT, RVR_LISP_COLLECTED_OBJECT
 }RvR_lisp_type;
 
 typedef enum
@@ -640,7 +671,7 @@ RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *a
 RvR_lisp_object *RvR_lisp_eval_user_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
 RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_object *arg_list);
 
-void *RvR_lisp_atom(void *i);
+void *RvR_lisp_atom(RvR_lisp_object *i);
 
 RvR_lisp_object *RvR_lisp_eq(RvR_lisp_object *n1, RvR_lisp_object *n2);
 RvR_lisp_object *RvR_lisp_equal(RvR_lisp_object *n1, RvR_lisp_object *n2);

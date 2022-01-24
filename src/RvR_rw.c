@@ -194,6 +194,18 @@ RvR_err:
    return EOF;
 }
 
+int RvR_rw_eof(RvR_rw *rw)
+{
+   if(rw->type==0||rw->type==1)
+      return feof(rw->file.fp);
+   else if(rw->type==2)
+      return rw->file.mem.pos>=rw->file.mem.size;
+   else if(rw->type==3)
+      return rw->file.cmem.pos>=rw->file.cmem.size;
+
+   return 1;
+}
+
 size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
 {
    if(rw->type==0||rw->type==1)

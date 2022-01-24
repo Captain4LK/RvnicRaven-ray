@@ -34,105 +34,105 @@ typedef struct
 
 typedef enum 
 {
-   SYS_FUNC_PRINT = 0,
-   SYS_FUNC_CAR = 1,
-   SYS_FUNC_CDR = 2,
-   SYS_FUNC_LENGTH = 3,
-   SYS_FUNC_LIST = 4,
-   SYS_FUNC_CONS = 5,
-   SYS_FUNC_QUOTE = 6,
-   SYS_FUNC_EQ = 7,
-   SYS_FUNC_PLUS = 8,
-   SYS_FUNC_MINUS = 9,
-   SYS_FUNC_IF = 10,
-   SYS_FUNC_SETF = 11,
-   SYS_FUNC_SYMBOL_LIST = 12,
-   SYS_FUNC_ASSOC = 13,
-   SYS_FUNC_NULL = 14,
-   SYS_FUNC_ACONS = 15,
-   SYS_FUNC_PAIRLIS = 16,
-   SYS_FUNC_LET = 17,
-   SYS_FUNC_DEFUN = 18,
-   SYS_FUNC_ATOM = 19,
-   SYS_FUNC_NOT = 20,
-   SYS_FUNC_AND = 21,
-   SYS_FUNC_OR = 22,
-   SYS_FUNC_PROGN = 23,
-   SYS_FUNC_EQUAL = 24,
-   SYS_FUNC_CONCATENATE = 25,
-   SYS_FUNC_CHAR_CODE = 26,
-   SYS_FUNC_CODE_CHAR = 27,
-   SYS_FUNC_TIMES = 28,
-   SYS_FUNC_SLASH = 29,
-   SYS_FUNC_COND = 30,
-   SYS_FUNC_SELECT = 31,
-   SYS_FUNC_FUNCTION = 32,
-   SYS_FUNC_MAPCAR = 33,
-   SYS_FUNC_FUNCALL = 34,
-   SYS_FUNC_GT = 35,
-   SYS_FUNC_LT = 36,
-   SYS_FUNC_TMP_SPACE = 37,
-   SYS_FUNC_PERM_SPACE = 38,
-   SYS_FUNC_SYMBOL_NAME = 39,
-   SYS_FUNC_TRACE = 40,
-   SYS_FUNC_UNTRACE = 41,
-   SYS_FUNC_DIGSTR = 42,
-   SYS_FUNC_COMPILE_FILE = 43,
-   SYS_FUNC_ABS = 44,
-   SYS_FUNC_MIN = 45,
-   SYS_FUNC_MAX = 46,
-   SYS_FUNC_GE = 47,
-   SYS_FUNC_LE = 48,
-   SYS_FUNC_BACKQUOTE = 49,
-   SYS_FUNC_COMMA = 50,
-   SYS_FUNC_NTH = 51,
-   SYS_FUNC_RESIZE_TMP = 52,
-   SYS_FUNC_RESIZE_PERM = 53,
-   SYS_FUNC_COS = 54,
-   SYS_FUNC_SIN = 55,
-   SYS_FUNC_ATAN2 = 56,
-   SYS_FUNC_ENUM = 57,
-   SYS_FUNC_QUIT = 58,
-   SYS_FUNC_EVAL = 59,
-   SYS_FUNC_BREAK = 60,
-   SYS_FUNC_MOD = 61,
-   SYS_FUNC_WRITE_PROFILE = 62,
-   SYS_FUNC_SETQ = 63,
-   SYS_FUNC_FOR = 64,
-   SYS_FUNC_OPEN_FILE = 65,
-   SYS_FUNC_LOAD = 66,
-   SYS_FUNC_BIT_AND = 67,
-   SYS_FUNC_BIT_OR = 68,
-   SYS_FUNC_BIT_XOR = 69,
-   SYS_FUNC_MAKE_ARRAY = 70,
-   SYS_FUNC_AREF = 71,
-   SYS_FUNC_IF_1PROGN = 72,
-   SYS_FUNC_IF_2PROGN = 73,
-   SYS_FUNC_IF_12PROGN = 74,
-   SYS_FUNC_EQ0 = 75,
-   SYS_FUNC_PREPORT = 76,
-   SYS_FUNC_SEARCH = 77,
-   SYS_FUNC_ELT = 78,
-   SYS_FUNC_LISTP = 79,
-   SYS_FUNC_NUMBERP = 80,
-   SYS_FUNC_DO = 81,
-   SYS_FUNC_GC = 82,
-   SYS_FUNC_SCHAR = 83,
-   SYS_FUNC_SYMBOLP = 84,
-   SYS_FUNC_NUM2STR = 85,
-   SYS_FUNC_NCONC = 86,
-   SYS_FUNC_FIRST = 87,
-   SYS_FUNC_SECOND = 88,
-   SYS_FUNC_THIRD = 89,
-   SYS_FUNC_FOURTH = 90,
-   SYS_FUNC_FIFTH = 91,
-   SYS_FUNC_SIXTH = 92,
-   SYS_FUNC_SEVENTH = 93,
-   SYS_FUNC_EIGHTH = 94,
-   SYS_FUNC_NINTH = 95,
-   SYS_FUNC_TENTH = 96,
-   SYS_FUNC_SUBSTR = 97,
-   SYS_FUNC_LOCAL_LOAD = 98,
+   LISP_SYS_FUNC_PRINT = 0,
+   LISP_SYS_FUNC_CAR = 1,
+   LISP_SYS_FUNC_CDR = 2,
+   LISP_SYS_FUNC_LENGTH = 3,
+   LISP_SYS_FUNC_LIST = 4,
+   LISP_SYS_FUNC_CONS = 5,
+   LISP_SYS_FUNC_QUOTE = 6,
+   LISP_SYS_FUNC_EQ = 7,
+   LISP_SYS_FUNC_PLUS = 8,
+   LISP_SYS_FUNC_MINUS = 9,
+   LISP_SYS_FUNC_IF = 10,
+   LISP_SYS_FUNC_SETF = 11,
+   LISP_SYS_FUNC_SYMBOL_LIST = 12,
+   LISP_SYS_FUNC_ASSOC = 13,
+   LISP_SYS_FUNC_NULL = 14,
+   LISP_SYS_FUNC_ACONS = 15,
+   LISP_SYS_FUNC_PAIRLIS = 16,
+   LISP_SYS_FUNC_LET = 17,
+   LISP_SYS_FUNC_DEFUN = 18,
+   LISP_SYS_FUNC_ATOM = 19,
+   LISP_SYS_FUNC_NOT = 20,
+   LISP_SYS_FUNC_AND = 21,
+   LISP_SYS_FUNC_OR = 22,
+   LISP_SYS_FUNC_PROGN = 23,
+   LISP_SYS_FUNC_EQUAL = 24,
+   LISP_SYS_FUNC_CONCATENATE = 25,
+   LISP_SYS_FUNC_CHAR_CODE = 26,
+   LISP_SYS_FUNC_CODE_CHAR = 27,
+   LISP_SYS_FUNC_TIMES = 28,
+   LISP_SYS_FUNC_SLASH = 29,
+   LISP_SYS_FUNC_COND = 30,
+   LISP_SYS_FUNC_SELECT = 31,
+   LISP_SYS_FUNC_FUNCTION = 32,
+   LISP_SYS_FUNC_MAPCAR = 33,
+   LISP_SYS_FUNC_FUNCALL = 34,
+   LISP_SYS_FUNC_GT = 35,
+   LISP_SYS_FUNC_LT = 36,
+   LISP_SYS_FUNC_TMP_SPACE = 37,
+   LISP_SYS_FUNC_PERM_SPACE = 38,
+   LISP_SYS_FUNC_SYMBOL_NAME = 39,
+   LISP_SYS_FUNC_TRACE = 40,
+   LISP_SYS_FUNC_UNTRACE = 41,
+   LISP_SYS_FUNC_DIGSTR = 42,
+   LISP_SYS_FUNC_COMPILE_FILE = 43,
+   LISP_SYS_FUNC_ABS = 44,
+   LISP_SYS_FUNC_MIN = 45,
+   LISP_SYS_FUNC_MAX = 46,
+   LISP_SYS_FUNC_GE = 47,
+   LISP_SYS_FUNC_LE = 48,
+   LISP_SYS_FUNC_BACKQUOTE = 49,
+   LISP_SYS_FUNC_COMMA = 50,
+   LISP_SYS_FUNC_NTH = 51,
+   LISP_SYS_FUNC_RESIZE_TMP = 52,
+   LISP_SYS_FUNC_RESIZE_PERM = 53,
+   LISP_SYS_FUNC_COS = 54,
+   LISP_SYS_FUNC_SIN = 55,
+   LISP_SYS_FUNC_ATAN2 = 56,
+   LISP_SYS_FUNC_ENUM = 57,
+   LISP_SYS_FUNC_QUIT = 58,
+   LISP_SYS_FUNC_EVAL = 59,
+   LISP_SYS_FUNC_BREAK = 60,
+   LISP_SYS_FUNC_MOD = 61,
+   LISP_SYS_FUNC_WRITE_PROFILE = 62,
+   LISP_SYS_FUNC_SETQ = 63,
+   LISP_SYS_FUNC_FOR = 64,
+   LISP_SYS_FUNC_OPEN_FILE = 65,
+   LISP_SYS_FUNC_LOAD = 66,
+   LISP_SYS_FUNC_BIT_AND = 67,
+   LISP_SYS_FUNC_BIT_OR = 68,
+   LISP_SYS_FUNC_BIT_XOR = 69,
+   LISP_SYS_FUNC_MAKE_ARRAY = 70,
+   LISP_SYS_FUNC_AREF = 71,
+   LISP_SYS_FUNC_IF_1PROGN = 72,
+   LISP_SYS_FUNC_IF_2PROGN = 73,
+   LISP_SYS_FUNC_IF_12PROGN = 74,
+   LISP_SYS_FUNC_EQ0 = 75,
+   LISP_SYS_FUNC_PREPORT = 76,
+   LISP_SYS_FUNC_SEARCH = 77,
+   LISP_SYS_FUNC_ELT = 78,
+   LISP_SYS_FUNC_LISTP = 79,
+   LISP_SYS_FUNC_NUMBERP = 80,
+   LISP_SYS_FUNC_DO = 81,
+   LISP_SYS_FUNC_GC = 82,
+   LISP_SYS_FUNC_SCHAR = 83,
+   LISP_SYS_FUNC_SYMBOLP = 84,
+   LISP_SYS_FUNC_NUM2STR = 85,
+   LISP_SYS_FUNC_NCONC = 86,
+   LISP_SYS_FUNC_FIRST = 87,
+   LISP_SYS_FUNC_SECOND = 88,
+   LISP_SYS_FUNC_THIRD = 89,
+   LISP_SYS_FUNC_FOURTH = 90,
+   LISP_SYS_FUNC_FIFTH = 91,
+   LISP_SYS_FUNC_SIXTH = 92,
+   LISP_SYS_FUNC_SEVENTH = 93,
+   LISP_SYS_FUNC_EIGHTH = 94,
+   LISP_SYS_FUNC_NINTH = 95,
+   LISP_SYS_FUNC_TENTH = 96,
+   LISP_SYS_FUNC_SUBSTR = 97,
+   LISP_SYS_FUNC_LOCAL_LOAD = 98,
 }lisp_sys_func_index;
 //-------------------------------------
 
@@ -349,7 +349,7 @@ uint32_t RvR_lisp_item_type(RvR_lisp_object *x)
 {
    if(x!=NULL)
       return x->type;
-   return RVR_L_CONS_CELL;
+   return RVR_LISP_CONS_CELL;
 }
 
 void RvR_lisp_object_print(RvR_lisp_object *o)
@@ -365,13 +365,13 @@ void RvR_lisp_object_print(RvR_lisp_object *o)
 
    switch(RvR_lisp_item_type(o))
    {
-   case RVR_L_CONS_CELL:
+   case RVR_LISP_CONS_CELL:
    {
       RvR_lisp_object *cs = o;
       lisp_print_string("(");
       for(;cs!=NULL;cs = RvR_lisp_cdr(cs))
       {
-         if(RvR_lisp_item_type(cs)==RVR_L_CONS_CELL)
+         if(RvR_lisp_item_type(cs)==RVR_LISP_CONS_CELL)
          {
             RvR_lisp_object_print(cs->obj.list.car);
             if(cs->obj.list.cdr!=NULL)
@@ -387,41 +387,41 @@ void RvR_lisp_object_print(RvR_lisp_object *o)
       lisp_print_string(")");
       break;
    }
-   case RVR_L_NUMBER:
+   case RVR_LISP_NUMBER:
       snprintf(buf,32,"%"PRId32,o->obj.num.num);
       lisp_print_string(buf);
       break;
-   case RVR_L_SYMBOL:
+   case RVR_LISP_SYMBOL:
       lisp_print_string(RvR_lisp_string(o->obj.sym.name));
       break;
-   case RVR_L_USER_FUNCTION:
-   case RVR_L_SYS_FUNCTION:
+   case RVR_LISP_USER_FUNCTION:
+   case RVR_LISP_SYS_FUNCTION:
       lisp_print_string("err... function?");
       break;
-   case RVR_L_C_FUNCTION:
+   case RVR_LISP_C_FUNCTION:
       lisp_print_string("C function, returns number");
       break;
-   case RVR_L_C_BOOL:
+   case RVR_LISP_C_BOOL:
       lisp_print_string("C boolean function");
       break;
-   case RVR_L_L_FUNCTION:
+   case RVR_LISP_L_FUNCTION:
       lisp_print_string("External lisp function");
       break;
-   case RVR_L_STRING:
+   case RVR_LISP_STRING:
       if(lisp_current_print_file!=NULL)
          lisp_print_string(RvR_lisp_string(o));
       else
          RvR_log("\"%s\"",RvR_lisp_string(o));
       break;
-   case RVR_L_POINTER:
+   case RVR_LISP_POINTER:
       snprintf(buf,32,"%p",RvR_lisp_pointer(o));
       lisp_print_string(buf);
       break;
-   case RVR_L_FIXED_POINT:
+   case RVR_LISP_FIXED_POINT:
       snprintf(buf,32,"%g",(RvR_lisp_fixed_point(o)>>16)+((RvR_lisp_fixed_point(o)&0xffff))/(double)(0x10000));
       lisp_print_string(buf);
       break;
-   case RVR_L_CHARACTER:
+   case RVR_LISP_CHARACTER:
       if(lisp_current_print_file!=NULL)
       {
          uint8_t ch = o->obj.ch.ch;
@@ -439,10 +439,10 @@ void RvR_lisp_object_print(RvR_lisp_object *o)
          }
       }
       break;
-   case RVR_L_OBJECT_VAR:
+   case RVR_LISP_OBJECT_VAR:
       lisp_lprint(o->obj.var.index);
       break;
-   case RVR_L_1D_ARRAY:
+   case RVR_LISP_1D_ARRAY:
       {
          RvR_lisp_object *a = o;
          RvR_lisp_object **data = o->obj.arr.data;
@@ -456,7 +456,7 @@ void RvR_lisp_object_print(RvR_lisp_object *o)
          RvR_log(")");
       }
       break;
-   case RVR_L_COLLECTED_OBJECT:
+   case RVR_LISP_COLLECTED_OBJECT:
       lisp_print_string("GC_reference->");
       RvR_lisp_object_print(o->obj.ref.ref);
       break;
@@ -475,7 +475,7 @@ RvR_lisp_object *RvR_lisp_cdr(RvR_lisp_object *o)
    if(o==NULL)
       return NULL;
 
-   if(RvR_lisp_item_type(o)==RVR_L_CONS_CELL)
+   if(RvR_lisp_item_type(o)==RVR_LISP_CONS_CELL)
       return o->obj.list.cdr;
    return NULL;
 }
@@ -485,7 +485,7 @@ RvR_lisp_object *RvR_lisp_car(RvR_lisp_object *o)
    if(o==NULL)
       return NULL;
 
-   if(RvR_lisp_item_type(o)==RVR_L_CONS_CELL)
+   if(RvR_lisp_item_type(o)==RVR_LISP_CONS_CELL)
       return o->obj.list.car;
    return NULL;
 }
@@ -496,7 +496,7 @@ char *RvR_lisp_string(RvR_lisp_object *o)
       return NULL;
 
 #if RVR_LISP_TYPE_CHECK
-   if(RvR_lisp_item_type(o)!=RVR_L_STRING)
+   if(RvR_lisp_item_type(o)!=RVR_LISP_STRING)
    {
       RvR_lisp_object_print(o);
       RvR_lisp_break(" is not a string\n");
@@ -513,7 +513,7 @@ void *RvR_lisp_pointer(RvR_lisp_object *o)
       return NULL;
 
 #if RVR_LISP_TYPE_CHECK
-   if(RvR_lisp_item_type(o)!=RVR_L_POINTER)
+   if(RvR_lisp_item_type(o)!=RVR_LISP_POINTER)
    {
       RvR_lisp_object_print(o);
       RvR_lisp_break(" is not a pointer\n");
@@ -530,7 +530,7 @@ int32_t RvR_lisp_fixed_point(RvR_lisp_object *o)
       return 0;
 
 #if RVR_LISP_TYPE_CHECK
-   if(RvR_lisp_item_type(o)!=RVR_L_FIXED_POINT)
+   if(RvR_lisp_item_type(o)!=RVR_LISP_FIXED_POINT)
    {
       RvR_lisp_object_print(o);
       RvR_lisp_break(" is not a fixed point number\n");
@@ -617,7 +617,7 @@ void RvR_lisp_restore_heap(void *val, int heap)
 RvR_lisp_object *RvR_lisp_eval_block(RvR_lisp_object *list)
 {
    lisp_ptr_ref_push(&list);
-   void *ret = NULL;
+   RvR_lisp_object *ret = NULL;
    while(list!=NULL)
    {
       ret = RvR_lisp_eval(list->obj.list.car);
@@ -652,18 +652,18 @@ RvR_lisp_object *RvR_lisp_eval(RvR_lisp_object *o)
    {
       switch(RvR_lisp_item_type(o))
       {
-      case RVR_L_BAD_CELL:
+      case RVR_LISP_BAD_CELL:
          RvR_lisp_break("error: eval on bad cell\n");
          exit(0);
          break;
-      case RVR_L_CHARACTER:
-      case RVR_L_STRING:
-      case RVR_L_NUMBER:
-      case RVR_L_POINTER:
-      case RVR_L_FIXED_POINT:
+      case RVR_LISP_CHARACTER:
+      case RVR_LISP_STRING:
+      case RVR_LISP_NUMBER:
+      case RVR_LISP_POINTER:
+      case RVR_LISP_FIXED_POINT:
          ret = o;
          break;
-      case RVR_L_SYMBOL:
+      case RVR_LISP_SYMBOL:
          if(o==lisp_true_symbol)
          {
             ret = o;
@@ -671,11 +671,11 @@ RvR_lisp_object *RvR_lisp_eval(RvR_lisp_object *o)
          else
          {
             ret = o->obj.sym.value;
-            if(RvR_lisp_item_type(ret)==RVR_L_OBJECT_VAR)
+            if(RvR_lisp_item_type(ret)==RVR_LISP_OBJECT_VAR)
                ret = lisp_lget(ret->obj.var.index);
          }
          break;
-      case RVR_L_CONS_CELL:
+      case RVR_LISP_CONS_CELL:
          ret = RvR_lisp_eval_function(o->obj.list.car,o->obj.list.cdr);
          break;
       default:
@@ -706,7 +706,7 @@ RvR_lisp_object *RvR_lisp_array_create(size_t len, RvR_lisp_object *rest)
    RvR_lisp_object *p = lisp_malloc(size,lisp_current_space);
    memset(p,0,size);
    p->obj.arr.data = (void *)(p+1);
-   p->type = RVR_L_1D_ARRAY;
+   p->type = RVR_LISP_1D_ARRAY;
    p->obj.arr.len = len;
    RvR_lisp_object **data = p->obj.arr.data;
 
@@ -753,8 +753,7 @@ RvR_lisp_object *RvR_lisp_array_create(size_t len, RvR_lisp_object *rest)
       }
    }
 
-   lisp_ptr_ref_pop(1); //p
-   lisp_ptr_ref_pop(1); //rest
+   lisp_ptr_ref_pop(2); //p, rest
 
    return p;
 }
@@ -764,7 +763,7 @@ RvR_lisp_object *RvR_lisp_fixed_point_create(int32_t x)
    size_t size = sizeof(RvR_lisp_object);
    RvR_lisp_object *p = lisp_malloc(size,lisp_current_space);
    memset(p,0,size);
-   p->type = RVR_L_FIXED_POINT;
+   p->type = RVR_LISP_FIXED_POINT;
    p->obj.fix.x = x;
 
    return p;
@@ -775,7 +774,7 @@ RvR_lisp_object *RvR_lisp_object_var_create(int index)
    size_t size = sizeof(RvR_lisp_object);
    RvR_lisp_object *p = lisp_malloc(size,lisp_current_space);
    memset(p,0,size);
-   p->type = RVR_L_OBJECT_VAR;
+   p->type = RVR_LISP_OBJECT_VAR;
    p->obj.var.index = index;
 
    return p;
@@ -789,7 +788,7 @@ RvR_lisp_object *RvR_lisp_pointer_create(void *addr)
    size_t size = sizeof(RvR_lisp_object);
    RvR_lisp_object *p = lisp_malloc(size,lisp_current_space);
    memset(p,0,size);
-   p->type = RVR_L_POINTER;
+   p->type = RVR_LISP_POINTER;
    p->obj.addr.addr = addr;
 
    return p;
@@ -800,7 +799,7 @@ RvR_lisp_object *RvR_lisp_char_create(uint16_t ch)
    size_t size = sizeof(RvR_lisp_object);
    RvR_lisp_object *p = lisp_malloc(size,lisp_current_space);
    memset(p,0,size);
-   p->type = RVR_L_CHARACTER;
+   p->type = RVR_LISP_CHARACTER;
    p->obj.ch.ch = ch;
 
    return p;
@@ -829,7 +828,7 @@ RvR_lisp_object *RvR_lisp_stringl_create(int length)
    RvR_lisp_object *p = lisp_malloc(size,lisp_current_space);
    memset(p,0,size);
    p->obj.str.str = (void *)(p+1);
-   p->type = RVR_L_STRING;
+   p->type = RVR_LISP_STRING;
    p->obj.str.str[0] = '\0';
 
    return p;
@@ -843,12 +842,11 @@ RvR_lisp_object *RvR_lisp_user_function_create(RvR_lisp_object *arg_list, RvR_li
    size_t size = sizeof(RvR_lisp_object);
    RvR_lisp_object *p = lisp_malloc(size,lisp_current_space);
    memset(p,0,size);
-   p->type = RVR_L_USER_FUNCTION;
+   p->type = RVR_LISP_USER_FUNCTION;
    p->obj.usr.arg_list = arg_list;
    p->obj.usr.block_list = block_list;
 
-   lisp_ptr_ref_pop(1); //block_list
-   lisp_ptr_ref_pop(1); //arg_list
+   lisp_ptr_ref_pop(2); //block_list, arg_list
 
    return p;
 }
@@ -859,7 +857,7 @@ RvR_lisp_object *RvR_lisp_sys_function_create(int min_args, int max_args, int fu
    int space = (lisp_current_space==RVR_LISP_GC_SPACE)?RVR_LISP_GC_SPACE:RVR_LISP_PERM_SPACE;
    RvR_lisp_object *p = lisp_malloc(size,space);
    memset(p,0,size);
-   p->type = RVR_L_SYS_FUNCTION;
+   p->type = RVR_LISP_SYS_FUNCTION;
    p->obj.sys.min_args = min_args;
    p->obj.sys.max_args = max_args;
    p->obj.sys.fun_number = fun_number;
@@ -870,7 +868,7 @@ RvR_lisp_object *RvR_lisp_sys_function_create(int min_args, int max_args, int fu
 RvR_lisp_object *RvR_lisp_c_function_create(int min_args, int max_args, int fun_number)
 {
    RvR_lisp_object *p = RvR_lisp_sys_function_create(min_args,max_args,fun_number);
-   p->type = RVR_L_C_FUNCTION;
+   p->type = RVR_LISP_C_FUNCTION;
 
    return p;
 }
@@ -878,7 +876,7 @@ RvR_lisp_object *RvR_lisp_c_function_create(int min_args, int max_args, int fun_
 RvR_lisp_object *RvR_lisp_c_bool_create(int min_args, int max_args, int fun_number)
 {
    RvR_lisp_object *p = RvR_lisp_sys_function_create(min_args,max_args,fun_number);
-   p->type = RVR_L_C_BOOL;
+   p->type = RVR_LISP_C_BOOL;
 
    return p;
 }
@@ -886,7 +884,7 @@ RvR_lisp_object *RvR_lisp_c_bool_create(int min_args, int max_args, int fun_numb
 RvR_lisp_object *RvR_lisp_user_lisp_function_create(int min_args, int max_args, int fun_number)
 {
    RvR_lisp_object *p = RvR_lisp_sys_function_create(min_args,max_args,fun_number);
-   p->type = RVR_L_L_FUNCTION;
+   p->type = RVR_LISP_L_FUNCTION;
 
    return p;
 }
@@ -899,7 +897,7 @@ RvR_lisp_object *RvR_lisp_symbol_create(char *name)
 
    lisp_ptr_ref_push(&p);
 
-   p->type = RVR_L_SYMBOL;
+   p->type = RVR_LISP_SYMBOL;
    p->obj.sym.name = RvR_lisp_strings_create(name);
    p->obj.sym.value = lisp_undefined;
    p->obj.sym.function = lisp_undefined;
@@ -918,7 +916,7 @@ RvR_lisp_object *RvR_lisp_number_create(int32_t num)
    size_t size = sizeof(RvR_lisp_object);
    RvR_lisp_object *p = lisp_malloc(size,lisp_current_space);
    memset(p,0,size);
-   p->type = RVR_L_NUMBER;
+   p->type = RVR_LISP_NUMBER;
    p->obj.num.num = num;
 
    return p;
@@ -929,7 +927,7 @@ RvR_lisp_object *RvR_lisp_list_create()
    size_t size = sizeof(RvR_lisp_object);
    RvR_lisp_object *p = lisp_malloc(size,lisp_current_space);
    memset(p,0,size);
-   p->type = RVR_L_CONS_CELL;
+   p->type = RVR_LISP_CONS_CELL;
    p->obj.list.car = NULL;
    p->obj.list.cdr = NULL;
 
@@ -961,7 +959,7 @@ void *RvR_lisp_pointer_value(RvR_lisp_object *pointer)
       return NULL;
 
 #if RVR_LISP_TYPE_CHECK
-   if(RvR_lisp_item_type(pointer)!=RVR_L_POINTER)
+   if(RvR_lisp_item_type(pointer)!=RVR_LISP_POINTER)
    {
       RvR_lisp_object_print(pointer);
       RvR_lisp_break(" is not a pointer\n");
@@ -976,10 +974,10 @@ int32_t RvR_lisp_number_value(RvR_lisp_object *number)
 {
    switch(RvR_lisp_item_type(number))
    {
-   case RVR_L_NUMBER: return number->obj.num.num;
-   case RVR_L_FIXED_POINT: return (number->obj.fix.x)>>16;
-   case RVR_L_STRING: return *RvR_lisp_string(number);
-   case RVR_L_CHARACTER: return RvR_lisp_character_value(number);
+   case RVR_LISP_NUMBER: return number->obj.num.num;
+   case RVR_LISP_FIXED_POINT: return (number->obj.fix.x)>>16;
+   case RVR_LISP_STRING: return *RvR_lisp_string(number);
+   case RVR_LISP_CHARACTER: return RvR_lisp_character_value(number);
    default:
       RvR_lisp_object_print(number);
       RvR_lisp_break(" is not a number\n");
@@ -989,9 +987,9 @@ int32_t RvR_lisp_number_value(RvR_lisp_object *number)
    return 0;
 }
 
-void *RvR_lisp_atom(void *i)
+void *RvR_lisp_atom(RvR_lisp_object *i)
 {
-   if(RvR_lisp_item_type(i)==RVR_L_CONS_CELL)
+   if(RvR_lisp_item_type(i)==RVR_LISP_CONS_CELL)
       return NULL;
    return lisp_true_symbol;
 }
@@ -1002,7 +1000,7 @@ uint16_t RvR_lisp_character_value(RvR_lisp_object *c)
       return 0;
 
 #if RVR_LISP_TYPE_CHECK
-   if(RvR_lisp_item_type(c)!=RVR_L_CHARACTER)
+   if(RvR_lisp_item_type(c)!=RVR_LISP_CHARACTER)
    {
       RvR_lisp_object_print(c);
       RvR_lisp_break(" is not a character\n");
@@ -1017,8 +1015,8 @@ int32_t RvR_lisp_fixed_point_value(RvR_lisp_object *c)
 {
    switch(RvR_lisp_item_type(c))
    {
-   case RVR_L_NUMBER: return (c->obj.num.num)<<16;
-   case RVR_L_FIXED_POINT: return c->obj.fix.x;
+   case RVR_LISP_NUMBER: return (c->obj.num.num)<<16;
+   case RVR_LISP_FIXED_POINT: return c->obj.fix.x;
    default:
       RvR_lisp_object_print(c);
       RvR_lisp_break(" is not a number\n");
@@ -1039,9 +1037,9 @@ RvR_lisp_object *RvR_lisp_eq(RvR_lisp_object *n1, RvR_lisp_object *n2)
    uint32_t t2 = RvR_lisp_item_type(n2);
    if(t1!=t2)
       return NULL;
-   if(t1==RVR_L_NUMBER)
+   if(t1==RVR_LISP_NUMBER)
       return n1->obj.num.num==n2->obj.num.num?lisp_true_symbol:NULL;
-   if(t1==RVR_L_CHARACTER)
+   if(t1==RVR_LISP_CHARACTER)
       return n1->obj.ch.ch==n2->obj.ch.ch?lisp_true_symbol:NULL;
    if(n1==n2)
       return lisp_true_symbol;
@@ -1052,7 +1050,7 @@ RvR_lisp_object *RvR_lisp_eq(RvR_lisp_object *n1, RvR_lisp_object *n2)
 RvR_lisp_object *RvR_lisp_array_get(RvR_lisp_object *o, int x)
 {
 #if RVR_LISP_TYPE_CHECK
-   if(RvR_lisp_item_type(o)!=RVR_L_1D_ARRAY)
+   if(RvR_lisp_item_type(o)!=RVR_LISP_1D_ARRAY)
    {
       RvR_lisp_object_print(o);
       RvR_lisp_break(" is not an array\n");
@@ -1083,18 +1081,18 @@ RvR_lisp_object *RvR_lisp_equal(RvR_lisp_object *n1, RvR_lisp_object *n2)
 
    switch(t1)
    {
-   case RVR_L_STRING :
+   case RVR_LISP_STRING :
       if(!strcmp(RvR_lisp_string(n1),RvR_lisp_string(n2)))
          return lisp_true_symbol;
       return NULL;
-   case RVR_L_CONS_CELL :
+   case RVR_LISP_CONS_CELL :
       while(n1!=NULL&&n2!=NULL) //loop through the list and compare each element
       {
          if(!RvR_lisp_equal(n1->obj.list.car,n2->obj.list.car))
             return NULL;
          n1 = n1->obj.list.cdr;
          n2 = n2->obj.list.cdr;
-         if(n1&&RvR_lisp_item_type(n1)!=RVR_L_CONS_CELL)
+         if(n1&&RvR_lisp_item_type(n1)!=RVR_LISP_CONS_CELL)
             return RvR_lisp_equal(n1,n2);
       }
       if(n1!=NULL||n2!=NULL)
@@ -1138,7 +1136,7 @@ RvR_lisp_object *RvR_lisp_symbol_find_or_create(const char *name)
       lisp_current_space = RVR_LISP_PERM_SPACE;
 
    p = RvR_malloc(sizeof(*p));
-   p->type = RVR_L_SYMBOL;
+   p->type = RVR_LISP_SYMBOL;
    p->obj.sym.name = RvR_lisp_strings_create(name);
 
    //If constant, set the value to ourself
@@ -1158,7 +1156,7 @@ RvR_lisp_object *RvR_lisp_symbol_find_or_create(const char *name)
 
 RvR_lisp_object *RvR_lisp_assoc(RvR_lisp_object *item, RvR_lisp_object *list)
 {
-   if(RvR_lisp_item_type(list)!=RVR_L_CONS_CELL)
+   if(RvR_lisp_item_type(list)!=RVR_LISP_CONS_CELL)
       return NULL;
 
    while(list!=NULL)
@@ -1176,7 +1174,7 @@ size_t RvR_lisp_list_length(RvR_lisp_object *list)
    size_t ret = 0;
 
 #ifdef RVR_LISP_TYPE_CHECK
-   if(list!=NULL&&RvR_lisp_item_type(list)!=RVR_L_CONS_CELL)
+   if(list!=NULL&&RvR_lisp_item_type(list)!=RVR_LISP_CONS_CELL)
    {
       RvR_lisp_object_print(list);
       RvR_lisp_break(" is not a sequence\n");
@@ -1319,8 +1317,7 @@ void     RvR_lisp_push_onto_list(RvR_lisp_object *object, RvR_lisp_object **list
    c->obj.list.cdr = *list;
    *list = c;
 
-   lisp_ptr_ref_pop(1); //list
-   lisp_ptr_ref_pop(1); //object
+   lisp_ptr_ref_pop(2); //list, object
 }
 
 RvR_lisp_object *RvR_lisp_compile(const char **s)
@@ -1351,8 +1348,7 @@ RvR_lisp_object *RvR_lisp_compile(const char **s)
       cs->obj.list.cdr = c2;
       ret = cs;
 
-      lisp_ptr_ref_pop(1); //c2
-      lisp_ptr_ref_pop(1); //cs
+      lisp_ptr_ref_pop(2); //c2, cs
    }
    else if(lisp_n[0]=='`')
    {
@@ -1371,8 +1367,7 @@ RvR_lisp_object *RvR_lisp_compile(const char **s)
       cs->obj.list.cdr = c2;
       ret = cs;
 
-      lisp_ptr_ref_pop(1); //c2
-      lisp_ptr_ref_pop(1); //cs
+      lisp_ptr_ref_pop(2); //c2, cs
    }
    else if(lisp_n[0]==',')
    {
@@ -1391,8 +1386,7 @@ RvR_lisp_object *RvR_lisp_compile(const char **s)
       cs->obj.list.cdr = c2;
       ret = cs;
 
-      lisp_ptr_ref_pop(1); //c2
-      lisp_ptr_ref_pop(1); //cs
+      lisp_ptr_ref_pop(2); //c2, cs
    }
    else if(lisp_n[0]=='(')
    {
@@ -1457,9 +1451,7 @@ RvR_lisp_object *RvR_lisp_compile(const char **s)
       }while(!done);
       ret = lisp_comp_optimize(first);
 
-      lisp_ptr_ref_pop(1); //last
-      lisp_ptr_ref_pop(1); //cur
-      lisp_ptr_ref_pop(1); //first
+      lisp_ptr_ref_pop(3); //last, cur, first
    }
    else if(lisp_n[0]==')')
    {
@@ -1523,8 +1515,7 @@ RvR_lisp_object *RvR_lisp_compile(const char **s)
          cs->obj.list.cdr = c2;
          ret = cs;
 
-         lisp_ptr_ref_pop(1); //c2
-         lisp_ptr_ref_pop(1); //cs
+         lisp_ptr_ref_pop(2); //c2, cs
       }
       else
       {
@@ -1546,7 +1537,7 @@ RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *a
    int args = 0;
    int req_min = 0;
    int req_max = 0;
-   if(RvR_lisp_item_type(sym)!=RVR_L_SYMBOL)
+   if(RvR_lisp_item_type(sym)!=RVR_LISP_SYMBOL)
    {
       RvR_lisp_object_print(sym);
       RvR_lisp_break("EVAL: is not a function name (not a symbol either)");
@@ -1564,16 +1555,15 @@ RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *a
 #if RVR_LISP_TYPE_CHECK
    switch(t)
    {
-   case RVR_L_SYS_FUNCTION:
-   case RVR_L_C_FUNCTION:
-   case RVR_L_C_BOOL:
-   case RVR_L_L_FUNCTION:
+   case RVR_LISP_SYS_FUNCTION:
+   case RVR_LISP_C_FUNCTION:
+   case RVR_LISP_C_BOOL:
+   case RVR_LISP_L_FUNCTION:
       req_min = fun->obj.sys.min_args;
       req_max = fun->obj.sys.max_args;
       break;
-   case RVR_L_USER_FUNCTION:
-      lisp_ptr_ref_pop(1); //arg_list
-      lisp_ptr_ref_pop(1); //fun
+   case RVR_LISP_USER_FUNCTION:
+      lisp_ptr_ref_pop(2); //arg_list, fun
       return RvR_lisp_eval_user_function(sym,arg_list);
    default:
       RvR_lisp_object_print(sym);
@@ -1611,18 +1601,17 @@ RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *a
    RvR_lisp_object *ret = NULL;
    switch(t)
    {
-   case RVR_L_SYS_FUNCTION:
+   case RVR_LISP_SYS_FUNCTION:
       ret = RvR_lisp_eval_sys_function(fun,arg_list);
       break;
-   case RVR_L_L_FUNCTION:
+   case RVR_LISP_L_FUNCTION:
       ret = lisp_lcall(fun->obj.sys.fun_number,arg_list);
       break;
-   case RVR_L_USER_FUNCTION:
-      lisp_ptr_ref_pop(1); //arg_list
-      lisp_ptr_ref_pop(1); //fun
+   case RVR_LISP_USER_FUNCTION:
+      lisp_ptr_ref_pop(2); //arg_list, fun
       return RvR_lisp_eval_user_function(sym,arg_list);
-   case RVR_L_C_FUNCTION:
-   case RVR_L_C_BOOL:
+   case RVR_LISP_C_FUNCTION:
+   case RVR_LISP_C_BOOL:
    {
       RvR_lisp_object *first = NULL;
       RvR_lisp_object *cur = NULL;
@@ -1645,16 +1634,14 @@ RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *a
          arg_list = RvR_lisp_cdr(arg_list);
       }
 
-      if(t==RVR_L_C_FUNCTION)
+      if(t==RVR_LISP_C_FUNCTION)
          ret = RvR_lisp_number_create(lisp_ccall(fun->obj.sys.fun_number,first));
       else if(lisp_ccall(fun->obj.sys.fun_number,first))
          ret = lisp_true_symbol;
       else
          ret = NULL;
 
-      lisp_ptr_ref_pop(1); //arg_list
-      lisp_ptr_ref_pop(1); //cur
-      lisp_ptr_ref_pop(1); //first
+      lisp_ptr_ref_pop(3); //arg_list, cur, first
       break;
    }
    default:
@@ -1665,8 +1652,7 @@ RvR_lisp_object *RvR_lisp_eval_function(RvR_lisp_object *sym, RvR_lisp_object *a
    //TODO
 #endif
 
-   lisp_ptr_ref_pop(1); //arg_list
-   lisp_ptr_ref_pop(1); //fun
+   lisp_ptr_ref_pop(2); //arg_list, fun
 
    return ret;
 }
@@ -1678,7 +1664,7 @@ RvR_lisp_object *RvR_lisp_eval_user_function(RvR_lisp_object *sym, RvR_lisp_obje
    lisp_ptr_ref_push(&ret);
 
 #if RVR_LISP_TYPE_CHECK
-   if(RvR_lisp_item_type(sym)!=RVR_L_SYMBOL)
+   if(RvR_lisp_item_type(sym)!=RVR_LISP_SYMBOL)
    {
       RvR_lisp_object_print(sym);
       RvR_lisp_break("EVAL: is not a function name (not symbol either)");
@@ -1693,7 +1679,7 @@ RvR_lisp_object *RvR_lisp_eval_user_function(RvR_lisp_object *sym, RvR_lisp_obje
    RvR_lisp_object *fun = sym->obj.sym.function;
 
 #if RVR_LISP_TYPE_CHECK
-   if(RvR_lisp_item_type(fun)!=RVR_L_USER_FUNCTION)
+   if(RvR_lisp_item_type(fun)!=RVR_LISP_USER_FUNCTION)
    {
       RvR_lisp_object_print(fun);
       RvR_lisp_break("is not a user defined function\n");
@@ -1767,11 +1753,7 @@ RvR_lisp_object *RvR_lisp_eval_user_function(RvR_lisp_object *sym, RvR_lisp_obje
    //TODO
 #endif
 
-   lisp_ptr_ref_pop(1); //arg_list
-   lisp_ptr_ref_pop(1); //f_arg
-   lisp_ptr_ref_pop(1); //block_list
-   lisp_ptr_ref_pop(1); //fun_arg_list
-   lisp_ptr_ref_pop(1); //ret
+   lisp_ptr_ref_pop(5); //arg_list, f_arg, block_list, fun_arg_list, ret
 
    return ret;
 }
@@ -1784,7 +1766,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
    switch(sym->obj.sys.fun_number)
    {
-   case SYS_FUNC_PRINT:
+   case LISP_SYS_FUNC_PRINT:
       while(arg_list!=NULL)
       {
          ret = RvR_lisp_eval(arg_list->obj.list.car);
@@ -1792,21 +1774,21 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
          RvR_lisp_object_print(ret);
       }
       break;
-   case SYS_FUNC_CAR:
+   case LISP_SYS_FUNC_CAR:
       ret = RvR_lisp_car(RvR_lisp_eval(arg_list->obj.list.car));
       break;
-   case SYS_FUNC_CDR:
+   case LISP_SYS_FUNC_CDR:
       ret = RvR_lisp_cdr(RvR_lisp_eval(arg_list->obj.list.car));
       break;
-   case SYS_FUNC_LENGTH:
+   case LISP_SYS_FUNC_LENGTH:
    {
       RvR_lisp_object *v = RvR_lisp_eval(arg_list->obj.list.car);
       switch(RvR_lisp_item_type(v))
       {
-      case RVR_L_STRING:
+      case RVR_LISP_STRING:
          ret = RvR_lisp_number_create(strlen(v->obj.str.str));
          break;
-      case RVR_L_CONS_CELL:
+      case RVR_LISP_CONS_CELL:
          ret = RvR_lisp_number_create(RvR_lisp_list_length(v));
          break;
       default:
@@ -1816,7 +1798,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       }
       break;
    }
-   case SYS_FUNC_LIST:
+   case LISP_SYS_FUNC_LIST:
    {
       RvR_lisp_object *cur = NULL;
       RvR_lisp_object *first = NULL;
@@ -1840,12 +1822,10 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       }
       ret = first;
 
-      lisp_ptr_ref_pop(1); //last
-      lisp_ptr_ref_pop(1); //first
-      lisp_ptr_ref_pop(1); //cur
+      lisp_ptr_ref_pop(3); //last, first, cur
       break;
    }
-   case SYS_FUNC_CONS:
+   case LISP_SYS_FUNC_CONS:
    {
       RvR_lisp_object *c = RvR_lisp_list_create();
 
@@ -1861,20 +1841,20 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_QUOTE:
+   case LISP_SYS_FUNC_QUOTE:
       ret = arg_list->obj.list.car;
       break;
-   case SYS_FUNC_EQ:
+   case LISP_SYS_FUNC_EQ:
       lisp_user_stack_push(RvR_lisp_eval(arg_list->obj.list.car));
       lisp_user_stack_push(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
       ret = RvR_lisp_eq(lisp_user_stack_pop(1),lisp_user_stack_pop(1));
       break;
-   case SYS_FUNC_EQUAL:
+   case LISP_SYS_FUNC_EQUAL:
       lisp_user_stack_push(RvR_lisp_eval(arg_list->obj.list.car));
       lisp_user_stack_push(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
       ret = RvR_lisp_equal(lisp_user_stack_pop(1),lisp_user_stack_pop(1));
       break;
-   case SYS_FUNC_PLUS:
+   case LISP_SYS_FUNC_PLUS:
    {
       int32_t sum = 0;
       while(arg_list!=NULL)
@@ -1885,7 +1865,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       ret = RvR_lisp_number_create(sum);
       break;
    }
-   case SYS_FUNC_TIMES:
+   case LISP_SYS_FUNC_TIMES:
    {
       int32_t prod = 1;
       RvR_lisp_object *first = RvR_lisp_eval(arg_list->obj.list.car);
@@ -1906,7 +1886,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_SLASH:
+   case LISP_SYS_FUNC_SLASH:
    {
       int32_t quot = 0;
       int first = 1;
@@ -1914,7 +1894,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       while(arg_list!=NULL)
       {
          RvR_lisp_object *i = RvR_lisp_eval(arg_list->obj.list.car);
-         if(RvR_lisp_item_type(i)!=RVR_L_NUMBER)
+         if(RvR_lisp_item_type(i)!=RVR_LISP_NUMBER)
          {
             RvR_lisp_object_print(i);
             RvR_lisp_break("/ only defined for numbers, cannot divide\n");
@@ -1937,7 +1917,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       
       break;
    }
-   case SYS_FUNC_MINUS:
+   case LISP_SYS_FUNC_MINUS:
    {
       int32_t sub = RvR_lisp_eval(arg_list->obj.list.car)->obj.num.num;
       arg_list = arg_list->obj.list.cdr;
@@ -1951,7 +1931,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_IF:
+   case LISP_SYS_FUNC_IF:
       if(RvR_lisp_eval(arg_list->obj.list.car)!=NULL)
       {
          ret = RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car);
@@ -1965,8 +1945,8 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
             ret = NULL;
       }
       break;
-   case SYS_FUNC_SETQ:
-   case SYS_FUNC_SETF:
+   case LISP_SYS_FUNC_SETQ:
+   case LISP_SYS_FUNC_SETF:
    {
       RvR_lisp_object *set_to = RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car);
       RvR_lisp_object *i = NULL;
@@ -1978,16 +1958,16 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       uint32_t x = RvR_lisp_item_type(set_to);
       switch(RvR_lisp_item_type(i))
       {
-      case RVR_L_SYMBOL:
+      case RVR_LISP_SYMBOL:
          switch(RvR_lisp_item_type(i->obj.sym.value))
          {
-         case RVR_L_NUMBER:
-            if(x==RVR_L_NUMBER&&i->obj.sym.value!=lisp_undefined)
+         case RVR_LISP_NUMBER:
+            if(x==RVR_LISP_NUMBER&&i->obj.sym.value!=lisp_undefined)
                RvR_lisp_symbol_number_set(i,set_to->obj.num.num);
             else
                RvR_lisp_symbol_value_set(i,set_to);
             break;
-         case RVR_L_OBJECT_VAR:
+         case RVR_LISP_OBJECT_VAR:
             lisp_lset(i->obj.sym.value->obj.var.index,set_to);
             break;
          default:
@@ -1995,14 +1975,14 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
          }
          ret = i->obj.sym.value;
          break;
-      case RVR_L_CONS_CELL:
+      case RVR_LISP_CONS_CELL:
       {
 #if RVR_LISP_TYPE_CHECK
          RvR_lisp_object *car = i->obj.list.car;
          if(car==lisp_car_symbol)
          {
             car = RvR_lisp_eval(i->obj.list.cdr->obj.list.car);
-            if(car==NULL||RvR_lisp_item_type(car)!=RVR_L_CONS_CELL)
+            if(car==NULL||RvR_lisp_item_type(car)!=RVR_LISP_CONS_CELL)
             {
                RvR_lisp_object_print(car);
                RvR_lisp_break("setq car: evaled object is not a cons cell\n");
@@ -2013,7 +1993,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
          else if(car==lisp_cdr_symbol)
          {
             car = RvR_lisp_eval(i->obj.list.cdr->obj.list.car);
-            if(car==NULL||RvR_lisp_item_type(car)!=RVR_L_CONS_CELL)
+            if(car==NULL||RvR_lisp_item_type(car)!=RVR_LISP_CONS_CELL)
             {
                RvR_lisp_object_print(car);
                RvR_lisp_break("setq cdr: evaled object is not a cons cell\n");
@@ -2034,7 +2014,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
             lisp_ptr_ref_push(&a);
 
 #if RVR_LISP_TYPE_CHECK
-            if(RvR_lisp_item_type(a)!=RVR_L_1D_ARRAY)
+            if(RvR_lisp_item_type(a)!=RVR_LISP_1D_ARRAY)
             {
                RvR_lisp_object_print(a);
                RvR_lisp_break("is not an array (aref)\n");
@@ -2067,15 +2047,14 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
          break;
       }
 
-      lisp_ptr_ref_pop(1); //i
-      lisp_ptr_ref_pop(1); //set_to
+      lisp_ptr_ref_pop(2); //i, set_to
 
       break;
    }
-   case SYS_FUNC_SYMBOL_LIST:
+   case LISP_SYS_FUNC_SYMBOL_LIST:
       ret = NULL;
       break;
-   case SYS_FUNC_ASSOC:
+   case LISP_SYS_FUNC_ASSOC:
    {
       RvR_lisp_object *item = RvR_lisp_eval(arg_list->obj.list.car);
       lisp_ptr_ref_push(&item);
@@ -2085,19 +2064,18 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       ret = RvR_lisp_assoc(item,list);
 
-      lisp_ptr_ref_pop(1); //list
-      lisp_ptr_ref_pop(1); //item
+      lisp_ptr_ref_pop(2); //list, item
 
       break;
    }
-   case SYS_FUNC_NOT:
-   case SYS_FUNC_NULL:
+   case LISP_SYS_FUNC_NOT:
+   case LISP_SYS_FUNC_NULL:
       if(RvR_lisp_eval(arg_list->obj.list.car)==NULL)
          ret = lisp_true_symbol;
       else
          ret = NULL;
       break;
-   case SYS_FUNC_ACONS:
+   case LISP_SYS_FUNC_ACONS:
    {
       RvR_lisp_object *i1 = RvR_lisp_eval(arg_list->obj.list.car);
       lisp_ptr_ref_push(&i1);
@@ -2110,12 +2088,11 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       cs->obj.list.cdr = i2;
       ret = cs;
 
-      lisp_ptr_ref_pop(1); //i2
-      lisp_ptr_ref_pop(1); //i1
+      lisp_ptr_ref_pop(2); //i2, i1
 
       break;
    }
-   case SYS_FUNC_PAIRLIS:
+   case LISP_SYS_FUNC_PAIRLIS:
    {
       lisp_user_stack_push(RvR_lisp_eval(arg_list->obj.list.car));
       arg_list = arg_list->obj.list.cdr;
@@ -2130,7 +2107,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_LET:
+   case LISP_SYS_FUNC_LET:
    {
       //make an a-list of new variable names and new values
       RvR_lisp_object *var_list = arg_list->obj.list.car;
@@ -2147,7 +2124,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
          RvR_lisp_object *tmp = NULL;
 
 #if RVR_LISP_TYPE_CHECK
-         if(RvR_lisp_item_type(var_name)!=RVR_L_SYMBOL)
+         if(RvR_lisp_item_type(var_name)!=RVR_LISP_SYMBOL)
          {
             RvR_lisp_object_print(var_name);
             RvR_lisp_break("should be a symbol (let)\n");
@@ -2181,25 +2158,24 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       lisp_user_stack.data_used = stack_start;
 
-      lisp_ptr_ref_pop(1); //block_list
-      lisp_ptr_ref_pop(1); //var_list
+      lisp_ptr_ref_pop(2); //block_list, var_list
 
       break;
    }
-   case SYS_FUNC_DEFUN:
+   case LISP_SYS_FUNC_DEFUN:
    {
       RvR_lisp_object *symbol = arg_list->obj.list.car;
       lisp_ptr_ref_push(&symbol);
 
 #if RVR_LISP_TYPE_CHECK
-      if(RvR_lisp_item_type(symbol)!=RVR_L_SYMBOL)
+      if(RvR_lisp_item_type(symbol)!=RVR_LISP_SYMBOL)
       {
          RvR_lisp_object_print(symbol);
          RvR_lisp_break("is no a symbol! (defun)\n");
          exit(0);
       }
 
-      if(RvR_lisp_item_type(arg_list)!=RVR_L_CONS_CELL)
+      if(RvR_lisp_item_type(arg_list)!=RVR_LISP_CONS_CELL)
       {
          RvR_lisp_object_print(arg_list);
          RvR_lisp_break("is no a lambda list! (defun)\n");
@@ -2217,10 +2193,10 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_ATOM:
+   case LISP_SYS_FUNC_ATOM:
       ret = RvR_lisp_atom(RvR_lisp_eval(arg_list->obj.list.car));
       break;
-   case SYS_FUNC_AND:
+   case LISP_SYS_FUNC_AND:
    {
       RvR_lisp_object *l = arg_list;
       lisp_ptr_ref_push(&l);
@@ -2243,7 +2219,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_OR:
+   case LISP_SYS_FUNC_OR:
    {
       RvR_lisp_object *l = arg_list;
       lisp_ptr_ref_push(&l);
@@ -2266,13 +2242,13 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_PROGN:
+   case LISP_SYS_FUNC_PROGN:
       ret = RvR_lisp_eval_block(arg_list);
       break;
-   case SYS_FUNC_CONCATENATE:
+   case LISP_SYS_FUNC_CONCATENATE:
       ret = lisp_concatenate(arg_list);
       break;
-   case SYS_FUNC_CHAR_CODE:
+   case LISP_SYS_FUNC_CHAR_CODE:
    {
       RvR_lisp_object *i = RvR_lisp_eval(arg_list->obj.list.car);
       lisp_ptr_ref_push(&i);
@@ -2280,10 +2256,10 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       ret = NULL;
       switch(RvR_lisp_item_type(i))
       {
-      case RVR_L_CHARACTER:
+      case RVR_LISP_CHARACTER:
          ret = RvR_lisp_number_create(i->obj.ch.ch);
          break;
-      case RVR_L_STRING:
+      case RVR_LISP_STRING:
          ret = RvR_lisp_number_create(*RvR_lisp_string(i));
          break;
       default:
@@ -2297,12 +2273,12 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_CODE_CHAR:
+   case LISP_SYS_FUNC_CODE_CHAR:
    {
       RvR_lisp_object *i = RvR_lisp_eval(arg_list->obj.list.car);
       lisp_ptr_ref_push(&i);
 
-      if(RvR_lisp_item_type(i)!=RVR_L_NUMBER)
+      if(RvR_lisp_item_type(i)!=RVR_LISP_NUMBER)
       {
          RvR_lisp_object_print(i);
          RvR_lisp_break("is not a number type\n");
@@ -2314,7 +2290,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_COND:
+   case LISP_SYS_FUNC_COND:
    {
       RvR_lisp_object *block_list = arg_list->obj.list.car;
       lisp_ptr_ref_push(&block_list);
@@ -2329,12 +2305,11 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
          block_list = block_list->obj.list.cdr;
       }
 
-      lisp_ptr_ref_pop(1); //ret
-      lisp_ptr_ref_pop(1); //block_list
+      lisp_ptr_ref_pop(2); //ret, block_list
 
       break;
    }
-   case SYS_FUNC_SELECT:
+   case LISP_SYS_FUNC_SELECT:
    {
       RvR_lisp_object *selector = RvR_lisp_eval(arg_list->obj.list.car);
       RvR_lisp_object *sel = arg_list->obj.list.cdr;
@@ -2361,26 +2336,24 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
          }
       }
 
-      lisp_ptr_ref_pop(1); //ret
-      lisp_ptr_ref_pop(1); //sel
-      lisp_ptr_ref_pop(1); //selector
+      lisp_ptr_ref_pop(3); //ret, set, selector
 
       break;
    }
-   case SYS_FUNC_FUNCTION:
+   case LISP_SYS_FUNC_FUNCTION:
       ret = RvR_lisp_eval(arg_list->obj.list.car)->obj.sym.function;
       break;
-   case SYS_FUNC_MAPCAR:
+   case LISP_SYS_FUNC_MAPCAR:
       ret = lisp_mapcar(arg_list);
       break;
-   case SYS_FUNC_FUNCALL:
+   case LISP_SYS_FUNC_FUNCALL:
    {
       RvR_lisp_object *n1 = RvR_lisp_eval(arg_list->obj.list.car);
       ret = RvR_lisp_eval_function(n1,arg_list->obj.list.cdr);
 
       break;
    }
-   case SYS_FUNC_GT:
+   case LISP_SYS_FUNC_GT:
    {
       int32_t n1 = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       int32_t n2 = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
@@ -2388,7 +2361,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_LT:
+   case LISP_SYS_FUNC_LT:
    {
       int32_t n1 = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       int32_t n2 = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
@@ -2396,7 +2369,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_GE:
+   case LISP_SYS_FUNC_GE:
    {
       int32_t n1 = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       int32_t n2 = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
@@ -2404,7 +2377,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_LE:
+   case LISP_SYS_FUNC_LE:
    {
       int32_t n1 = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       int32_t n2 = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
@@ -2412,20 +2385,20 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_TMP_SPACE:
+   case LISP_SYS_FUNC_TMP_SPACE:
       RvR_lisp_tmp_space();
       ret = lisp_true_symbol;
       break;
-   case SYS_FUNC_PERM_SPACE:
+   case LISP_SYS_FUNC_PERM_SPACE:
       RvR_lisp_perm_space();
       ret = lisp_true_symbol;
       break;
-   case SYS_FUNC_SYMBOL_NAME:
+   case LISP_SYS_FUNC_SYMBOL_NAME:
    {
       RvR_lisp_object *symb = RvR_lisp_eval(arg_list->obj.list.car);
 
 #if RVR_LISP_TYPE_CHECK
-      if(RvR_lisp_item_type(symb)!=RVR_L_SYMBOL)
+      if(RvR_lisp_item_type(symb)!=RVR_LISP_SYMBOL)
       {
          RvR_lisp_object_print(symb);
          RvR_lisp_break("is not a symbol (symbol-name)\n");
@@ -2437,13 +2410,13 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_TRACE:
+   case LISP_SYS_FUNC_TRACE:
       lisp_trace_level++;
       if(arg_list!=NULL)
          lisp_trace_print_level = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       ret = lisp_true_symbol;
       break;
-   case SYS_FUNC_UNTRACE:
+   case LISP_SYS_FUNC_UNTRACE:
       if(lisp_trace_level>0)
       {
          lisp_trace_level--;
@@ -2454,7 +2427,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
          ret = NULL;
       }
       break;
-   case SYS_FUNC_DIGSTR:
+   case LISP_SYS_FUNC_DIGSTR:
    {
       char tmp[50];
       char *tp = NULL;
@@ -2475,9 +2448,9 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_LOCAL_LOAD:
-   case SYS_FUNC_LOAD:
-   case SYS_FUNC_COMPILE_FILE:
+   case LISP_SYS_FUNC_LOCAL_LOAD:
+   case LISP_SYS_FUNC_LOAD:
+   case LISP_SYS_FUNC_COMPILE_FILE:
    {
       //TODO: local-load? what does it do? It doesn't seem to be used by abuse?
       RvR_lisp_object *fn = RvR_lisp_eval(arg_list->obj.list.car);
@@ -2510,15 +2483,14 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       RvR_free(s);
       ret = fn;
 
-      lisp_ptr_ref_pop(1); //compiled_form
-      lisp_ptr_ref_pop(1); //fn
+      lisp_ptr_ref_pop(2); //compiled_form, fn
 
       break;
    }
-   case SYS_FUNC_ABS:
+   case LISP_SYS_FUNC_ABS:
       ret = RvR_lisp_number_create(RvR_abs(RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car))));
       break;
-   case SYS_FUNC_MIN:
+   case LISP_SYS_FUNC_MIN:
    {
       int32_t a = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       int32_t b = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
@@ -2526,7 +2498,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_MAX:
+   case LISP_SYS_FUNC_MAX:
    {
       int32_t a = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       int32_t b = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
@@ -2534,37 +2506,37 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_BACKQUOTE:
+   case LISP_SYS_FUNC_BACKQUOTE:
       ret = lisp_backquote_eval(arg_list->obj.list.car);
       break;
-   case SYS_FUNC_COMMA:
+   case LISP_SYS_FUNC_COMMA:
       RvR_lisp_object_print(arg_list);
       RvR_lisp_break("comma is illegal outside of backquote\n");
       exit(0);
       break;
-   case SYS_FUNC_NTH:
+   case LISP_SYS_FUNC_NTH:
    {
       int32_t x = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       ret = RvR_lisp_nth(x,RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
 
       break;
    }
-   case SYS_FUNC_RESIZE_TMP:
+   case LISP_SYS_FUNC_RESIZE_TMP:
       //TODO: remove
       break;
-   case SYS_FUNC_RESIZE_PERM:
+   case LISP_SYS_FUNC_RESIZE_PERM:
       //TODO: remove
       break;
-   case SYS_FUNC_COS:
+   case LISP_SYS_FUNC_COS:
       //TODO
       break;
-   case SYS_FUNC_SIN:
+   case LISP_SYS_FUNC_SIN:
       //TODO
       break;
-   case SYS_FUNC_ATAN2:
+   case LISP_SYS_FUNC_ATAN2:
       //TODO
       break;
-   case SYS_FUNC_ENUM:
+   case LISP_SYS_FUNC_ENUM:
    {
       int sp = lisp_current_space;
       lisp_current_space = RVR_LISP_PERM_SPACE;
@@ -2577,20 +2549,20 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
          switch(RvR_lisp_item_type(symbol))
          {
-         case RVR_L_SYMBOL:
+         case RVR_LISP_SYMBOL:
          {
             RvR_lisp_object *tmp = RvR_lisp_number_create(x);
             symbol->obj.sym.value = tmp;
 
             break;
          }
-         case RVR_L_CONS_CELL:
+         case RVR_LISP_CONS_CELL:
          {
             RvR_lisp_object *s = RvR_lisp_eval(symbol->obj.list.car);
             lisp_ptr_ref_push(&s);
 
 #if RVR_LISP_TYPE_CHECK
-            if(RvR_lisp_item_type(s)!=RVR_L_SYMBOL)
+            if(RvR_lisp_item_type(s)!=RVR_LISP_SYMBOL)
             {
                RvR_lisp_object_print(arg_list);
                RvR_lisp_break("expecting (symbol value) for enum\n");
@@ -2623,16 +2595,16 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_QUIT:
+   case LISP_SYS_FUNC_QUIT:
       exit(0);
       break;
-   case SYS_FUNC_EVAL:
+   case LISP_SYS_FUNC_EVAL:
       ret = RvR_lisp_eval(RvR_lisp_eval(arg_list->obj.list.car));
       break;
-   case SYS_FUNC_BREAK:
+   case LISP_SYS_FUNC_BREAK:
       RvR_lisp_break("User break\n");
       break;
-   case SYS_FUNC_MOD:
+   case LISP_SYS_FUNC_MOD:
    {
       int32_t x = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       int32_t y = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
@@ -2646,12 +2618,12 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_FOR:
+   case LISP_SYS_FUNC_FOR:
    {
       RvR_lisp_object *bind_var = arg_list->obj.list.car;
       lisp_ptr_ref_push(&bind_var);
 
-      if(RvR_lisp_item_type(bind_var)!=RVR_L_SYMBOL)
+      if(RvR_lisp_item_type(bind_var)!=RVR_LISP_SYMBOL)
       {
          RvR_lisp_break("expecting for iterator to be a symbol\n");
          exit(1);
@@ -2691,14 +2663,11 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       }
       RvR_lisp_symbol_value_set(bind_var,lisp_user_stack_pop(1)); //restore value
 
-      lisp_ptr_ref_pop(1); //ret
-      lisp_ptr_ref_pop(1); //block
-      lisp_ptr_ref_pop(1); //ilist
-      lisp_ptr_ref_pop(1); //bind_var
+      lisp_ptr_ref_pop(4); //ret, block, ilit, bind_var
 
       break;
    }
-   case SYS_FUNC_OPEN_FILE:
+   case LISP_SYS_FUNC_OPEN_FILE:
    {
       RvR_lisp_object *str1 = RvR_lisp_eval(arg_list->obj.list.car);
       lisp_ptr_ref_push(&str1);
@@ -2722,7 +2691,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_BIT_AND:
+   case LISP_SYS_FUNC_BIT_AND:
    {
       int32_t first = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       arg_list = arg_list->obj.list.cdr;
@@ -2736,7 +2705,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_BIT_OR:
+   case LISP_SYS_FUNC_BIT_OR:
    {
       int32_t first = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       arg_list = arg_list->obj.list.cdr;
@@ -2750,7 +2719,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_BIT_XOR:
+   case LISP_SYS_FUNC_BIT_XOR:
    {
       int32_t first = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       arg_list = arg_list->obj.list.cdr;
@@ -2764,7 +2733,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_MAKE_ARRAY:
+   case LISP_SYS_FUNC_MAKE_ARRAY:
    {
       int32_t l = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       if(l>=2<<16||l<=0)
@@ -2776,42 +2745,42 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_AREF:
+   case LISP_SYS_FUNC_AREF:
    {
       int32_t x = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
       ret = RvR_lisp_array_get(RvR_lisp_eval(arg_list->obj.list.car),x);
 
       break;
    }
-   case SYS_FUNC_IF_1PROGN:
+   case LISP_SYS_FUNC_IF_1PROGN:
       if(RvR_lisp_eval(arg_list->obj.list.car)!=NULL)
          ret = RvR_lisp_eval_block(arg_list->obj.list.cdr->obj.list.car);
       else
          ret = RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car);
       break;
-   case SYS_FUNC_IF_2PROGN:
+   case LISP_SYS_FUNC_IF_2PROGN:
       if(RvR_lisp_eval(arg_list->obj.list.car)!=NULL)
          ret = RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car);
       else
          ret = RvR_lisp_eval_block(arg_list->obj.list.cdr->obj.list.cdr->obj.list.car);
       break;
-   case SYS_FUNC_IF_12PROGN:
+   case LISP_SYS_FUNC_IF_12PROGN:
       if(RvR_lisp_eval(arg_list->obj.list.car)!=NULL)
          ret = RvR_lisp_eval_block(arg_list->obj.list.cdr->obj.list.car);
       else
          ret = RvR_lisp_eval_block(arg_list->obj.list.cdr->obj.list.cdr->obj.list.car);
       break;
-   case SYS_FUNC_EQ0:
+   case LISP_SYS_FUNC_EQ0:
    {
       RvR_lisp_object *v = RvR_lisp_eval(arg_list->obj.list.car);
-      if(RvR_lisp_item_type(v)!=RVR_L_NUMBER||v->obj.num.num!=0)
+      if(RvR_lisp_item_type(v)!=RVR_LISP_NUMBER||v->obj.num.num!=0)
          ret = NULL;
       else
          ret = lisp_true_symbol;
 
       break;
    }
-   case SYS_FUNC_PREPORT:
+   case LISP_SYS_FUNC_PREPORT:
    {
 #if RVR_LISP_PROFILE
       char *s = RvR_lisp_string(RvR_lisp_eval(arg_list->obj.list.car));
@@ -2819,7 +2788,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 #endif
       break;
    }
-   case SYS_FUNC_SEARCH:
+   case LISP_SYS_FUNC_SEARCH:
    {
       RvR_lisp_object *arg1 = RvR_lisp_eval(arg_list->obj.list.car);
       lisp_ptr_ref_push(&arg1);
@@ -2834,7 +2803,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_ELT:
+   case LISP_SYS_FUNC_ELT:
    {
       RvR_lisp_object *arg1 = RvR_lisp_eval(arg_list->obj.list.car);
       lisp_ptr_ref_push(&arg1);
@@ -2855,21 +2824,21 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_LISTP:
+   case LISP_SYS_FUNC_LISTP:
    {
       RvR_lisp_object *tmp = RvR_lisp_eval(arg_list->obj.list.car);
-      ret = (RvR_lisp_item_type(tmp)==RVR_L_CONS_CELL)?lisp_true_symbol:NULL;
+      ret = (RvR_lisp_item_type(tmp)==RVR_LISP_CONS_CELL)?lisp_true_symbol:NULL;
 
       break;
    }
-   case SYS_FUNC_NUMBERP:
+   case LISP_SYS_FUNC_NUMBERP:
    {
       RvR_lisp_object *tmp = RvR_lisp_eval(arg_list->obj.list.car);
-      ret = (RvR_lisp_item_type(tmp)==RVR_L_CONS_CELL||RvR_lisp_item_type(tmp)==RVR_L_FIXED_POINT)?lisp_true_symbol:NULL;
+      ret = (RvR_lisp_item_type(tmp)==RVR_LISP_CONS_CELL||RvR_lisp_item_type(tmp)==RVR_LISP_FIXED_POINT)?lisp_true_symbol:NULL;
       
       break;
    }
-   case SYS_FUNC_DO:
+   case LISP_SYS_FUNC_DO:
    {
       RvR_lisp_object *init_var = RvR_lisp_eval(arg_list->obj.list.car);
       lisp_ptr_ref_push(&init_var);
@@ -2881,7 +2850,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
       for(init_var = arg_list->obj.list.car;init_var!=NULL;init_var = init_var->obj.list.cdr)
       {
          symbol = init_var->obj.list.car->obj.list.car;
-         if(RvR_lisp_item_type(symbol)!=RVR_L_SYMBOL)
+         if(RvR_lisp_item_type(symbol)!=RVR_LISP_SYMBOL)
          {
             RvR_lisp_break("expecting symbol name for iteration var\n");
             exit(0);
@@ -2927,15 +2896,14 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       lisp_user_stack.data_used = ustack_start;
 
-      lisp_ptr_ref_pop(1); //symbol
-      lisp_ptr_ref_pop(1); //init_var
+      lisp_ptr_ref_pop(2); //symbol, init_var
 
       break;
    }
-   case SYS_FUNC_GC:
+   case LISP_SYS_FUNC_GC:
       lisp_collect_space(lisp_current_space,0);
       break;
-   case SYS_FUNC_SCHAR:
+   case LISP_SYS_FUNC_SCHAR:
    {
       char *s = RvR_lisp_string(RvR_lisp_eval(arg_list->obj.list.car));
       arg_list = arg_list->obj.list.cdr;
@@ -2951,14 +2919,14 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_SYMBOLP:
+   case LISP_SYS_FUNC_SYMBOLP:
    {
       RvR_lisp_object *tmp = RvR_lisp_eval(arg_list->obj.list.car);
-      ret = (RvR_lisp_item_type(tmp)==RVR_L_SYMBOL)?lisp_true_symbol:NULL;
+      ret = (RvR_lisp_item_type(tmp)==RVR_LISP_SYMBOL)?lisp_true_symbol:NULL;
 
       break;
    }
-   case SYS_FUNC_NUM2STR:
+   case LISP_SYS_FUNC_NUM2STR:
    {
       char str[20];
       snprintf(str,20,"%d",RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car)));
@@ -2966,7 +2934,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       break;
    }
-   case SYS_FUNC_NCONC:
+   case LISP_SYS_FUNC_NCONC:
    {
       RvR_lisp_object *l1 = RvR_lisp_eval(arg_list->obj.list.car);
       lisp_ptr_ref_push(&l1);
@@ -2982,7 +2950,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
          arg_list = arg_list->obj.list.cdr;
       }
 
-      if(RvR_lisp_item_type(l1)!=RVR_L_CONS_CELL)
+      if(RvR_lisp_item_type(l1)!=RVR_LISP_CONS_CELL)
       {
          RvR_lisp_object_print(l1);
          RvR_lisp_break("first arg should be a list\n");
@@ -3006,42 +2974,41 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       ret = first;
 
-      lisp_ptr_ref_pop(1); //first
-      lisp_ptr_ref_pop(1); //l1
+      lisp_ptr_ref_pop(2); //first, l1
 
       break;
    }
-   case SYS_FUNC_FIRST:
+   case LISP_SYS_FUNC_FIRST:
       ret = (RvR_lisp_eval(arg_list->obj.list.car))->obj.list.car;
       break;
-   case SYS_FUNC_SECOND:
+   case LISP_SYS_FUNC_SECOND:
       ret = (RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car))->obj.list.car;
       break;
-   case SYS_FUNC_THIRD:
+   case LISP_SYS_FUNC_THIRD:
       ret = (RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.cdr->obj.list.car))->obj.list.car;
       break;
-   case SYS_FUNC_FOURTH:
+   case LISP_SYS_FUNC_FOURTH:
       ret = (RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.car))->obj.list.car;
       break;
-   case SYS_FUNC_FIFTH:
+   case LISP_SYS_FUNC_FIFTH:
       ret = (RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.car))->obj.list.car;
       break;
-   case SYS_FUNC_SIXTH:
+   case LISP_SYS_FUNC_SIXTH:
       ret = (RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.car))->obj.list.car;
       break;
-   case SYS_FUNC_SEVENTH:
+   case LISP_SYS_FUNC_SEVENTH:
       ret = (RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.car))->obj.list.car;
       break;
-   case SYS_FUNC_EIGHTH:
+   case LISP_SYS_FUNC_EIGHTH:
       ret = (RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.car))->obj.list.car;
       break;
-   case SYS_FUNC_NINTH:
+   case LISP_SYS_FUNC_NINTH:
       ret = (RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.car))->obj.list.car;
       break;
-   case SYS_FUNC_TENTH:
+   case LISP_SYS_FUNC_TENTH:
       ret = (RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.cdr->obj.list.car))->obj.list.car;
       break;
-   case SYS_FUNC_SUBSTR:
+   case LISP_SYS_FUNC_SUBSTR:
    {
       int32_t x1 = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.car));
       int32_t x2 = RvR_lisp_number_value(RvR_lisp_eval(arg_list->obj.list.cdr->obj.list.car));
@@ -3085,8 +3052,7 @@ RvR_lisp_object *RvR_lisp_eval_sys_function(RvR_lisp_object *sym, RvR_lisp_objec
 
       ret = rstart;
 
-      lisp_ptr_ref_pop(1); //rstart
-      lisp_ptr_ref_pop(1); //r
+      lisp_ptr_ref_pop(2); //rstart, r
 
       break;
    }
@@ -3199,7 +3165,7 @@ void RvR_lisp_clear_tmp()
 void RvR_lisp_symbol_number_set(RvR_lisp_object *sym, int32_t num)
 {
 #if RVR_LISP_TYPE_CHECK
-   if(RvR_lisp_item_type(sym)!=RVR_L_SYMBOL)
+   if(RvR_lisp_item_type(sym)!=RVR_LISP_SYMBOL)
    {
       RvR_lisp_object_print(sym);
       RvR_lisp_break("is not a symbol\n");
@@ -3207,7 +3173,7 @@ void RvR_lisp_symbol_number_set(RvR_lisp_object *sym, int32_t num)
    }
 #endif
 
-   if(sym->obj.sym.value!=lisp_undefined&&RvR_lisp_item_type(sym->obj.sym.value)==RVR_L_NUMBER)
+   if(sym->obj.sym.value!=lisp_undefined&&RvR_lisp_item_type(sym->obj.sym.value)==RVR_LISP_NUMBER)
       sym->obj.sym.value->obj.num.num = num;
    else
       sym->obj.sym.value = RvR_lisp_number_create(num);
@@ -3216,7 +3182,7 @@ void RvR_lisp_symbol_number_set(RvR_lisp_object *sym, int32_t num)
 void RvR_lisp_symbol_value_set(RvR_lisp_object *sym, RvR_lisp_object *val)
 {
 #if RVR_LISP_TYPE_CHECK
-   if(RvR_lisp_item_type(sym)!=RVR_L_SYMBOL)
+   if(RvR_lisp_item_type(sym)!=RVR_LISP_SYMBOL)
    {
       RvR_lisp_object_print(sym);
       RvR_lisp_break("is not a symbol\n");
@@ -3229,17 +3195,17 @@ void RvR_lisp_symbol_value_set(RvR_lisp_object *sym, RvR_lisp_object *val)
 
 static void lisp_print(RvR_lisp_object *block)
 {
-   if(block==NULL||RvR_lisp_item_type(block)!=RVR_L_CONS_CELL)
+   if(block==NULL||RvR_lisp_item_type(block)!=RVR_LISP_CONS_CELL)
    {
       RvR_lisp_object_print(block);
       return;
    }
 
    RvR_log("(");
-   for(;block!=NULL&&RvR_lisp_item_type(block)==RVR_L_CONS_CELL;block = block->obj.list.cdr)
+   for(;block!=NULL&&RvR_lisp_item_type(block)==RVR_LISP_CONS_CELL;block = block->obj.list.cdr)
    {
       RvR_lisp_object *a =block->obj.list.car;
-      if(RvR_lisp_item_type(a)==RVR_L_CONS_CELL)
+      if(RvR_lisp_item_type(a)==RVR_LISP_CONS_CELL)
          RvR_log("[...]");
       else
          RvR_lisp_object_print(a);
@@ -3423,49 +3389,49 @@ static RvR_lisp_object *lisp_collect_object(RvR_lisp_object *x)
    {
       switch(RvR_lisp_item_type(x))
       {
-      case RVR_L_BAD_CELL:
+      case RVR_LISP_BAD_CELL:
          RvR_lisp_break("error: collecting corrupted cell\n");
          break;
-      case RVR_L_NUMBER:
+      case RVR_LISP_NUMBER:
          ret = RvR_lisp_number_create(x->obj.num.num);
          break;
-      case RVR_L_SYS_FUNCTION:
+      case RVR_LISP_SYS_FUNCTION:
          ret = RvR_lisp_sys_function_create(x->obj.sys.min_args,x->obj.sys.max_args,x->obj.sys.fun_number);
          break;
-      case RVR_L_USER_FUNCTION:
+      case RVR_LISP_USER_FUNCTION:
          ret = RvR_lisp_user_function_create(lisp_collect_object(x->obj.usr.arg_list),lisp_collect_object(x->obj.usr.block_list));
          break;
-      case RVR_L_STRING:
+      case RVR_LISP_STRING:
          ret = RvR_lisp_strings_create(x->obj.str.str);
          break;
-      case RVR_L_CHARACTER:
+      case RVR_LISP_CHARACTER:
          ret = RvR_lisp_char_create(x->obj.ch.ch);
          break;
-      case RVR_L_C_FUNCTION:
+      case RVR_LISP_C_FUNCTION:
          ret = RvR_lisp_c_function_create(x->obj.sys.min_args,x->obj.sys.max_args,x->obj.sys.fun_number);
          break;
-      case RVR_L_C_BOOL:
+      case RVR_LISP_C_BOOL:
          ret = RvR_lisp_c_bool_create(x->obj.sys.min_args,x->obj.sys.max_args,x->obj.sys.fun_number);
          break;
-      case RVR_L_L_FUNCTION:
+      case RVR_LISP_L_FUNCTION:
          ret = RvR_lisp_user_lisp_function_create(x->obj.sys.min_args,x->obj.sys.max_args,x->obj.sys.fun_number);
          break;
-      case RVR_L_POINTER:
+      case RVR_LISP_POINTER:
          ret = RvR_lisp_pointer_create(x->obj.addr.addr);
          break;
-      case RVR_L_1D_ARRAY:
+      case RVR_LISP_1D_ARRAY:
          ret = lisp_collect_array(x);
          break;
-      case RVR_L_FIXED_POINT:
+      case RVR_LISP_FIXED_POINT:
          ret = RvR_lisp_fixed_point_create(x->obj.fix.x);
          break;
-      case RVR_L_CONS_CELL:
+      case RVR_LISP_CONS_CELL:
          ret = lisp_collect_list(x);
          break;
-      case RVR_L_OBJECT_VAR:
+      case RVR_LISP_OBJECT_VAR:
          ret = RvR_lisp_object_var_create(x->obj.var.index);
          break;
-      case RVR_L_COLLECTED_OBJECT:
+      case RVR_LISP_COLLECTED_OBJECT:
          ret = x->obj.ref.ref;
          break;
       default:
@@ -3473,7 +3439,7 @@ static RvR_lisp_object *lisp_collect_object(RvR_lisp_object *x)
          break;
       }
 
-      x->type = RVR_L_COLLECTED_OBJECT;
+      x->type = RVR_LISP_COLLECTED_OBJECT;
       x->obj.ref.ref = ret;
    }
    else if((uint8_t *)x<lisp_collected_start||(uint8_t *)x>=lisp_collected_end)
@@ -3482,7 +3448,7 @@ static RvR_lisp_object *lisp_collect_object(RvR_lisp_object *x)
       //instance on the stack.
       for(RvR_lisp_object *cell = NULL;x!=NULL;cell = x,x = x->obj.list.cdr)
       {
-         if(RvR_lisp_item_type(x)!=RVR_L_CONS_CELL)
+         if(RvR_lisp_item_type(x)!=RVR_LISP_CONS_CELL)
          {
             if(cell!=NULL)
                cell->obj.list.cdr = lisp_collect_object(cell->obj.list.cdr);
@@ -3513,14 +3479,14 @@ static RvR_lisp_object *lisp_collect_list(RvR_lisp_object *x)
    RvR_lisp_object *first = NULL;
    RvR_lisp_object *last = NULL;
 
-   for(;x!=NULL&&RvR_lisp_item_type(x)==RVR_L_CONS_CELL;)
+   for(;x!=NULL&&RvR_lisp_item_type(x)==RVR_LISP_CONS_CELL;)
    {
       RvR_lisp_object *p = RvR_lisp_list_create();
       RvR_lisp_object *old_car = x->obj.list.car;
       RvR_lisp_object *old_cdr = x->obj.list.cdr;
       RvR_lisp_object *old_x = x;
       x = x->obj.list.cdr;
-      old_x->type = RVR_L_COLLECTED_OBJECT;
+      old_x->type = RVR_LISP_COLLECTED_OBJECT;
       old_x->obj.ref.ref = p;
 
       p->obj.list.car = lisp_collect_object(old_car);
@@ -3570,10 +3536,10 @@ static void lisp_delete_all_symbols(RvR_lisp_object *root)
 
 static RvR_lisp_object *lisp_pairlis(RvR_lisp_object *list1, RvR_lisp_object *list2, RvR_lisp_object *list3)
 {
-   if(RvR_lisp_item_type(list1)!=RVR_L_CONS_CELL||RvR_lisp_item_type(list1)!=RvR_lisp_item_type(list2))
+   if(RvR_lisp_item_type(list1)!=RVR_LISP_CONS_CELL||RvR_lisp_item_type(list1)!=RvR_lisp_item_type(list2))
       return NULL;
 
-   void *ret = NULL;
+   RvR_lisp_object *ret = NULL;
    size_t l1 = RvR_lisp_list_length(list1);
    size_t l2 = RvR_lisp_list_length(list2);
 
@@ -3617,9 +3583,7 @@ static RvR_lisp_object *lisp_pairlis(RvR_lisp_object *list1, RvR_lisp_object *li
       cur->obj.list.cdr = list3;
       ret=first;
 
-      lisp_ptr_ref_pop(1); //cur
-      lisp_ptr_ref_pop(1); //last
-      lisp_ptr_ref_pop(1); //first
+      lisp_ptr_ref_pop(3); //cur, last, first
    }
 
    return ret;
@@ -3708,7 +3672,7 @@ static RvR_lisp_object *lisp_comp_optimize(RvR_lisp_object *list)
             RvR_lisp_push_onto_list(lisp_if_symbol,&ret);
             return_value = lisp_comp_optimize(ret);
          }
-         else if(RvR_lisp_car(eval1)==lisp_progn_symbol&&(eval2==NULL||RvR_lisp_item_type(eval2)!=RVR_L_CONS_CELL))
+         else if(RvR_lisp_car(eval1)==lisp_progn_symbol&&(eval2==NULL||RvR_lisp_item_type(eval2)!=RVR_LISP_CONS_CELL))
          {
             RvR_lisp_push_onto_list(eval2,&ret);
             RvR_lisp_push_onto_list(RvR_lisp_cdr(eval1),&ret);
@@ -3733,9 +3697,7 @@ static RvR_lisp_object *lisp_comp_optimize(RvR_lisp_object *list)
             return_value = lisp_comp_optimize(ret);
          }
 
-         lisp_ptr_ref_pop(1); //ret
-         lisp_ptr_ref_pop(1); //eval2
-         lisp_ptr_ref_pop(1); //eval1
+         lisp_ptr_ref_pop(3); //ret, eval2, eval1
       }
    }
 
@@ -3774,9 +3736,9 @@ static RvR_lisp_object *lisp_mapcar(RvR_lisp_object *arg_list)
 
    switch(RvR_lisp_item_type(sym))
    {
-   case RVR_L_SYS_FUNCTION:
-   case RVR_L_USER_FUNCTION:
-   case RVR_L_SYMBOL:
+   case RVR_LISP_SYS_FUNCTION:
+   case RVR_LISP_USER_FUNCTION:
+   case RVR_LISP_SYMBOL:
       break;
    default:
       RvR_lisp_object_print(sym);
@@ -3893,12 +3855,12 @@ static RvR_lisp_object *lisp_concatenate(RvR_lisp_object *prog_list)
 
             switch(RvR_lisp_item_type(str_eval[i]))
             {
-            case RVR_L_CONS_CELL:
+            case RVR_LISP_CONS_CELL:
             {
                RvR_lisp_object *char_list = str_eval[i];
                while(char_list!=NULL)
                {
-                  if(RvR_lisp_item_type(char_list->obj.list.car)==RVR_L_CHARACTER)
+                  if(RvR_lisp_item_type(char_list->obj.list.car)==RVR_LISP_CHARACTER)
                   {
                      len++;
                   }
@@ -3913,7 +3875,7 @@ static RvR_lisp_object *lisp_concatenate(RvR_lisp_object *prog_list)
                }
                break;
             }
-            case RVR_L_STRING: len+=strlen(str_eval[i]->obj.str.str); break;
+            case RVR_LISP_STRING: len+=strlen(str_eval[i]->obj.str.str); break;
             default:
                RvR_lisp_object_print(prog_list);
                RvR_lisp_break("type not supported\n");
@@ -3929,18 +3891,18 @@ static RvR_lisp_object *lisp_concatenate(RvR_lisp_object *prog_list)
          {
             switch(RvR_lisp_item_type(str_eval[i]))
             {
-            case RVR_L_CONS_CELL:
+            case RVR_LISP_CONS_CELL:
             {
                RvR_lisp_object *char_list = str_eval[i];
                while(char_list!=NULL)
                {
-                  if(RvR_lisp_item_type(char_list->obj.list.car)==RVR_L_CHARACTER)
+                  if(RvR_lisp_item_type(char_list->obj.list.car)==RVR_LISP_CHARACTER)
                      *(s++) = char_list->obj.list.car->obj.ch.ch;
                   char_list = char_list->obj.list.cdr;
                }
                break;
             }
-            case RVR_L_STRING:
+            case RVR_LISP_STRING:
                memcpy(s,str_eval[i]->obj.str.str,strlen(str_eval[i]->obj.str.str));
                s+=strlen(str_eval[i]->obj.str.str);
                break;
@@ -3961,15 +3923,14 @@ static RvR_lisp_object *lisp_concatenate(RvR_lisp_object *prog_list)
       exit(0);
    }
 
-   lisp_ptr_ref_pop(1); //el_list
-   lisp_ptr_ref_pop(1); //prog_list
+   lisp_ptr_ref_pop(2); //el_list, prog_list
 
    return ret;
 }
 
 static RvR_lisp_object *lisp_backquote_eval(RvR_lisp_object *args)
 {
-   if(RvR_lisp_item_type(args)!=RVR_L_CONS_CELL)
+   if(RvR_lisp_item_type(args)!=RVR_LISP_CONS_CELL)
       return args;
 
    if(args==NULL)
@@ -3989,7 +3950,7 @@ static RvR_lisp_object *lisp_backquote_eval(RvR_lisp_object *args)
 
    while(args!=NULL)
    {
-      if(RvR_lisp_item_type(args)==RVR_L_CONS_CELL)
+      if(RvR_lisp_item_type(args)==RVR_LISP_CONS_CELL)
       {
          if(args->obj.list.car==lisp_comma_symbol)
          {
@@ -4018,10 +3979,7 @@ static RvR_lisp_object *lisp_backquote_eval(RvR_lisp_object *args)
       }
    }
 
-   lisp_ptr_ref_pop(1); //args
-   lisp_ptr_ref_pop(1); //cur
-   lisp_ptr_ref_pop(1); //last
-   lisp_ptr_ref_pop(1); //first
+   lisp_ptr_ref_pop(4); //args, cur, last, first
 
    return first;
 }
