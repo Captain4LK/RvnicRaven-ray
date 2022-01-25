@@ -39,6 +39,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define RvR_fix22_infinity 2000000000
 //-------------------------------------
 
+//RvnicRaven vm
+
+#define RVR_VM_STACK_SIZE 1024
+
+#define RVR_VM_COMPUTED_GOTO 0
+//-------------------------------------
+
 //RvnicRaven lisp
 
 //New:
@@ -448,8 +455,14 @@ struct RvR_vm
    int32_t *code;
    RvR_vm_func_call callback;
 
+   //Code
    int instruction_count;
    intptr_t *instruction_pointers;
+
+   //Data
+   int32_t *data;
+   int data_len;
+   int data_mask;
 };
 //RvnicRaven vm types end
 //-------------------------------------

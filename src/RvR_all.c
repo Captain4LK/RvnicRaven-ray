@@ -42,6 +42,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR_texture.c"
 #include "RvR_endian.c"
 
+#include "RvR_vm.c"
+
 #include "RvR_lisp.c"
 
 #include "RvR_raycast.c"
