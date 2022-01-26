@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -13,16 +13,14 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <SLK/SLK.h>
-
-#define CRUSH_C
-#include "../external/crush.c"
+#include <inttypes.h>
+#include "../../src/RvnicRaven.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "../external/stb_image.h"
+#include "../../external/stb_image.h"
 
 #define CUTE_PATH_IMPLEMENTATION
-#include "../external/cute_path.h"
+#include "../../external/cute_path.h"
 //-------------------------------------
 
 //Internal includes
@@ -32,7 +30,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define READ_ARG(I) \
    ((++(I))<argc?argv[(I)]:NULL)
 
-#define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 //-------------------------------------
 
@@ -43,6 +40,31 @@ typedef enum
    SPRITE_WALL = 1,
    SPRITE_SPRITE = 2,
 }Sprite_flag;
+
+typedef struct
+{
+   uint8_t r,g,b,a;
+}Color;
+
+typedef struct
+{
+   int colors_used;
+   Color colors[256];
+}Palette;
+
+typedef struct
+{
+   int width;
+   int height;
+   Color *data;
+}Sprite_rgb;
+
+typedef struct
+{
+   int width;
+   int height;
+   uint8_t *data;
+}Sprite_pal;
 //-------------------------------------
 
 //Variables
@@ -51,13 +73,18 @@ static uint64_t flag = SPRITE_NONE;
 
 //Function prototypes
 static void print_help(char **argv);
-static void util_mem_compress(void *mem, int32_t length, FILE *out);
-static SLK_Pal_sprite *texture_load(const char *path, const char *path_pal);
-static SLK_Palette *palette_png(FILE *f);
-static SLK_Palette *palette_gpl(FILE *f);
-static SLK_Palette *palette_hex(FILE *f);
-SLK_RGB_sprite *image_load(const char *path);
+static Sprite_pal *texture_load(const char *path, const char *path_pal);
+static Palette *palette_pal(FILE *f);
+static Palette *palette_png(FILE *f);
+static Palette *palette_gpl(FILE *f);
+static Palette *palette_hex(FILE *f);
+static Sprite_rgb *image_load(FILE *f);
 static int chartoi(char in);
+
+static Sprite_rgb *sprite_rgb_create(int width, int height);
+static Sprite_pal *sprite_pal_create(int width, int height);
+static void sprite_rgb_destroy(Sprite_rgb *s);
+static void sprite_pal_destroy(Sprite_pal *s);
 //-------------------------------------
 
 //Function implementations
@@ -89,154 +116,125 @@ int main(int argc, char **argv)
    
    if(path_in==NULL)
    {
-      printf("input texture not specified, try %s --help for more info\n",argv[0]);
+      RvR_log("input texture not specified, try %s -h for more info\n",argv[0]);
       return 0;
    }
    if(path_out==NULL)
    {
-      printf("output texture not specified, try %s --help for more info\n",argv[0]);
+      RvR_log("output texture not specified, try %s -h for more info\n",argv[0]);
       return 0;
    }
 
-   SLK_Pal_sprite *sp = texture_load(path_in,path_pal);
+   Sprite_pal *sp = texture_load(path_in,path_pal);
 
    if(flag&SPRITE_WALL)
    {
-      SLK_Pal_sprite *csp = SLK_pal_sprite_create(sp->width,sp->height);
-      SLK_pal_sprite_copy(csp,sp);
+      Sprite_pal *csp = sprite_pal_create(sp->width,sp->height);
+      memcpy(csp->data,sp->data,sizeof(*sp->data)*sp->width*sp->height);
 
       for(int x = 0;x<sp->width;x++)
          for(int y = 0;y<sp->height;y++)
             sp->data[x*sp->height+y] = csp->data[y*csp->width+x];
 
-      SLK_pal_sprite_destroy(csp);
+      sprite_pal_destroy(csp);
    }
    if(flag&SPRITE_SPRITE)
    {
-      SLK_Pal_sprite *csp = SLK_pal_sprite_create(sp->width,sp->height);
-      SLK_pal_sprite_copy(csp,sp);
+      Sprite_pal *csp = sprite_pal_create(sp->width,sp->height);
+      memcpy(csp->data,sp->data,sizeof(*sp->data)*sp->width*sp->height);
 
       for(int x = 0;x<sp->width;x++)
          for(int y = 0;y<sp->height;y++)
             sp->data[x*sp->height+y] = csp->data[y*csp->width+x];
 
-      SLK_pal_sprite_destroy(csp);
+      sprite_pal_destroy(csp);
    }
 
    int len = sizeof(uint8_t)*sp->width*sp->height+2*sizeof(int32_t);
-   uint8_t *mem = malloc(len);
-
-   *(((int32_t *)mem)) = sp->width;
-   *(((int32_t *)mem)+1) = sp->height;
+   uint8_t *mem = RvR_malloc(len);
+   RvR_rw rw;
+   RvR_rw_init_mem(&rw,mem,len);
+   RvR_rw_write_i32(&rw,sp->width);
+   RvR_rw_write_i32(&rw,sp->height);
    for(int i = 0;i<sp->width*sp->height;i++)
-      mem[2*sizeof(int32_t)+i] = sp->data[i];
+      RvR_rw_write_u8(&rw,sp->data[i]);
+   RvR_rw_close(&rw);
 
    FILE *f = fopen(path_out,"wb");
-   util_mem_compress(mem,len,f);
+   RvR_mem_compress(mem,len,f);
    fclose(f);
 
-   SLK_pal_sprite_destroy(sp);
-   free(mem);
+   sprite_pal_destroy(sp);
+   RvR_free(mem);
 
    return 0;
 }
 
 static void print_help(char **argv)
 {
-   printf("%s usage:\n"
+   RvR_log("%s usage:\n"
           "%s -fin filename -fout filename ]\n"
-          "   -fin\t\tinput texture path\n"
-          "   -fout\toutput texture path\n"
-          "   -pal\t\tpalette to use for assigning indices, only for non .slk files\n"
-          "   -wall\tflag sprite as wall texture\n"
-          "   -sprite\tflag sprite as sprite texture\n",
+          "   -fin        input texture path\n"
+          "   -fout       output texture path\n"
+          "   -pal        palette to use for assigning indices (.pal,.png,.hex,.gpl\n"
+          "   -wall       flag sprite as wall texture\n"
+          "   -sprite     flag sprite as sprite texture\n",
          argv[0],argv[0]);
 }
 
-static void util_mem_compress(void *mem, int32_t length, FILE *out)
-{
-   char *buffer_out = malloc(length+1);
-   uint8_t endian = 0;
-
-   fwrite(&length,4,1,out);
-   fwrite(&endian,1,1,out);
-   int32_t size = crush_encode(mem,length,buffer_out,length,9);
-   fwrite(buffer_out,size,1,out);
-
-   free(buffer_out);
-}
-
-static SLK_Pal_sprite *texture_load(const char *path, const char *path_pal)
+static Sprite_pal *texture_load(const char *path, const char *path_pal)
 {
    char ext[33] = {0};
    path_pop_ext(path,NULL,ext);
    
-   if(strncmp(ext,"slk",32)==0)
-      return SLK_pal_sprite_load(path);
-
    if(path_pal==NULL)
    {
-      puts("No palette specified but needed for non .slk files");
+      RvR_log("No palette specified but needed for converting textures\n");
       exit(-1);
    }
 
    path_pop_ext(path_pal,NULL,ext);
-   SLK_Palette *pal = NULL;
-   if(strncmp(ext,"pal",32)==0)
+   Palette *pal = NULL;
+   FILE *fpal = fopen(path_pal,"r");
+   if(fpal!=NULL)
    {
-      pal = SLK_palette_load(path_pal);
-   }
-   else if(strncmp(ext,"png",32)==0)
-   {
-      FILE *f = fopen(path_pal,"r");
-      if(f!=NULL)
-      {
-         pal = palette_png(f);
-         fclose(f);
-      }
-   }
-   else if(strncmp(ext,"gpl",32)==0)
-   {
-      FILE *f = fopen(path_pal,"r");
-      if(f!=NULL)
-      {
-         pal = palette_gpl(f);
-         fclose(f);
-      }
-   }
-   else if(strncmp(ext,"hex",32)==0)
-   {
-      FILE *f = fopen(path_pal,"r");
-      if(f!=NULL)
-      {
-         pal = palette_hex(f);
-         fclose(f);
-      }
+      if(strncmp(ext,"pal",32)==0)
+         pal = palette_pal(fpal);
+      else if(strncmp(ext,"png",32)==0)
+         pal = palette_png(fpal);
+      else if(strncmp(ext,"gpl",32)==0)
+         pal = palette_gpl(fpal);
+      else if(strncmp(ext,"hex",32)==0)
+         pal = palette_hex(fpal);
+      fclose(fpal);
    }
 
    if(pal==NULL)
    {
-      puts("Failed to load palette");
+      RvR_log("Failed to load palette\n");
       exit(-1);
    }
 
-   SLK_RGB_sprite *tex_in = image_load(path);
-   SLK_Pal_sprite *tex_out = SLK_pal_sprite_create(tex_in->width,tex_in->height);
+   FILE *ftex_in = fopen(path,"rb");
+   Sprite_rgb *tex_in = image_load(ftex_in);
+   if(ftex_in!=NULL)
+      fclose(ftex_in);
+   Sprite_pal *tex_out = sprite_pal_create(tex_in->width,tex_in->height);
 
    for(int i = 0;i<tex_in->width*tex_in->height;i++)
    {
       int min_dist = INT_MAX;
       int min_index = 0;
-      SLK_Color color = tex_in->data[i];
+      Color color = tex_in->data[i];
       if(color.a==0)
       {
          tex_out->data[i] = 0;
          continue;
       }
 
-      for(int j = 0;j<pal->used;j++)
+      for(int j = 0;j<pal->colors_used;j++)
       {
-         SLK_Color pal_color = pal->colors[j];
+         Color pal_color = pal->colors[j];
          int dist_r = pal_color.r-color.r;
          int dist_g = pal_color.g-color.g;
          int dist_b = pal_color.b-color.b;
@@ -250,30 +248,38 @@ static SLK_Pal_sprite *texture_load(const char *path, const char *path_pal)
       tex_out->data[i] = min_index;
    }
 
-   free(pal);
-   SLK_rgb_sprite_destroy(tex_in);
+   RvR_free(pal);
+   sprite_rgb_destroy(tex_in);
 
    return tex_out;
 }
 
-static SLK_Palette *palette_png(FILE *f)
+static Palette *palette_pal(FILE *f)
 {
-   SLK_RGB_sprite *s = SLK_rgb_sprite_load_file(f);   
-   SLK_Palette *p = malloc(sizeof(*p));
-   if(!p)
-      return NULL;
+   Palette *p = RvR_malloc(sizeof(*p));
+
+   fscanf(f,"JASC-PAL\n0100\n%d\n",&p->colors_used);
+   for(int i = 0;i<p->colors_used;i++)
+      fscanf(f,"%"SCNu8 "%"SCNu8 "%"SCNu8 "\n",&p->colors[i].r,&p->colors[i].g,&p->colors[i].b);
+   return p;
+}
+
+static Palette *palette_png(FILE *f)
+{
+   Sprite_rgb *s = image_load(f);   
+   Palette *p = RvR_malloc(sizeof(*p));
    memset(p,0,sizeof(*p));
-   p->used = MIN(256,s->width*s->height);
-   for(int i = 0;i<p->used;i++)
+   p->colors_used = MIN(256,s->width*s->height);
+   for(int i = 0;i<p->colors_used;i++)
       p->colors[i] = s->data[i];
-   SLK_rgb_sprite_destroy(s);
+   sprite_rgb_destroy(s);
 
    return p;
 }
 
-static SLK_Palette *palette_gpl(FILE *f)
+static Palette *palette_gpl(FILE *f)
 {
-   SLK_Palette *p = malloc(sizeof(*p));
+   Palette *p = RvR_malloc(sizeof(*p));
    if(!p)
       return NULL;
    memset(p,0,sizeof(*p));
@@ -294,15 +300,15 @@ static SLK_Palette *palette_gpl(FILE *f)
          c++;
       }
    }
-   p->used = c;
+   p->colors_used = c;
 
    return p;
 }
 
-static SLK_Palette *palette_hex(FILE *f)
+static Palette *palette_hex(FILE *f)
 {
 
-   SLK_Palette *p = malloc(sizeof(*p));
+   Palette *p = RvR_malloc(sizeof(*p));
    if(!p)
       return NULL;
    memset(p,0,sizeof(*p));
@@ -317,26 +323,26 @@ static SLK_Palette *palette_hex(FILE *f)
       p->colors[c].a = 255;
       c++;
    }
-   p->used= c;
+   p->colors_used= c;
 
    return p;
 }
 
-SLK_RGB_sprite *image_load(const char *path)
+static Sprite_rgb *image_load(FILE *f)
 {
    unsigned char *data = NULL;
    int width = 1;
    int height = 1;
-   SLK_RGB_sprite *out;
+   Sprite_rgb *out;
 
-   data = stbi_load(path,&width,&height,NULL,4);
+   data = stbi_load_from_file(f,&width,&height,NULL,4);
    if(data==NULL)
    {
-      printf("Failed to load %s\n",path);
-      return SLK_rgb_sprite_create(1,1);
+      RvR_log("Failed to load imgage\n");
+      return sprite_rgb_create(1,1);
    }
 
-   out = SLK_rgb_sprite_create(width,height);
+   out = sprite_rgb_create(width,height);
    memcpy(out->data,data,width*height*sizeof(*out->data));
 
    stbi_image_free(data);
@@ -354,5 +360,41 @@ static int chartoi(char in)
    if(in>='A'&&in<='F')
       return in-'A'+10;
    return 0;
+}
+
+static Sprite_rgb *sprite_rgb_create(int width, int height)
+{
+   Sprite_rgb *s = RvR_malloc(sizeof(*s));
+   s->width = width;
+   s->height = height;
+   s->data = RvR_malloc(sizeof(*s->data)*s->width*s->height);
+   return s;
+}
+
+static Sprite_pal *sprite_pal_create(int width, int height)
+{
+   Sprite_pal *s = RvR_malloc(sizeof(*s));
+   s->width = width;
+   s->height = height;
+   s->data = RvR_malloc(sizeof(*s->data)*s->width*s->height);
+   return s;
+}
+
+static void sprite_rgb_destroy(Sprite_rgb *s)
+{
+   if(s==NULL)
+      return;
+   if(s->data!=NULL)
+      RvR_free(s->data);
+   RvR_free(s);
+}
+
+static void sprite_pal_destroy(Sprite_pal *s)
+{
+   if(s==NULL)
+      return;
+   if(s->data!=NULL)
+      RvR_free(s->data);
+   RvR_free(s);
 }
 //-------------------------------------
