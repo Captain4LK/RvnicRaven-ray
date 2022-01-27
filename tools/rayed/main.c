@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -45,13 +45,15 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 int main(int argc, char **argv)
 {
-   if(argc<1)
+   if(argc<2)
    {
       puts("No pak path specified!");
       return -1;
    }
 
    //Init memory manager
+   //Disabled, seems to cause problems on windows
+   //(during a project, a team mate experienced random crashes)
    //RvR_malloc_init(1<<25,1<<26);
 
    //Init RvnicRaven core
@@ -60,7 +62,7 @@ int main(int argc, char **argv)
    RvR_core_mouse_show(0);
    RvR_core_key_repeat(1);
 
-   RvR_pak_add("data/main.csv");
+   RvR_pak_add(argv[1]);
    RvR_palette_load(0);
    RvR_font_load(0xF000);
 
@@ -73,7 +75,7 @@ int main(int argc, char **argv)
    path_pop(argv[0],path,NULL);
    strcat(path,"/");
    map_path_add(path);
-   path_pop("data/main.csv",path,NULL);
+   path_pop(argv[1],path,NULL);
    strcat(path,"/");
    map_path_add(path);
 
