@@ -83,8 +83,8 @@ static Pak_buffer *pak_buffer = NULL;
 //Function prototypes
 static void     pak_lumps_push(Pak_lump l);
 static uint32_t pak_paths_push(const char *path);
-static void     pak_add_csv_path(const char *path);
-static void     pak_add_pak_path(const char *path);
+static void     pak_add_csv(const char *path);
+static void     pak_add_pak(const char *path);
 static uint8_t  pak_xor_string(const char *str, size_t len);
 
 //cute_path
@@ -111,9 +111,9 @@ void RvR_pak_add(const char *path)
    pak_path_pop_ext(path,NULL,ext);
 
    if(strncmp(ext,"csv",32)==0)
-      pak_add_csv_path(path);
+      pak_add_csv(path);
    else if(strncmp(ext,"pak",32)==0)
-      pak_add_pak_path(path);
+      pak_add_pak(path);
 }
 
 void RvR_pak_create_from_csv(const char *path_csv, const char *path_pak)
@@ -280,7 +280,7 @@ int RvR_lump_exists(const char *name)
 }
 
 //Parse a csv file and add all lumps to list
-static void pak_add_csv_path(const char *path)
+static void pak_add_csv(const char *path)
 {
    char base_path[256] = {0};
    char tmp[256] = "";
@@ -333,7 +333,7 @@ static void pak_add_csv_path(const char *path)
 }
 
 //Parse a pak file and add to list
-static void pak_add_pak_path(const char *path)
+static void pak_add_pak(const char *path)
 {
    //Add pak to list
    Pak_buffer *b = RvR_malloc(sizeof(*b));
