@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -26,7 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Typedefs
 
-typedef struct Pak_header
+typedef struct
 {
    char id[3];
    uint8_t endian;
@@ -34,15 +34,14 @@ typedef struct Pak_header
    uint32_t size;
 }Pak_header;
 
-typedef struct Pak_file
+typedef struct
 {
-   //char name[56];
    char name[12];
    uint32_t offset;
    uint32_t size;
 }Pak_file;
 
-typedef struct Pak
+typedef struct
 {
     RvR_rw *in, *out;
     Pak_file *entries;
@@ -53,7 +52,7 @@ typedef struct
 {
    char name[8];
    uint32_t path;
-}Lump;
+}Pak_lump;
 
 typedef struct Pak_buffer
 {
@@ -68,8 +67,8 @@ static struct
 {
    uint32_t used;
    uint32_t size;
-   Lump *data;
-}lumps = {0};
+   Pak_lump *data;
+}pak_lumps = {0};
 
 static struct
 {
@@ -82,16 +81,16 @@ static Pak_buffer *pak_buffer = NULL;
 //-------------------------------------
 
 //Function prototypes
-static void lumps_push(Lump l);
+static void     pak_lumps_push(Pak_lump l);
 static uint32_t pak_paths_push(const char *path);
-static void add_csv_path(const char *path);
-static void add_pak_path(const char *path);
-static uint8_t pak_xor_string(const char *str, size_t len);
+static void     pak_add_csv_path(const char *path);
+static void     pak_add_pak_path(const char *path);
+static uint8_t  pak_xor_string(const char *str, size_t len);
 
 //cute_path
-static int path_pop_ext(const char *path, char *out, char *ext);
-static int path_pop(const char *path, char *out, char *pop);
-static int path_is_slash(char c);
+static int pak_path_pop_ext(const char *path, char *out, char *ext);
+static int pak_path_pop(const char *path, char *out, char *pop);
+static int pak_path_is_slash(char c);
 
 //stdarc.c
 static unsigned pak_size(Pak *p, unsigned index);
@@ -109,12 +108,12 @@ static void     pak_append_file(Pak *p, const char *filename, FILE *in);
 void RvR_pak_add(const char *path)
 {
    char ext[33] = {0};
-   path_pop_ext(path,NULL,ext);
+   pak_path_pop_ext(path,NULL,ext);
 
    if(strncmp(ext,"csv",32)==0)
-      add_csv_path(path);
+      pak_add_csv_path(path);
    else if(strncmp(ext,"pak",32)==0)
-      add_pak_path(path);
+      pak_add_pak_path(path);
 }
 
 void RvR_pak_create_from_csv(const char *path_csv, const char *path_pak)
@@ -126,7 +125,7 @@ void RvR_pak_create_from_csv(const char *path_csv, const char *path_pak)
    FILE *f = fopen(path_csv,"r");
    Pak *pak = pak_open(path_pak,"w");
 
-   path_pop(path_csv,base_path,NULL);
+   pak_path_pop(path_csv,base_path,NULL);
    strcat(base_path,"/");
 
    while(!feof(f)&&!ferror(f))
@@ -195,39 +194,39 @@ void RvR_lump_add(const char *name, const char *path)
       RvR_log("RvR_pak: lump name too long (max 8 characters)\n");
 
    char ext[33] = "";
-   path_pop_ext(path,NULL,ext);
+   pak_path_pop_ext(path,NULL,ext);
 
-   Lump l;
+   Pak_lump l;
    strncpy(l.name,name,8);
    l.path = pak_paths_push(path);
 
-   lumps_push(l);
+   pak_lumps_push(l);
 }
 
 void *RvR_lump_get(const char *name, unsigned *size)
 {
-   for(int i = lumps.used-1;i>=0;i--)
+   for(int i = pak_lumps.used-1;i>=0;i--)
    {
-      if(strncmp(name,lumps.data[i].name,8)==0)
+      if(strncmp(name,pak_lumps.data[i].name,8)==0)
       {
          //Check for pak file
          char ext[33] = {0};
-         path_pop_ext(pak_paths.data[lumps.data[i].path],NULL,ext);
+         pak_path_pop_ext(pak_paths.data[pak_lumps.data[i].path],NULL,ext);
          if(strncmp(ext,"pak",32)==0)
          {
             //Check if pak already opened
             Pak_buffer *b = pak_buffer;
             while(b)
             {
-               if(strcmp(b->path,pak_paths.data[lumps.data[i].path])==0)
+               if(strcmp(b->path,pak_paths.data[pak_lumps.data[i].path])==0)
                   break;
                b = b->next;
             }
             if(b==NULL)
             {
                b = RvR_malloc(sizeof(*b));
-               b->pak = pak_open(pak_paths.data[lumps.data[i].path],"r");
-               strncpy(b->path,pak_paths.data[lumps.data[i].path],255);
+               b->pak = pak_open(pak_paths.data[pak_lumps.data[i].path],"r");
+               strncpy(b->path,pak_paths.data[pak_lumps.data[i].path],255);
                b->path[255] = '\0';
                b->next = pak_buffer;
                pak_buffer = b;
@@ -239,10 +238,10 @@ void *RvR_lump_get(const char *name, unsigned *size)
          }
 
          //Raw reading
-         FILE *f = fopen(pak_paths.data[lumps.data[i].path],"rb");
+         FILE *f = fopen(pak_paths.data[pak_lumps.data[i].path],"rb");
          if(!f)
          {
-            RvR_log("RvR_pak: failed to open %s\n",pak_paths.data[lumps.data[i].path]);
+            RvR_log("RvR_pak: failed to open %s\n",pak_paths.data[pak_lumps.data[i].path]);
             *size = 0;
             return NULL;
          }
@@ -264,9 +263,9 @@ void *RvR_lump_get(const char *name, unsigned *size)
 
 const char *RvR_lump_get_path(const char *name)
 {
-   for(int i = lumps.used-1;i>=0;i--)
-      if(strncmp(name,lumps.data[i].name,8)==0)
-         return pak_paths.data[lumps.data[i].path];
+   for(int i = pak_lumps.used-1;i>=0;i--)
+      if(strncmp(name,pak_lumps.data[i].name,8)==0)
+         return pak_paths.data[pak_lumps.data[i].path];
 
    RvR_log("RvR_pak: lump %s not found\n",name);
    return NULL;
@@ -274,14 +273,14 @@ const char *RvR_lump_get_path(const char *name)
 
 int RvR_lump_exists(const char *name)
 {
-   for(int i = lumps.used-1;i>=0;i--)
-      if(strncmp(name,lumps.data[i].name,8)==0)
+   for(int i = pak_lumps.used-1;i>=0;i--)
+      if(strncmp(name,pak_lumps.data[i].name,8)==0)
          return 1;
    return 0;
 }
 
 //Parse a csv file and add all lumps to list
-static void add_csv_path(const char *path)
+static void pak_add_csv_path(const char *path)
 {
    char base_path[256] = {0};
    char tmp[256] = "";
@@ -291,7 +290,7 @@ static void add_csv_path(const char *path)
    if(f==NULL)
       RvR_log_line("fopen ","failed to open %s\n",path);
 
-   path_pop(path,base_path,NULL);
+   pak_path_pop(path,base_path,NULL);
    strcat(base_path,"/");
 
    while(!feof(f)&&!ferror(f))
@@ -334,7 +333,7 @@ static void add_csv_path(const char *path)
 }
 
 //Parse a pak file and add to list
-static void add_pak_path(const char *path)
+static void pak_add_pak_path(const char *path)
 {
    //Add pak to list
    Pak_buffer *b = RvR_malloc(sizeof(*b));
@@ -353,31 +352,31 @@ static void add_pak_path(const char *path)
 //Add a lump to the lump array.
 //Array will dynamically expand if more 
 //space is needed
-static void lumps_push(Lump l)
+static void pak_lumps_push(Pak_lump l)
 {
    //Allocate memory for list
-   if(lumps.data==NULL)
+   if(pak_lumps.data==NULL)
    {
-      lumps.size = 16;
-      lumps.used = 0;
-      lumps.data = RvR_malloc(sizeof(*lumps.data)*lumps.size);
+      pak_lumps.size = 16;
+      pak_lumps.used = 0;
+      pak_lumps.data = RvR_malloc(sizeof(*pak_lumps.data)*pak_lumps.size);
    }
   
    //Override existing entry
-   for(uint32_t i = 0;i<lumps.used;i++)
+   for(uint32_t i = 0;i<pak_lumps.used;i++)
    {
-      if(strncmp(pak_paths.data[lumps.data[i].path],l.name,8)==0)
+      if(strncmp(pak_paths.data[pak_lumps.data[i].path],l.name,8)==0)
       {
-         memcpy(&lumps.data[i],&l,sizeof(l));
+         memcpy(&pak_lumps.data[i],&l,sizeof(l));
          return;
       }
    }
 
-   lumps.data[lumps.used++] = l;
-   if(lumps.used==lumps.size)
+   pak_lumps.data[pak_lumps.used++] = l;
+   if(pak_lumps.used==pak_lumps.size)
    {
-      lumps.size+=16;
-      lumps.data = RvR_realloc(lumps.data,sizeof(*lumps.data)*lumps.size);
+      pak_lumps.size+=16;
+      pak_lumps.data = RvR_realloc(pak_lumps.data,sizeof(*pak_lumps.data)*pak_lumps.size);
    }
 }
 
@@ -418,7 +417,7 @@ static uint8_t pak_xor_string(const char *str, size_t len)
    return hash;
 }
 
-//path_pop, path_pop_ext, path_is_slash
+//pak_path_pop, pak_path_pop_ext, pak_path_is_slash
 //by RandyGaul (https://github.com/RandyGaul), cute_headers (https://github.com/RandyGaul/cute_headers/blob/master/cute_path.h)
 //Original license info:
 /*
@@ -461,7 +460,7 @@ static uint8_t pak_xor_string(const char *str, size_t len)
    ------------------------------------------------------------------------------
 */
 
-static int path_pop(const char* path, char* out, char* pop)
+static int pak_path_pop(const char* path, char* out, char* pop)
 {
    const char *original = path;
    int total_len = 0;
@@ -475,13 +474,13 @@ static int path_pop(const char* path, char* out, char* pop)
    }
 
    //ignore trailing slash from input path
-   if(path_is_slash(*(path-1)))
+   if(pak_path_is_slash(*(path-1)))
    {
       --path;
       total_len-=1;
    }
 
-   while(!path_is_slash(*--path)&&pop_len!=total_len)
+   while(!pak_path_is_slash(*--path)&&pop_len!=total_len)
       ++pop_len;
    len = total_len-pop_len; //ength to copy
 
@@ -519,7 +518,7 @@ static int path_pop(const char* path, char* out, char* pop)
    }
 }
 
-static int path_pop_ext(const char *path, char *out, char *ext)
+static int pak_path_pop_ext(const char *path, char *out, char *ext)
 {
    if(out!=NULL)
       *out = '\0';
@@ -535,7 +534,7 @@ static int path_pop_ext(const char *path, char *out, char *ext)
    const char *last_period = NULL;
    while(*p!='\0')
    {
-      if(path_is_slash(*p))
+      if(pak_path_is_slash(*p))
          last_slash = p;
       else if(*p=='.')
          last_period = p;
@@ -564,7 +563,7 @@ static int path_pop_ext(const char *path, char *out, char *ext)
    return len;
 }
 
-static int path_is_slash(char c)
+static int pak_path_is_slash(char c)
 {
    return (c=='/')|(c=='\\');
 }
@@ -820,4 +819,3 @@ RvR_err:
 
 #undef CUTE_PATH_MAX_PATH
 #undef CUTE_PATH_MAX_EXT
-#undef JSON5_ASSERT
