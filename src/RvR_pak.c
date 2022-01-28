@@ -68,7 +68,7 @@ static struct
    uint32_t used;
    uint32_t size;
    Pak_lump *data;
-}pak_lumps = {0};
+}pak_lumps[256] = {0};
 
 static struct
 {
@@ -107,7 +107,7 @@ static void     pak_append_file(Pak *p, const char *filename, FILE *in);
 
 void RvR_pak_add(const char *path)
 {
-   char ext[33] = {0};
+   char ext[CUTE_PATH_MAX_EXT+1] = {0};
    pak_path_pop_ext(path,NULL,ext);
 
    if(strncmp(ext,"csv",32)==0)
@@ -205,28 +205,30 @@ void RvR_lump_add(const char *name, const char *path)
 
 void *RvR_lump_get(const char *name, unsigned *size)
 {
-   for(int i = pak_lumps.used-1;i>=0;i--)
+   uint8_t lump_index = pak_xor_string(name,strlen(name));
+
+   for(int i = pak_lumps[lump_index].used-1;i>=0;i--)
    {
-      if(strncmp(name,pak_lumps.data[i].name,8)==0)
+      if(strncmp(name,pak_lumps[lump_index].data[i].name,8)==0)
       {
          //Check for pak file
          char ext[33] = {0};
-         pak_path_pop_ext(pak_paths.data[pak_lumps.data[i].path],NULL,ext);
+         pak_path_pop_ext(pak_paths.data[pak_lumps[lump_index].data[i].path],NULL,ext);
          if(strncmp(ext,"pak",32)==0)
          {
             //Check if pak already opened
             Pak_buffer *b = pak_buffer;
             while(b)
             {
-               if(strcmp(b->path,pak_paths.data[pak_lumps.data[i].path])==0)
+               if(strcmp(b->path,pak_paths.data[pak_lumps[lump_index].data[i].path])==0)
                   break;
                b = b->next;
             }
             if(b==NULL)
             {
                b = RvR_malloc(sizeof(*b));
-               b->pak = pak_open(pak_paths.data[pak_lumps.data[i].path],"r");
-               strncpy(b->path,pak_paths.data[pak_lumps.data[i].path],255);
+               b->pak = pak_open(pak_paths.data[pak_lumps[lump_index].data[i].path],"r");
+               strncpy(b->path,pak_paths.data[pak_lumps[lump_index].data[i].path],255);
                b->path[255] = '\0';
                b->next = pak_buffer;
                pak_buffer = b;
@@ -238,10 +240,10 @@ void *RvR_lump_get(const char *name, unsigned *size)
          }
 
          //Raw reading
-         FILE *f = fopen(pak_paths.data[pak_lumps.data[i].path],"rb");
+         FILE *f = fopen(pak_paths.data[pak_lumps[lump_index].data[i].path],"rb");
          if(!f)
          {
-            RvR_log("RvR_pak: failed to open %s\n",pak_paths.data[pak_lumps.data[i].path]);
+            RvR_log("RvR_pak: failed to open %s\n",pak_paths.data[pak_lumps[lump_index].data[i].path]);
             *size = 0;
             return NULL;
          }
@@ -263,9 +265,11 @@ void *RvR_lump_get(const char *name, unsigned *size)
 
 const char *RvR_lump_get_path(const char *name)
 {
-   for(int i = pak_lumps.used-1;i>=0;i--)
-      if(strncmp(name,pak_lumps.data[i].name,8)==0)
-         return pak_paths.data[pak_lumps.data[i].path];
+   uint8_t lump_index = pak_xor_string(name,strlen(name));
+
+   for(int i = pak_lumps[lump_index].used-1;i>=0;i--)
+      if(strncmp(name,pak_lumps[lump_index].data[i].name,8)==0)
+         return pak_paths.data[pak_lumps[lump_index].data[i].path];
 
    RvR_log("RvR_pak: lump %s not found\n",name);
    return NULL;
@@ -273,8 +277,10 @@ const char *RvR_lump_get_path(const char *name)
 
 int RvR_lump_exists(const char *name)
 {
-   for(int i = pak_lumps.used-1;i>=0;i--)
-      if(strncmp(name,pak_lumps.data[i].name,8)==0)
+   uint8_t lump_index = pak_xor_string(name,strlen(name));
+
+   for(int i = pak_lumps[lump_index].used-1;i>=0;i--)
+      if(strncmp(name,pak_lumps[lump_index].data[i].name,8)==0)
          return 1;
    return 0;
 }
@@ -354,29 +360,31 @@ static void pak_add_pak(const char *path)
 //space is needed
 static void pak_lumps_push(Pak_lump l)
 {
+   uint8_t lump_index = pak_xor_string(l.name,8);
+
    //Allocate memory for list
-   if(pak_lumps.data==NULL)
+   if(pak_lumps[lump_index].data==NULL)
    {
-      pak_lumps.size = 16;
-      pak_lumps.used = 0;
-      pak_lumps.data = RvR_malloc(sizeof(*pak_lumps.data)*pak_lumps.size);
+      pak_lumps[lump_index].size = 4;
+      pak_lumps[lump_index].used = 0;
+      pak_lumps[lump_index].data = RvR_malloc(sizeof(*pak_lumps[lump_index].data)*pak_lumps[lump_index].size);
    }
   
    //Override existing entry
-   for(uint32_t i = 0;i<pak_lumps.used;i++)
+   for(uint32_t i = 0;i<pak_lumps[lump_index].used;i++)
    {
-      if(strncmp(pak_paths.data[pak_lumps.data[i].path],l.name,8)==0)
+      if(strncmp(pak_paths.data[pak_lumps[lump_index].data[i].path],l.name,8)==0)
       {
-         memcpy(&pak_lumps.data[i],&l,sizeof(l));
+         memcpy(&pak_lumps[lump_index].data[i],&l,sizeof(l));
          return;
       }
    }
 
-   pak_lumps.data[pak_lumps.used++] = l;
-   if(pak_lumps.used==pak_lumps.size)
+   pak_lumps[lump_index].data[pak_lumps[lump_index].used++] = l;
+   if(pak_lumps[lump_index].used==pak_lumps[lump_index].size)
    {
-      pak_lumps.size+=16;
-      pak_lumps.data = RvR_realloc(pak_lumps.data,sizeof(*pak_lumps.data)*pak_lumps.size);
+      pak_lumps[lump_index].size*=2;
+      pak_lumps[lump_index].data = RvR_realloc(pak_lumps[lump_index].data,sizeof(*pak_lumps[lump_index].data)*pak_lumps[lump_index].size);
    }
 }
 
