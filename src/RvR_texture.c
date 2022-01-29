@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -169,19 +169,11 @@ static RvR_texture *texture_load(RvR_rw *rw)
    p->width = RvR_rw_read_i32(rw);
    p->height = RvR_rw_read_i32(rw);
    p->data = RvR_malloc(sizeof(*p->data)*p->width*p->height);
-   RvR_error_check(p!=NULL,0x001);
-   RvR_error_check(p->data!=NULL,0x001);
 
    for(int i = 0;i<p->width*p->height;i++)
       p->data[i] = RvR_rw_read_u8(rw);
 
    return p;
-
-RvR_err:
-
-   RvR_log("RvR error %s\n",RvR_error_get_string());
-
-   return NULL;
 }
 
 #undef PERMANENT

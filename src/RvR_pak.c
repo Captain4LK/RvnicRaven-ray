@@ -20,7 +20,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
-#define CUTE_PATH_MAX_PATH 1024
+#define CUTE_PATH_MAX_PATH 256
 #define CUTE_PATH_MAX_EXT 32
 //-------------------------------------
 
@@ -107,33 +107,58 @@ static void     pak_append_file(Pak *p, const char *filename, FILE *in);
 
 void RvR_pak_add(const char *path)
 {
-   char ext[CUTE_PATH_MAX_EXT+1] = {0};
+   RvR_error_check(path!=NULL,"RvR_pak_add","argument 'path' must be non-NULL\n");
+
+   char ext[CUTE_PATH_MAX_EXT] = "";
    pak_path_pop_ext(path,NULL,ext);
 
-   if(strncmp(ext,"csv",32)==0)
+   if(strncmp(ext,"csv",CUTE_PATH_MAX_EXT)==0)
       pak_add_csv(path);
-   else if(strncmp(ext,"pak",32)==0)
+   else if(strncmp(ext,"pak",CUTE_PATH_MAX_EXT)==0)
       pak_add_pak(path);
+   else
+      RvR_log_line("RvR_pak_add","unknown extension ('%s') for pak file '%s'\n",ext,path);
+
+RvR_err:
+   return;
 }
 
 void RvR_pak_create_from_csv(const char *path_csv, const char *path_pak)
 {
-   char base_path[256] = {0};
-   char tmp[256] = "";
-   char lump_name[256];
-   char lump_path[256];
-   FILE *f = fopen(path_csv,"r");
-   Pak *pak = pak_open(path_pak,"w");
+   FILE *f = NULL;
+   Pak *pak = NULL;
 
+   if(path_csv==NULL)
+   {
+      RvR_log_line("RvR_pak_create_from_csv","argument 'path_csv' must be non-NULL\n");
+      return;
+   }
+   if(path_pak==NULL)
+   {
+      RvR_log_line("RvR_pak_create_from_csv","argument 'path_pak' must be non-NULL\n");
+      return;
+   }
+
+   f = fopen(path_csv,"r");
+   if(f==NULL)
+   {
+      RvR_log_line("RvR_pak_create_from_csv","failed to open '%s'\n",path_csv);
+      return;
+   }
+
+   pak = pak_open(path_pak,"w");
+   if(pak==NULL)
+      return;
+
+   char base_path[CUTE_PATH_MAX_PATH+1] = "";
    pak_path_pop(path_csv,base_path,NULL);
    strcat(base_path,"/");
 
    while(!feof(f)&&!ferror(f))
    {
-      char delim;
-
       //Read path
-      delim = getc(f);
+      char delim = getc(f);
+      char lump_path[CUTE_PATH_MAX_PATH] = "";
       ungetc(delim,f);
       if(delim=='"')
       {
@@ -149,6 +174,7 @@ void RvR_pak_create_from_csv(const char *path_csv, const char *path_pak)
       //Read name
       delim = getc(f);
       ungetc(delim,f);
+      char lump_name[CUTE_PATH_MAX_PATH] = "";
       if(delim=='"')
       {
          if(fscanf(f,"\"%255[^\"]\"\n",lump_name)!=1)
@@ -160,16 +186,27 @@ void RvR_pak_create_from_csv(const char *path_csv, const char *path_pak)
             break;
       }
 
-      strcpy(tmp,base_path);
-      strcat(tmp,lump_path);
+      char tmp[CUTE_PATH_MAX_PATH*2] = "";
+      strncpy(tmp,base_path,CUTE_PATH_MAX_PATH);
+      strncat(tmp,lump_path,CUTE_PATH_MAX_PATH);
 
       FILE *fp = fopen(tmp,"rb");
-      pak_append_file(pak,lump_name,fp);
-      fclose(fp);
+      if(fp==NULL)
+      {
+         RvR_log_line("RvR_pak_create_from_csv","failed to open '%s'\n",tmp);
+      }
+      else
+      {
+         pak_append_file(pak,lump_name,fp);
+         fclose(fp);
+      }
    }
 
-   fclose(f);
-   pak_close(pak);
+RvR_err:
+   if(f!=NULL)
+      fclose(f);
+   if(pak!=NULL)
+      pak_close(pak);
 }
 
 void RvR_pak_flush()
@@ -190,10 +227,23 @@ void RvR_pak_flush()
 
 void RvR_lump_add(const char *name, const char *path)
 {
+   if(name==NULL)
+   {
+      RvR_log_line("RvR_lump_add","argument 'name' must be non-NULL\n");
+      return;
+   }
+   if(path==NULL)
+   {
+      RvR_log_line("RvR_lump_add","argument 'path' must be non-NULL\n");
+      return;
+   }
    if(strlen(name)>8)
-      RvR_log("RvR_pak: lump name too long (max 8 characters)\n");
+   {
+      RvR_log_line("RvR_lump_add","lump name ('%s') too long (max 8 characters)\n",name);
+      return;
+   }
 
-   char ext[33] = "";
+   char ext[CUTE_PATH_MAX_EXT] = "";
    pak_path_pop_ext(path,NULL,ext);
 
    Pak_lump l;
@@ -205,16 +255,22 @@ void RvR_lump_add(const char *name, const char *path)
 
 void *RvR_lump_get(const char *name, unsigned *size)
 {
+   if(name==NULL)
+   {
+      RvR_log_line("RvR_lump_get","argument 'name' must be non-NULL\n");
+      return NULL;
+   }
+
    uint8_t lump_index = pak_xor_string(name,strlen(name));
 
-   for(int i = pak_lumps[lump_index].used-1;i>=0;i--)
+   for(int i = 0;i<pak_lumps[lump_index].used;i++)
    {
       if(strncmp(name,pak_lumps[lump_index].data[i].name,8)==0)
       {
          //Check for pak file
-         char ext[33] = {0};
+         char ext[CUTE_PATH_MAX_EXT] = {0};
          pak_path_pop_ext(pak_paths.data[pak_lumps[lump_index].data[i].path],NULL,ext);
-         if(strncmp(ext,"pak",32)==0)
+         if(strncmp(ext,"pak",CUTE_PATH_MAX_EXT)==0)
          {
             //Check if pak already opened
             Pak_buffer *b = pak_buffer;
@@ -235,31 +291,36 @@ void *RvR_lump_get(const char *name, unsigned *size)
             }
 
             int index = pak_find(b->pak,name);
-            *size = pak_size(b->pak,index);
+            if(size!=NULL)
+               *size = pak_size(b->pak,index);
             return pak_extract(b->pak,index);
          }
 
          //Raw reading
          FILE *f = fopen(pak_paths.data[pak_lumps[lump_index].data[i].path],"rb");
-         if(!f)
+         if(f==NULL)
          {
-            RvR_log("RvR_pak: failed to open %s\n",pak_paths.data[pak_lumps[lump_index].data[i].path]);
-            *size = 0;
+            RvR_log_line("RvR_lump_get","failed to open '%s'\n",pak_paths.data[pak_lumps[lump_index].data[i].path]);
+            if(size!=NULL)
+               *size = 0;
             return NULL;
          }
          fseek(f,0,SEEK_END);
-         *size = ftell(f);
+         unsigned fsize = ftell(f);
+         if(size!=NULL)
+            *size = fsize;
          fseek(f,0,SEEK_SET);
-         uint8_t *buffer = RvR_malloc(*size+1);
-         fread(buffer,*size,1,f);
-         buffer[*size] = 0;
+         uint8_t *buffer = RvR_malloc(fsize+1);
+         fread(buffer,fsize,1,f);
+         buffer[fsize] = 0;
          fclose(f);
          return buffer;
       }
    }
 
-   RvR_log("RvR_pak: lump %s not found\n",name);
-   *size = 0;
+   RvR_log_line("RvR_lump_get","lump '%s' not found\n",name);
+   if(size!=NULL)
+      *size = 0;
    return NULL;
 }
 
@@ -705,11 +766,9 @@ static Pak *pak_open(const char *fname, const char *mode)
    }
 
    rw = RvR_malloc(sizeof(*rw));
-   RvR_error_check(rw!=NULL,0x001);
    RvR_rw_init_path(rw,fname,mode[0]=='w'?"wb":mode[0]=='r'?"rb":"rb+");
 
    p = RvR_malloc(sizeof(*p));
-   RvR_error_check(p!=NULL,0x001);
    memset(p,0,sizeof(*p));
 
    if(mode[0]=='r')
@@ -760,10 +819,6 @@ static Pak *pak_open(const char *fname, const char *mode)
       return p;
    }
 
-RvR_err:
-
-   RvR_log("pak_open %s\n",RvR_error_get_string());
-
 err:
 
    if(p!=NULL)
@@ -790,7 +845,6 @@ static void pak_append_file(Pak *p, const char *filename, FILE *in)
    //index meta
    unsigned index = p->count++;
    p->entries = RvR_realloc(p->entries,p->count*sizeof(Pak_file));
-   RvR_error_check(p->entries!=NULL,0x002);
    Pak_file *e = &p->entries[index];
    memset(e,0,sizeof(*e));
    strncpy(e->name,filename,9);
@@ -800,7 +854,7 @@ static void pak_append_file(Pak *p, const char *filename, FILE *in)
    while(!feof(in))
    {
       size_t bytes = fread(buf,1,sizeof(buf),in);
-      RvR_error_check(!ferror(in),0x009);
+      RvR_error_check(!ferror(in),"pak_append_file","fread() failed\n");
       RvR_rw_write(p->out,buf,1,bytes);
    }
 
@@ -810,14 +864,8 @@ static void pak_append_file(Pak *p, const char *filename, FILE *in)
 
 RvR_err:
 
-   RvR_log("pak_append_file %s\n",RvR_error_get_string());
-
-   if(RvR_error_get()==RVR_ERROR_FAIL_FREAD)
-   {
-      p->count--;
-      p->entries = RvR_realloc(p->entries,p->count*sizeof(Pak_file));
-      RvR_error_check(p->entries!=NULL,0x002);
-   }
+   p->count--;
+   p->entries = RvR_realloc(p->entries,p->count*sizeof(Pak_file));
 
    return;
 }

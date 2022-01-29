@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -34,42 +34,36 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void RvR_rw_init_file(RvR_rw *rw, FILE *f)
 {
-   RvR_error_check(rw!=NULL,0x101);
-   RvR_error_check(f!=NULL,0x101);
+   RvR_error_check(rw!=NULL,"RvR_rw_init_file","argument 'rw' must be non-NULL\n");
+   RvR_error_check(f!=NULL,"RvR_rw_init_file","argument 'f' must be non-NULL\n");
 
    rw->type = 0;
    rw->endian = RVR_ENDIAN;
    rw->file.fp = f;
 
-   return;
-
 RvR_err:
-
-   RvR_log("RvR error %s\n",RvR_error_get_string());
+   return;
 }
 
 void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode)
 {
-   RvR_error_check(rw!=NULL,0x101);
-   RvR_error_check(path!=NULL,0x101);
-   RvR_error_check(mode!=NULL,0x101);
+   RvR_error_check(rw!=NULL,"RvR_rw_init_path","argument 'rw' must be non-NULL\n");
+   RvR_error_check(path!=NULL,"RvR_rw_init_path","argument 'path' must be non-NULL\n");
+   RvR_error_check(mode!=NULL,"RvR_rw_init_path","argument 'mode' must be non-NULL\n");
 
    rw->type = 1;
    rw->endian = RVR_ENDIAN;
    rw->file.fp = fopen(path,mode);
-   RvR_error_check(rw->file.fp!=NULL,0x006);
-
-   return;
+   RvR_error_check(rw->file.fp!=NULL,"RvR_rw_init_path","failed to open '%s'\n",path);
 
 RvR_err:
-
-   RvR_log("RvR error %s\n",RvR_error_get_string());
+   return;
 }
 
 void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len)
 {
-   RvR_error_check(rw!=NULL,0x101);
-   RvR_error_check(mem!=NULL,0x101);
+   RvR_error_check(rw!=NULL,"RvR_rw_init_mem","argument 'rw' must be non-NULL\n");
+   RvR_error_check(mem!=NULL,"RvR_rw_init_mem","argument 'mem' must be non-NULL\n");
 
    rw->type = 2;
    rw->endian = RVR_ENDIAN;
@@ -77,17 +71,14 @@ void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len)
    rw->file.mem.size = len;
    rw->file.mem.pos = 0;
 
-   return;
-
 RvR_err:
-
-   RvR_log("RvR error %s\n",RvR_error_get_string());
+   return;
 }
 
 void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len)
 {
-   RvR_error_check(rw!=NULL,0x101);
-   RvR_error_check(mem!=NULL,0x101);
+   RvR_error_check(rw!=NULL,"RvR_rw_init_const_mem","argument 'rw' must be non-NULL\n");
+   RvR_error_check(mem!=NULL,"RvR_rw_init_const_mem","argument 'mem' must be non-NULL\n");
 
    rw->type = 3;
    rw->endian = RVR_ENDIAN;
@@ -95,11 +86,8 @@ void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len)
    rw->file.cmem.size = len;
    rw->file.cmem.pos = 0;
 
-   return;
-
 RvR_err:
-
-   RvR_log("RvR error %s\n",RvR_error_get_string());
+   return;
 }
 
 void RvR_rw_endian(RvR_rw *rw, uint8_t endian)
@@ -110,13 +98,10 @@ void RvR_rw_endian(RvR_rw *rw, uint8_t endian)
 void RvR_rw_close(RvR_rw *rw)
 {
    if(rw->type==1)
-      RvR_error_check(fclose(rw->file.fp)!=EOF,0x007);
-
-   return;
+      RvR_error_check(fclose(rw->file.fp)!=EOF,"RvR_rw_close","fclose() failed\n");
 
 RvR_err:
-
-   RvR_log("RvR error %s\n",RvR_error_get_string());
+   return;
 }
 
 void RvR_rw_flush(RvR_rw *rw)
@@ -171,7 +156,7 @@ long RvR_rw_tell(RvR_rw *rw)
    if(rw->type==0||rw->type==1)
    {
       long size = ftell(rw->file.fp);
-      RvR_error_check(size!=EOF,0x005);
+      RvR_error_check(size!=EOF,"RvR_rw_tell","ftell() failed\n");
       return size;
    }
    else if(rw->type==2)
@@ -185,12 +170,7 @@ long RvR_rw_tell(RvR_rw *rw)
 
    RvR_log_line("RvR_rw_tell", "invalid RvR_rw type, handle might be corrupt\n");
 
-   return EOF;
-
 RvR_err:
-
-   RvR_log("RvR error %s\n",RvR_error_get_string());
-
    return EOF;
 }
 

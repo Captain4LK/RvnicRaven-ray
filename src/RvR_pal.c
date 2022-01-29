@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -43,10 +43,7 @@ void RvR_palette_load(uint16_t id)
 
    //Allocate palette if it isn't yet
    if(palette==NULL)
-   {
       palette = RvR_malloc(sizeof(*palette)*256);
-      RvR_error_check(palette!=NULL,0x001);
-   }
 
    //Format lump name
    //Palettes must be named in this exact way (e.g. PAL00000)
@@ -54,8 +51,7 @@ void RvR_palette_load(uint16_t id)
    snprintf(tmp,64,"PAL%05d",id);
 
    //Read palette from lump and create rw stream
-   if((mem_pak = RvR_lump_get(tmp,&size_in))==NULL)
-      RvR_error_check(0,0x000);
+   mem_pak = RvR_lump_get(tmp,&size_in);
    RvR_rw_init_mem(&rw,mem_pak,size_in);
 
    //Read palette and perform post processing
@@ -73,13 +69,6 @@ void RvR_palette_load(uint16_t id)
    RvR_free(mem_pak);
 
    return;
-
-RvR_err:
-
-   if(mem_pak!=NULL)
-      RvR_free(mem_pak);
-
-   RvR_log("RvR error %s\n",RvR_error_get_string());
 }
 
 //Taken from: https://quakewiki.org/wiki/Quake_palette (public domain), original note:

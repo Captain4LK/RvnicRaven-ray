@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -41,23 +41,22 @@ RvR_config RvR_ini_parse(const char *path)
    int32_t size = 0;
    FILE *in = NULL;
 
-   RvR_error_check(path!=NULL,0x101);
+   RvR_error_check(path!=NULL,"RvR_ini_parse","argument 'path' must be non-NULL\n");
    in = fopen(path,"rb");
-   RvR_error_check(in!=NULL,0x006);
+   RvR_error_check(in!=NULL,"RvR_ini_parse","failed to open '%s'\n",path);
 
-   RvR_error_check(fseek(in,0,SEEK_END)==0,0x004);
+   RvR_error_check(fseek(in,0,SEEK_END)==0,"RvR_ini_parse","fseek() failed\n");
    size = ftell(in);
-   RvR_error_check(size!=EOF,0x005);
-   RvR_error_check(fseek(in,0,SEEK_SET)==0,0x004);
+   RvR_error_check(size!=EOF,"RvR_ini_parse","ftell() failed\n");
+   RvR_error_check(fseek(in,0,SEEK_SET)==0,"RvR_ini_parse","fseek() failed\n");
    buffer_in = RvR_malloc(size+1);
-   RvR_error_check(buffer_in!=NULL,0x001);
-   RvR_error_check(fread(buffer_in,size,1,in)==1,0x003);
+   RvR_error_check(fread(buffer_in,size,1,in)==1,"RvR_ini_parse","fread() failed\n");
    buffer_in[size] = '\0';
-   RvR_error_check(fclose(in)!=EOF,0x007);
+   RvR_error_check(fclose(in)!=EOF,"RvR_ini_parse","fclose() failed\n");
    in = NULL;
 
    kv = config_ini(buffer_in);
-   RvR_error_check(kv!=NULL,0x000);
+   RvR_error_check(kv!=NULL,"RvR_ini_parse","failed to parse ini file ('%s')\n",path);
 
    RvR_free(buffer_in);
 
@@ -65,7 +64,7 @@ RvR_config RvR_ini_parse(const char *path)
 
 RvR_err:
 
-   if(in!=NULL&&RvR_error_get()!=RVR_ERROR_FAIL_FCLOSE)
+   if(in!=NULL)
       fclose(in);
 
    if(kv!=NULL)
@@ -73,8 +72,6 @@ RvR_err:
 
    if(buffer_in!=NULL)
       RvR_free(buffer_in);
-
-   RvR_log("RvR error %s\n",RvR_error_get_string());
 
    return NULL;
 }
@@ -175,17 +172,13 @@ static char *config_ini(const char *s)
          if(end[KEY]-cut[KEY]) key+=sprintf(key,"%.*s", (int)(end[KEY]-cut[KEY]),cut[KEY]);
          if(end[SUB]-cut[SUB]) key+=sprintf(key,".%.*s", (int)(end[SUB]-cut[SUB]),cut[SUB]);
          reqlen = (key-buf)+1+(end[VAL]-cut[VAL])+1+1;
-         if((reqlen+maplen)>=mapcap) { map = RvR_realloc(map,(mapcap+=reqlen+512)); RvR_error_check(map!=NULL,0x002); }
+         if((reqlen+maplen)>=mapcap) { map = RvR_realloc(map,(mapcap+=reqlen+512)); }
          sprintf(map+maplen,"%.*s%c%.*s%c%c",(int)(key-buf),buf,0,(int)(end[VAL]-cut[VAL]),cut[VAL],0,0);
          maplen+=reqlen-1;
       }
    }
 
    return map;
-
-RvR_err:
-
-   return NULL;
 }
 
 static RvR_key config_strtokey(const char *s)

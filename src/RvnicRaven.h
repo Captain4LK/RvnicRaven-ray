@@ -16,8 +16,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Core
 //Framebuffer resolution
-#define RVR_XRES 320
-#define RVR_YRES 240
+#define RVR_XRES 640
+#define RVR_YRES 480
 
 //Fps, RvnicRaven must use a fixed timestep
 #define RVR_FPS 30
@@ -137,23 +137,6 @@ typedef enum
 
 typedef enum
 {
-   RVR_ERROR_NONE = 0x000,              //No error encountered
-   RVR_ERROR_FAIL_MALLOC = 0x001,       //malloc() failed, out of memory
-   RVR_ERROR_FAIL_REALLOC = 0x002,      //realloc() failed, out of memory
-   RVR_ERROR_FAIL_FWRITE = 0x003,       //fwrite() failed
-   RVR_ERROR_FAIL_FSEEK = 0x004,        //fseek() failed
-   RVR_ERROR_FAIL_FTELL = 0x005,        //ftell() failed
-   RVR_ERROR_FAIL_FOPEN = 0x006,        //fopen() failed
-   RVR_ERROR_FAIL_FCLOSE = 0x007,       //fclose() failed
-   RVR_ERROR_FAIL_FPRINTF = 0x008,      //fprintf() failed
-   RVR_ERROR_FAIL_FREAD = 0x009,        //fread() failed
-   RVR_ERROR_ARG_OOR = 0x100,           //argument outside expected range
-   RVR_ERROR_ARG_NULL = 0x101,          //argument NULL 
-   RVR_ERROR_BUFFER_SHORT = 0x200,      //buffer short
-}RvR_error;
-
-typedef enum
-{
    RVR_CONFIG_INT, RVR_CONFIG_KEY,
 }RvR_config_type;
 
@@ -215,21 +198,6 @@ typedef struct
 
 //RvnicRaven core functions
 
-//Read config variables from ini file
-//Returns 0 on success or 1 on failure
-//Possible errors:
-//    RVR_ERROR_ARG_NULL
-//    RVR_ERROR_FAIL_MALLOC
-//    RVR_ERROR_FAIL_REALLOC
-//    RVR_ERROR_FAIL_FOPEN
-//    RVR_ERROR_FAIL_FCLOSE
-//    RVR_ERROR_FAIL_FSEEK
-//    RVR_ERROR_FAIL_FTELL
-//    RVR_ERROR_FAIL_FREAD
-//
-//Parameters:
-//    const char *path - path to ini file
-//                       path != NULL
 RvR_config RvR_ini_parse(const char *path);
 void RvR_ini_free(RvR_config config);
 void RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char *ident);
@@ -317,35 +285,13 @@ void RvR_draw_line(int x0, int y0, int x1, int y1, uint8_t index);
 void RvR_draw_vertical_line(int x, int y0, int y1, uint8_t index);
 void RvR_draw_horizontal_line(int x0, int x1, int y, uint8_t index);
 
-//Set the current error
-//Parameters:
-//    const char *file - name of the file the error occurred in
-//                       usually set using __FILE__
-//                       file != NULL
-//    unsigned line - line the error occurred in
-//                    usually set using __LINE__
-//    unsigned reason - reason for error
-//                      integer codes can be read from switch statement
-//                      in implementation
-void RvR_error_set(const char *file, unsigned line, unsigned reason);
-
-//Clear all errors
-void RvR_error_clear();
-
-//Returns the last error as a enum
-RvR_error RvR_error_get();
-
-//Returns the last error as a string, 
-//returned string will only be valid until next HLH_error_get_string() call
-const char *RvR_error_get_string();
-
 void RvR_log(const char *w, ...);
 
-#define RvR_log_line(w,...) do { char RvR_log_line_tmp[512]; snprintf(RvR_log_line_tmp,512,__VA_ARGS__); RvR_log(w " (%s:%u): %s\n",__FILE__,__LINE__,RvR_log_line_tmp); } while(0)
+#define RvR_log_line(w,...) do { char RvR_log_line_tmp[1024]; snprintf(RvR_log_line_tmp,1024,__VA_ARGS__); RvR_log(w " (%s:%u): %s\n",__FILE__,__LINE__,RvR_log_line_tmp); } while(0)
 
-#define RvR_error_fail(X) do { RvR_error_set(__FILE__,__LINE__,(X)); goto RvR_err; } while(0)
+#define RvR_error_fail(w,...) do { RvR_log_line(w,__VA_ARGS__); goto RvR_err; } while(0)
 
-#define RvR_error_check(X,Y) do { if(!(X)) RvR_error_fail(Y); } while(0)
+#define RvR_error_check(X,w,...) do { if(!(X)) RvR_error_fail(w,__VA_ARGS__); } while(0)
 
 //Different versions of the Fowler/Noll/Vo hash
 //the basic versions (e.g. RvR_fnv64a) perform the hash on a string using their specifc init values as the hashval

@@ -9,9 +9,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <stdio.h>
+#include <stdint.h>
+#include <stdarg.h>
 //-------------------------------------
 
 //Internal includes
+#include "RvnicRaven.h"
 //-------------------------------------
 
 //#defines
@@ -27,28 +31,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function implementations
-#include "RvR_config.c"
-#include "RvR_core.c"
-#include "RvR_log.c"
-#include "RvR_malloc.c"
-#include "RvR_math.c"
-#include "RvR_pak.c"
-#include "RvR_compress.c"
-#include "RvR_rw.c"
-#include "RvR_pal.c"
-#include "RvR_rand.c"
-#include "RvR_hash.c"
-#include "RvR_draw.c"
-#include "RvR_texture.c"
-#include "RvR_endian.c"
-
-//#include "RvR_vm.c"
-
-//#include "RvR_lisp.c"
-
-#include "RvR_raycast.c"
-#include "RvR_raycast_draw.c"
-#include "RvR_raycast_map.c"
-
-#include "backend/RvR_backend_sdl2.c"
+void RvR_log(const char *w, ...)
+{
+   va_list args;
+   va_start(args,w);
+   vprintf(w,args);
+   va_end(args);
+}
 //-------------------------------------
