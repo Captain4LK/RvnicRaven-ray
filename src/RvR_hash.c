@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -54,25 +54,19 @@ Therefore it is safe to say that the FNV authors have no patent claims on the FN
 
 uint64_t RvR_fnv64a(const char *str)
 {
-   if(str==NULL)
-   {
-      RvR_log_line("RvR_fnv64a","argument NULL where non-NULL expected");
-      return FNV_64_PRIME;
-   }
+   RvR_error_check(str!=NULL,"RvR_fnv64a","argument 'str' must be non-NULL\n");
 
    return RvR_fnv64a_str(str,0xcbf29ce484222325ULL);
+
+RvR_err:
+   return FNV_64_PRIME;
 }
 
 uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
 {
-   if(str==NULL)
-   {
-      RvR_log_line("RvR_fnv64a_str","argument NULL where non-NULL expected");
-      return FNV_64_PRIME;
-   }
+   RvR_error_check(str!=NULL,"RvR_fnv64a_str","argument 'str' must be non-NULL\n");
 
    unsigned char *s = (unsigned char *)str;
-
    while(*s)
    {
       hval^=(uint64_t)*s++;
@@ -80,19 +74,17 @@ uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
    }
 
    return hval;
+
+RvR_err:
+   return FNV_64_PRIME;
 }
 
 uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval)
 {
-   if(buf==NULL)
-   {
-      RvR_log_line("RvR_fnv64a_buf","argument NULL where non-NULL expected");
-      return FNV_64_PRIME;
-   }
+   RvR_error_check(buf!=NULL,"RvR_fnv64a_buf","argument 'buf' must be non-NULL\n");
 
    unsigned char *bs = (unsigned char *)buf;
    unsigned char *be = bs+len;
-
    while(bs<be)
    {
       hval^=(uint64_t)*bs++;
@@ -100,29 +92,26 @@ uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval)
    }
 
    return hval;
+
+RvR_err:
+   return FNV_64_PRIME;
 }
 
 uint32_t RvR_fnv32a(const char *str)
 {
-   if(str==NULL)
-   {
-      RvR_log_line("RvR_fnv32a","argument NULL where non-NULL expected");
-      return FNV_32_PRIME;
-   }
+   RvR_error_check(str!=NULL,"RvR_fnv32a","argument 'str' must be non-NULL\n");
 
    return RvR_fnv32a_str(str,0x811c9dc5);
+
+RvR_err:
+   return FNV_32_PRIME;
 }
 
 uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
 {
-   if(str==NULL)
-   {
-      RvR_log_line("RvR_fnv32a_str","argument NULL where non-NULL expected");
-      return FNV_32_PRIME;
-   }
+   RvR_error_check(str!=NULL,"RvR_fnv32a_str","argument 'str' must be non-NULL\n");
 
    unsigned char *s = (unsigned char *)str;
-
    while(*s) 
    {
       hval^=(uint32_t)*s++;
@@ -130,19 +119,17 @@ uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
    }
 
    return hval;
+
+RvR_err:
+   return FNV_32_PRIME;
 }
 
 uint32_t RvR_fnv32a_buf(const void *buf, size_t len, uint32_t hval)
 {
-   if(buf==NULL)
-   {
-      RvR_log_line("RvR_fnv32a_buf","argument NULL where non-NULL expected");
-      return FNV_32_PRIME;
-   }
+   RvR_error_check(buf!=NULL,"RvR_fnv32a_buf","argument 'buf' must be non-NULL\n");
 
    unsigned char *bs = (unsigned char *)buf;
    unsigned char *be = bs+len;
-
    while(bs<be)
    {
       hval^=(uint32_t)*bs++;
@@ -150,6 +137,9 @@ uint32_t RvR_fnv32a_buf(const void *buf, size_t len, uint32_t hval)
    }
 
    return hval;
+
+RvR_err:
+   return FNV_32_PRIME;
 }
 
 #undef RNV_64_PRIME
