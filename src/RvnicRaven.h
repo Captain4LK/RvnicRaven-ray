@@ -137,6 +137,14 @@ typedef enum
 
 typedef enum
 {
+   RVR_RW_STD_FILE = 0,
+   RVR_RW_STD_FILE_PATH = 1,
+   RVR_RW_MEM = 2,
+   RVR_RW_CONST_MEM = 3,
+}RvR_rw_type;
+
+typedef enum
+{
    RVR_CONFIG_INT, RVR_CONFIG_KEY,
 }RvR_config_type;
 
@@ -172,7 +180,7 @@ typedef struct
 
 typedef struct
 {
-   int type;
+   RvR_rw_type type;
    uint8_t endian;
 
    union
@@ -181,16 +189,16 @@ typedef struct
       struct
       {
          void *mem;
-         size_t size;
+         long size;
          long pos;
       }mem;
       struct
       {
          const void *mem;
-         size_t size;
+         long size;
          long pos;
       }cmem;
-   }file;
+   }as;
 }RvR_rw;
 
 //RvnicRaven core types end

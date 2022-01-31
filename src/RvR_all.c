@@ -27,14 +27,15 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function implementations
+#include "RvR_pak.c"
+#include "RvR_rw.c"
+
 #include "RvR_config.c"
 #include "RvR_core.c"
 #include "RvR_log.c"
 #include "RvR_malloc.c"
 #include "RvR_math.c"
-#include "RvR_pak.c"
 #include "RvR_compress.c"
-#include "RvR_rw.c"
 #include "RvR_pal.c"
 #include "RvR_rand.c"
 #include "RvR_hash.c"

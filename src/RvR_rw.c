@@ -37,9 +37,9 @@ void RvR_rw_init_file(RvR_rw *rw, FILE *f)
    RvR_error_check(rw!=NULL,"RvR_rw_init_file","argument 'rw' must be non-NULL\n");
    RvR_error_check(f!=NULL,"RvR_rw_init_file","argument 'f' must be non-NULL\n");
 
-   rw->type = 0;
+   rw->type = RVR_RW_STD_FILE;
    rw->endian = RVR_ENDIAN;
-   rw->file.fp = f;
+   rw->as.fp = f;
 
 RvR_err:
    return;
@@ -51,10 +51,10 @@ void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode)
    RvR_error_check(path!=NULL,"RvR_rw_init_path","argument 'path' must be non-NULL\n");
    RvR_error_check(mode!=NULL,"RvR_rw_init_path","argument 'mode' must be non-NULL\n");
 
-   rw->type = 1;
+   rw->type = RVR_RW_STD_FILE_PATH;
    rw->endian = RVR_ENDIAN;
-   rw->file.fp = fopen(path,mode);
-   RvR_error_check(rw->file.fp!=NULL,"RvR_rw_init_path","failed to open '%s'\n",path);
+   rw->as.fp = fopen(path,mode);
+   RvR_error_check(rw->as.fp!=NULL,"RvR_rw_init_path","failed to open '%s'\n",path);
 
 RvR_err:
    return;
@@ -65,11 +65,11 @@ void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len)
    RvR_error_check(rw!=NULL,"RvR_rw_init_mem","argument 'rw' must be non-NULL\n");
    RvR_error_check(mem!=NULL,"RvR_rw_init_mem","argument 'mem' must be non-NULL\n");
 
-   rw->type = 2;
+   rw->type = RVR_RW_MEM;
    rw->endian = RVR_ENDIAN;
-   rw->file.mem.mem = mem;
-   rw->file.mem.size = len;
-   rw->file.mem.pos = 0;
+   rw->as.mem.mem = mem;
+   rw->as.mem.size = len;
+   rw->as.mem.pos = 0;
 
 RvR_err:
    return;
@@ -80,11 +80,11 @@ void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len)
    RvR_error_check(rw!=NULL,"RvR_rw_init_const_mem","argument 'rw' must be non-NULL\n");
    RvR_error_check(mem!=NULL,"RvR_rw_init_const_mem","argument 'mem' must be non-NULL\n");
 
-   rw->type = 3;
+   rw->type = RVR_RW_CONST_MEM;
    rw->endian = RVR_ENDIAN;
-   rw->file.cmem.mem = mem;
-   rw->file.cmem.size = len;
-   rw->file.cmem.pos = 0;
+   rw->as.cmem.mem = mem;
+   rw->as.cmem.size = len;
+   rw->as.cmem.pos = 0;
 
 RvR_err:
    return;
@@ -92,13 +92,20 @@ RvR_err:
 
 void RvR_rw_endian(RvR_rw *rw, uint8_t endian)
 {
+   RvR_error_check(rw!=NULL,"RvR_rw_endian","argument 'rw' must be non-NULL\n");
+
    rw->endian = endian;
+
+RvR_err:
+   return;
 }
 
 void RvR_rw_close(RvR_rw *rw)
 {
-   if(rw->type==1)
-      RvR_error_check(fclose(rw->file.fp)!=EOF,"RvR_rw_close","fclose() failed\n");
+   RvR_error_check(rw!=NULL,"RvR_rw_close","argument 'rw' must be non-NULL\n");
+
+   if(rw->type==RVR_RW_STD_FILE_PATH)
+      RvR_error_check(fclose(rw->as.fp)!=EOF,"RvR_rw_close","fclose() failed\n");
 
 RvR_err:
    return;
@@ -106,66 +113,80 @@ RvR_err:
 
 void RvR_rw_flush(RvR_rw *rw)
 {
-   if(rw->type==0||rw->type==1)
-      fflush(rw->file.fp);
+   RvR_error_check(rw!=NULL,"RvR_rw_flush","argument 'rw' must be non-NULL\n");
+
+   if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
+      RvR_error_check(fflush(rw->as.fp)==0,"RvR_rw_flush","fflush() failed\n");;
+
+RvR_err:
+   return;
 }
 
 int RvR_rw_seek(RvR_rw *rw, long offset, int origin)
 {
-   if(rw->type==0||rw->type==1)
+   RvR_error_check(rw!=NULL,"RvR_rw_seek","argument 'rw' must be non-NULL\n");
+
+   if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
    {
-      return fseek(rw->file.fp,offset,origin);
+      return fseek(rw->as.fp,offset,origin);
    }
-   else if(rw->type==2)
+   else if(rw->type==RVR_RW_MEM)
    {
       if(origin==SEEK_SET)
-         rw->file.mem.pos = offset;
+         rw->as.mem.pos = offset;
       else if(origin==SEEK_CUR)
-         rw->file.mem.pos+=offset;
+         rw->as.mem.pos+=offset;
       else if(origin==SEEK_END)
-         rw->file.mem.pos = rw->file.mem.size-offset;
+         rw->as.mem.pos = rw->as.mem.size-offset;
 
-      if(rw->file.mem.pos<0)
+      if(rw->as.mem.pos<0)
       {
-         rw->file.mem.pos = 0;
+         rw->as.mem.pos = 0;
          return 1;
       }
+      return 0;
    }
-   else if(rw->type==3)
+   else if(rw->type==RVR_RW_CONST_MEM)
    {
       if(origin==SEEK_SET)
-         rw->file.cmem.pos = offset;
+         rw->as.cmem.pos = offset;
       else if(origin==SEEK_CUR)
-         rw->file.cmem.pos+=offset;
+         rw->as.cmem.pos+=offset;
       else if(origin==SEEK_END)
-         rw->file.cmem.pos = rw->file.cmem.size-offset;
+         rw->as.cmem.pos = rw->as.cmem.size-offset;
 
-      if(rw->file.mem.pos<0)
+      if(rw->as.mem.pos<0)
       {
-         rw->file.mem.pos = 0;
+         rw->as.mem.pos = 0;
          return 1;
       }
+
+      return 0;
    }
 
    RvR_log_line("RvR_rw_seek ", "invalid RvR_rw type, handle might be corrupt\n");
+
+RvR_err:
    return 1;
 }
 
 long RvR_rw_tell(RvR_rw *rw)
 {
-   if(rw->type==0||rw->type==1)
+   RvR_error_check(rw!=NULL,"RvR_rw_tell","argument 'rw' must be non-NULL\n");
+
+   if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
    {
-      long size = ftell(rw->file.fp);
+      long size = ftell(rw->as.fp);
       RvR_error_check(size!=EOF,"RvR_rw_tell","ftell() failed\n");
       return size;
    }
-   else if(rw->type==2)
+   else if(rw->type==RVR_RW_MEM)
    {
-      return rw->file.mem.pos;
+      return rw->as.mem.pos;
    }
-   else if(rw->type==3)
+   else if(rw->type==RVR_RW_CONST_MEM)
    {
-      return rw->file.cmem.pos;
+      return rw->as.cmem.pos;
    }
 
    RvR_log_line("RvR_rw_tell", "invalid RvR_rw type, handle might be corrupt\n");
@@ -176,50 +197,58 @@ RvR_err:
 
 int RvR_rw_eof(RvR_rw *rw)
 {
-   if(rw->type==0||rw->type==1)
-      return feof(rw->file.fp);
-   else if(rw->type==2)
-      return rw->file.mem.pos>=rw->file.mem.size;
-   else if(rw->type==3)
-      return rw->file.cmem.pos>=rw->file.cmem.size;
+   RvR_error_check(rw!=NULL,"RvR_rw_eof","argument 'rw' must be non-NULL\n");
 
+   if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
+      return feof(rw->as.fp);
+   else if(rw->type==RVR_RW_MEM)
+      return rw->as.mem.pos>=rw->as.mem.size;
+   else if(rw->type==RVR_RW_CONST_MEM)
+      return rw->as.cmem.pos>=rw->as.cmem.size;
+
+   RvR_log_line("RvR_rw_eof", "invalid RvR_rw type, handle might be corrupt\n");
+
+RvR_err:
    return 1;
 }
 
 size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
 {
-   if(rw->type==0||rw->type==1)
+   RvR_error_check(rw!=NULL,"RvR_rw_read","argument 'rw' must be non-NULL\n");
+   RvR_error_check(buffer!=NULL,"RvR_rw_read","argument 'buffer' must be non-NULL\n");
+
+   if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
    {
-      return fread(buffer,size,count,rw->file.fp);
+      return fread(buffer,size,count,rw->as.fp);
    }
-   else if(rw->type==2)
+   else if(rw->type==RVR_RW_MEM)
    {
       uint8_t *buff_out = buffer;
-      uint8_t *buff_in = rw->file.mem.mem;
+      uint8_t *buff_in = rw->as.mem.mem;
 
       for(size_t i = 0;i<count;i++)
       {
-         if(rw->file.mem.pos+size>rw->file.mem.size)
+         if(rw->as.mem.pos+(long)size>rw->as.mem.size)
             return i;
 
-         memcpy(buff_out+(i*size),buff_in+rw->file.mem.pos,size);
-         rw->file.mem.pos+=size;
+         memcpy(buff_out+(i*size),buff_in+rw->as.mem.pos,size);
+         rw->as.mem.pos+=size;
       }
 
       return count;
    }
-   else if(rw->type==3)
+   else if(rw->type==RVR_RW_CONST_MEM)
    {
       uint8_t *buff_out = buffer;
-      const uint8_t *buff_in = rw->file.cmem.mem;
+      const uint8_t *buff_in = rw->as.cmem.mem;
 
       for(size_t i = 0;i<count;i++)
       {
-         if(rw->file.cmem.pos+size>rw->file.cmem.size)
+         if(rw->as.cmem.pos+(long)size>rw->as.cmem.size)
             return i;
 
-         memcpy(buff_out+(i*size),buff_in+rw->file.cmem.pos,size);
-         rw->file.cmem.pos+=size;
+         memcpy(buff_out+(i*size),buff_in+rw->as.cmem.pos,size);
+         rw->as.cmem.pos+=size;
       }
 
       return count;
@@ -227,32 +256,36 @@ size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
 
    RvR_log_line("RvR_rw_read", "invalid RvR_rw type, handle might be corrupt\n");
 
+RvR_err:
    return 0;
 }
 
 size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
 {
-   if(rw->type==0||rw->type==1)
+   RvR_error_check(rw!=NULL,"RvR_rw_write","argument 'rw' must be non-NULL\n");
+   RvR_error_check(buffer!=NULL,"RvR_rw_write","argument 'buffer' must be non-NULL\n");
+
+   if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
    {
-      return fwrite(buffer,size,count,rw->file.fp);
+      return fwrite(buffer,size,count,rw->as.fp);
    }
-   else if(rw->type==2)
+   else if(rw->type==RVR_RW_MEM)
    {
-      uint8_t *buff_out = rw->file.mem.mem;
+      uint8_t *buff_out = rw->as.mem.mem;
       const uint8_t *buff_in = buffer;
 
       for(size_t i = 0;i<count;i++)
       {
-         if(rw->file.mem.pos+size>rw->file.mem.size)
+         if(rw->as.mem.pos+(long)size>rw->as.mem.size)
             return i;
 
-         memcpy(buff_out+rw->file.mem.pos,buff_in+(i*size),size);
-         rw->file.mem.pos+=size;
+         memcpy(buff_out+rw->as.mem.pos,buff_in+(i*size),size);
+         rw->as.mem.pos+=size;
       }
 
       return count;
    }
-   else if(rw->type==3)
+   else if(rw->type==RVR_RW_CONST_MEM)
    {
       RvR_log_line("RvR_rw_write","writing to const RvR_rw stream is not supported\n");
 
@@ -261,124 +294,205 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
 
    RvR_log_line("RvR_rw_write","invalid RvR_rw type, handle might be corrupt\n");
 
+RvR_err:
    return 0;
 }
 
 int8_t RvR_rw_read_i8(RvR_rw *rw)
 {
    int8_t out = 0;
+
+   RvR_error_check(rw!=NULL,"RvR_rw_read_i8","argument 'rw' must be non-NULL\n");
+
    if(RvR_rw_read(rw,&out,1,1)!=1)
       RvR_log("RvR_rw_read_i8: read failed, end of file reached?\n");
+
+RvR_err:
    return out;
 }
 
 uint8_t RvR_rw_read_u8(RvR_rw *rw)
 {
    uint8_t out = 0;
+
+   RvR_error_check(rw!=NULL,"RvR_rw_read_u8","argument 'rw' must be non-NULL\n");
+
    if(RvR_rw_read(rw,&out,1,1)!=1)
       RvR_log("RvR_rw_read_u8: read failed, end of file reached?\n");
+
+RvR_err:
    return out;
 }
 
 int16_t RvR_rw_read_i16(RvR_rw *rw)
 {
    int16_t out = 0;
+
+   RvR_error_check(rw!=NULL,"RvR_rw_read_i16","argument 'rw' must be non-NULL\n");
+
    if(RvR_rw_read(rw,&out,2,1)!=1)
       RvR_log("RvR_rw_read_i16: read failed, end of file reached?\n");
+
+RvR_err:
    return RvR_endian_swap16(out,rw->endian);
 }
 
 uint16_t RvR_rw_read_u16(RvR_rw *rw)
 {
    uint16_t out = 0;
+
+   RvR_error_check(rw!=NULL,"RvR_rw_read_u16","argument 'rw' must be non-NULL\n");
+
    if(RvR_rw_read(rw,&out,2,1)!=1)
       RvR_log("RvR_rw_read_u16: read failed, end of file reached?\n");
+
+RvR_err:
    return RvR_endian_swap16(out,rw->endian);
 }
 
 int32_t RvR_rw_read_i32(RvR_rw *rw)
 {
    int32_t out = 0;
+
+   RvR_error_check(rw!=NULL,"RvR_rw_read_i32","argument 'rw' must be non-NULL\n");
+
    if(RvR_rw_read(rw,&out,4,1)!=1)
       RvR_log("RvR_rw_read_i32: read failed, end of file reached?\n");
+
+RvR_err:
    return RvR_endian_swap32(out,rw->endian);
 }
 
 uint32_t RvR_rw_read_u32(RvR_rw *rw)
 {
    uint32_t out = 0;
+
+   RvR_error_check(rw!=NULL,"RvR_rw_read_u32","argument 'rw' must be non-NULL\n");
+
    if(RvR_rw_read(rw,&out,4,1)!=1)
       RvR_log("RvR_rw_read_u32: read failed, end of file reached?\n");
+
+RvR_err:
    return RvR_endian_swap32(out,rw->endian);
 }
 
 int64_t RvR_rw_read_i64(RvR_rw *rw)
 {
    int64_t out = 0;
+
+   RvR_error_check(rw!=NULL,"RvR_rw_read_i64","argument 'rw' must be non-NULL\n");
+
    if(RvR_rw_read(rw,&out,8,1)!=1)
       RvR_log("RvR_rw_read_i64: read failed, end of file reached?\n");
+
+RvR_err:
    return RvR_endian_swap64(out,rw->endian);
 }
 
 uint64_t RvR_rw_read_u64(RvR_rw *rw)
 {
    uint64_t out = 0;
+
+   RvR_error_check(rw!=NULL,"RvR_rw_read_u64","argument 'rw' must be non-NULL\n");
+
    if(RvR_rw_read(rw,&out,8,1)!=1)
       RvR_log("RvR_rw_read_u64: read failed, end of file reached?\n");
+
+RvR_err:
    return RvR_endian_swap64(out,rw->endian);
 }
 
 void RvR_rw_write_i8 (RvR_rw *rw, int8_t val)
 {
+   RvR_error_check(rw!=NULL,"RvR_rw_write_i8","argument 'rw' must be non-NULL\n");
+
    if(RvR_rw_write(rw,&val,1,1)!=1)
       RvR_log("RvR_rw_write_i8: write failed, end of buffer reached/no more disk space?\n");
+
+RvR_err:
+   return;
 }
 
 void RvR_rw_write_u8 (RvR_rw *rw, uint8_t val)
 {
+   RvR_error_check(rw!=NULL,"RvR_rw_write_u8","argument 'rw' must be non-NULL\n");
+
    if(RvR_rw_write(rw,&val,1,1)!=1)
       RvR_log("RvR_rw_write_u8: write failed, end of buffer reached/no more disk space?\n");
+
+RvR_err:
+   return;
 }
 
 void RvR_rw_write_i16(RvR_rw *rw, int16_t val)
 {
+   RvR_error_check(rw!=NULL,"RvR_rw_write_i16","argument 'rw' must be non-NULL\n");
+
    int16_t v = RvR_endian_swap16(val,rw->endian);
    if(RvR_rw_write(rw,&v,2,1)!=1)
       RvR_log("RvR_rw_write_i16: write failed, end of buffer reached/no more disk space?\n");
+
+RvR_err:
+   return;
 }
 
 void RvR_rw_write_u16(RvR_rw *rw, uint16_t val)
 {
+   RvR_error_check(rw!=NULL,"RvR_rw_write_u16","argument 'rw' must be non-NULL\n");
+
    uint16_t v = RvR_endian_swap16(val,rw->endian);
    if(RvR_rw_write(rw,&v,2,1)!=1)
       RvR_log("RvR_rw_write_u16: write failed, end of buffer reached/no more disk space?\n");
+
+RvR_err:
+   return;
 }
 
 void RvR_rw_write_i32(RvR_rw *rw, int32_t val)
 {
+   RvR_error_check(rw!=NULL,"RvR_rw_write_i32","argument 'rw' must be non-NULL\n");
+
    int32_t v = RvR_endian_swap32(val,rw->endian);
    if(RvR_rw_write(rw,&v,4,1)!=1)
       RvR_log("RvR_rw_write_i32: write failed, end of buffer reached/no more disk space?\n");
+
+RvR_err:
+   return;
 }
 
 void RvR_rw_write_u32(RvR_rw *rw, uint32_t val)
 {
+   RvR_error_check(rw!=NULL,"RvR_rw_write_u32","argument 'rw' must be non-NULL\n");
+
    uint32_t v = RvR_endian_swap32(val,rw->endian);
    if(RvR_rw_write(rw,&v,4,1)!=1)
       RvR_log("RvR_rw_write_u32: write failed, end of buffer reached/no more disk space?\n");
+
+RvR_err:
+   return;
 }
 
 void RvR_rw_write_i64(RvR_rw *rw, int64_t val)
 {
+   RvR_error_check(rw!=NULL,"RvR_rw_write_i64","argument 'rw' must be non-NULL\n");
+
    int64_t v = RvR_endian_swap64(val,rw->endian);
    if(RvR_rw_write(rw,&v,8,1)!=1)
       RvR_log("RvR_rw_write_i64: write failed, end of buffer reached/no more disk space?\n");
+
+RvR_err:
+   return;
 }
 
 void RvR_rw_write_u64(RvR_rw *rw, uint64_t val)
 {
+   RvR_error_check(rw!=NULL,"RvR_rw_write_u64","argument 'rw' must be non-NULL\n");
+
    uint64_t v = RvR_endian_swap64(val,rw->endian);
    if(RvR_rw_write(rw,&v,8,1)!=1)
       RvR_log("RvR_rw_write_u64: write failed, end of buffer reached/no more disk space?\n");
+
+RvR_err:
+   return;
 }
 //-------------------------------------
