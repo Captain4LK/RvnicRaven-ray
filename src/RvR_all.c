@@ -34,12 +34,12 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR_endian.c"
 #include "RvR_rand.c"
 #include "RvR_hash.c"
+#include "RvR_math.c"
+#include "RvR_pal.c"
 
 #include "RvR_config.c"
 #include "RvR_malloc.c"
-#include "RvR_math.c"
 #include "RvR_compress.c"
-#include "RvR_pal.c"
 #include "RvR_draw.c"
 #include "RvR_texture.c"
 

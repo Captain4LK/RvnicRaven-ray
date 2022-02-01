@@ -247,14 +247,14 @@ Map_list *map_list_get()
    for(int i = 0;i<path_list.data_used;i++)
    {
       cf_dir_t dir = {0};
-      RvR_log_line("map_list_get ","opening directory %s\n",path_list.data[i]);
+      //RvR_log_line("map_list_get ","opening directory %s\n",path_list.data[i]);
       cf_dir_open(&dir,path_list.data[i]);
 
       while(dir.has_next)
       {
          cf_file_t file;
          cf_read_file(&dir,&file);
-         RvR_log_line("map_list_get ","found file %s\n",file.path);
+         //RvR_log_line("map_list_get ","found file %s\n",file.path);
          if(cf_match_ext(&file,".map"))
          {
             snprintf(path,128,"%s%s",path_list.data[i],file.name);

@@ -26,7 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static RvR_texture *draw_font = NULL;
+static uint16_t draw_font_id = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -199,13 +199,15 @@ void RvR_draw_circle(int x, int y, int radius, uint8_t index)
    }
 }
 
-void RvR_draw_set_font(RvR_texture *t)
+void RvR_draw_font_set(uint16_t id)
 {
-   draw_font = t;
+   draw_font_id = id;
 }
 
 void RvR_draw_string(int x, int y, int scale, const char *text, uint8_t index)
 {
+   RvR_texture *draw_font = RvR_texture_get(draw_font_id);
+
    int x_dim = draw_font->width/16;
    int y_dim = draw_font->height/6;
    int sx = 0;

@@ -25,8 +25,11 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Size of precalculated rng table
 #define RVR_RNG_TABLE_SIZE 512
 
-//Amount of load cycles a unused texture will stay loaded
-#define RVR_TEXTURE_TIMEOUT 2
+//Maximum amount of textures loaded at once
+#define RVR_TEXTURE_MAX 16
+
+//If set to 1, logs all texture load/unload/etc operations
+#define RVR_TEXTURE_DEBUG 1
 
 //Unroll some loops
 #define RVR_UNROLL 1
@@ -286,7 +289,7 @@ void RvR_draw_texture2(RvR_texture *t, int x, int y);
 void RvR_draw_rectangle(int x, int y, int width, int height, uint8_t index);
 void RvR_draw_rectangle_fill(int x, int y, int width, int height, uint8_t index);
 void RvR_draw_circle(int x, int y, int radius, uint8_t index);
-void RvR_draw_set_font(RvR_texture *t);
+void RvR_draw_font_set(uint16_t id);
 void RvR_draw_string(int x, int y, int scale, const char *text, uint8_t index);
 void RvR_draw(int x, int y, uint8_t index); //do not use, access framebuffer directly if possible
 void RvR_draw_line(int x0, int y0, int x1, int y1, uint8_t index);
@@ -388,14 +391,13 @@ const char *RvR_lump_get_path(const char *name);
 int         RvR_lump_exists(const char *name);
 
 RvR_texture *RvR_texture_get(uint16_t id);
-void RvR_texture_load_begin();
+void RvR_texture_create(uint16_t id, int width, int height); //These textures need to be manually managed
+void RvR_texture_create_free(uint16_t id);
+/*void RvR_texture_load_begin();
 void RvR_texture_load_end();
 void RvR_texture_load(uint16_t id);
-void RvR_texture_lock(uint16_t id);
-void RvR_texture_unlock(uint16_t id);
-void RvR_texture_create(uint16_t id, int width, int height);
 void RvR_font_load(uint16_t id);
-void RvR_font_unload(uint16_t id);
+void RvR_font_unload(uint16_t id);*/
 
 //RvnicRaven core functions end
 //-------------------------------------

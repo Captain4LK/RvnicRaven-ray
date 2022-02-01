@@ -62,9 +62,10 @@ int main(int argc, char **argv)
    RvR_core_mouse_show(0);
    RvR_core_key_repeat(1);
 
-   RvR_pak_add(argv[1]);
+   for(int i = 1;i<argc;i++)
+      RvR_pak_add(argv[i]);
    RvR_palette_load(0);
-   RvR_font_load(0xF000);
+   RvR_draw_font_set(0xF000);
 
    colors_find();
    texture_list_create();

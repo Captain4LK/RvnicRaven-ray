@@ -129,8 +129,8 @@ void editor_init()
 
    RvR_texture_create(UINT16_MAX-1,1<<RVR_RAY_TEXTURE,1<<RVR_RAY_TEXTURE);
    RvR_texture_create(UINT16_MAX-2,1<<RVR_RAY_TEXTURE,1<<RVR_RAY_TEXTURE_HIGH);
-   RvR_texture_lock(UINT16_MAX-1);
-   RvR_texture_lock(UINT16_MAX-2);
+   //RvR_texture_lock(UINT16_MAX-1);
+   //RvR_texture_lock(UINT16_MAX-2);
 }
 
 void editor_update()
