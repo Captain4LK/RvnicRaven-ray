@@ -26,7 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define RVR_RNG_TABLE_SIZE 512
 
 //Maximum amount of textures loaded at once
-#define RVR_TEXTURE_MAX 16
+#define RVR_TEXTURE_MAX 256
 
 //If set to 1, logs all texture load/unload/etc operations
 #define RVR_TEXTURE_DEBUG 1
@@ -390,7 +390,7 @@ void       *RvR_lump_get(const char *name, unsigned *size);
 const char *RvR_lump_get_path(const char *name);
 int         RvR_lump_exists(const char *name);
 
-RvR_texture *RvR_texture_get(uint16_t id);
+RvR_texture *RvR_texture_get(uint16_t id); //Pointer returned is only valid until next RvR_texture_get() call (unless the texture has been manually created)
 void RvR_texture_create(uint16_t id, int width, int height); //These textures need to be manually managed
 void RvR_texture_create_free(uint16_t id);
 /*void RvR_texture_load_begin();
