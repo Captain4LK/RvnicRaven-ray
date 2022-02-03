@@ -61,7 +61,7 @@ void sprite_load_sprite(Sprite sp)
 {
    for(int i = 0;i<8;i++)
    {
-      RvR_texture_load(sprite_rot(sp,i));
+      //RvR_texture_load(sprite_rot(sp,i));
    }
 }
 //-------------------------------------

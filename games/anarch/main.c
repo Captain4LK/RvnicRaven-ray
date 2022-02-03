@@ -73,11 +73,7 @@ int main(int argc, char **argv)
    RvR_pak_add("test.pak");
    //RvR_pak_add("data_anarch/main.csv");
    RvR_palette_load(0);
-   RvR_font_load(0xF000);
-
-   //Title screen textures
-   RvR_texture_load(0x4100);
-   RvR_texture_load(0x4101);
+   RvR_draw_font_set(0xF000);
 
    sound_init();
 
