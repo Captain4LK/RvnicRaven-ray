@@ -640,7 +640,7 @@ static unsigned pak_size(Pak *p, unsigned index)
 {
    RvR_error_check(p!=NULL,"pak_name","argument 'p' must be non-NULL\n");
    RvR_error_check(p->in!=NULL,"pak_name","input file for pak is NULL, opened in write-only mode?\n");
-   RvR_error_check(p->count<index,"pak_name","pak file index out of range ('%d'>='%d')\n",index,p->count);
+   RvR_error_check(index<p->count,"pak_name","pak file index out of range ('%d'>='%d')\n",index,p->count);
 
    return p->entries[index].size;
 
@@ -663,7 +663,7 @@ static char *pak_name(Pak *p, unsigned index)
 {
    RvR_error_check(p!=NULL,"pak_name","argument 'p' must be non-NULL\n");
    RvR_error_check(p->in!=NULL,"pak_name","input file for pak is NULL, opened in write-only mode?\n");
-   RvR_error_check(p->count<index,"pak_name","pak file index out of range ('%d'>='%d')\n",index,p->count);
+   RvR_error_check(index<p->count,"pak_name","pak file index out of range ('%d'>='%d')\n",index,p->count);
 
     return p->entries[index].name;
 
