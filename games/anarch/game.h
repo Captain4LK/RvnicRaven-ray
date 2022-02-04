@@ -14,7 +14,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 extern uint32_t game_tick;
 
-void game_map_load();
+void game_map_load(uint16_t id);
+void game_map_reset();
 void game_update();
 
 #endif

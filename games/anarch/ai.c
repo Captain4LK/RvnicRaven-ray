@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "../../src/RvnicRaven.h"
 #include "game.h"
 #include "sprite.h"
+#include "collision.h"
 #include "ai.h"
 #include "player.h"
 #include "sound.h"
@@ -177,6 +178,26 @@ static AI_ent *ents = NULL;
 
 //Function implementations
 
+AI_type ai_type_from_tex(uint16_t tex)
+{
+   switch(tex)
+   {
+   case 256: return AI_TYPE_PLAYER;
+   case 21264: return AI_TYPE_TREE;
+   case 21258: return AI_TYPE_LAMP;
+   case 21261: return AI_TYPE_RUIN;
+   case 21263: return AI_TYPE_TERMINAL;
+
+   case 21254: return AI_TYPE_ITEM_KEY;
+   case 21253: return AI_TYPE_ITEM_BULLET;
+   case 21260: return AI_TYPE_ITEM_ROCKET;
+   case 21259: return AI_TYPE_ITEM_CELL;
+   case 21257: return AI_TYPE_ITEM_HEALTH;
+   }
+
+   return AI_TYPE_TREE;
+}
+
 void ai_init(AI_ent *e, AI_type type)
 {
    e->ai.type = type;
@@ -287,54 +308,6 @@ void ai_ent_clear()
 AI_ent *ai_ents()
 {
    return ents;
-}
-
-void sprite_load(AI_type t)
-{
-   switch(t)
-   {
-      case AI_TYPE_PLAYER:
-         sprite_load_sprite(SPRITE_KNIFE);
-         sprite_load_sprite(SPRITE_MACHINE_GUN);
-         sprite_load_sprite(SPRITE_SHOTGUN);
-         sprite_load_sprite(SPRITE_ROCKET_LAUNCHER);
-         sprite_load_sprite(SPRITE_PLASMA_GUN);
-         sprite_load_sprite(SPRITE_SOLUTION);
-         break;
-      case AI_TYPE_TREE:
-         sprite_load_sprite(SPRITE_TREE);
-         break;
-      case AI_TYPE_LAMP:
-         sprite_load_sprite(SPRITE_LAMP);
-         break;
-      case AI_TYPE_RUIN:
-         sprite_load_sprite(SPRITE_RUIN);
-         break;
-      case AI_TYPE_TERMINAL:
-         sprite_load_sprite(SPRITE_TERMINAL);
-         break;
-      case AI_TYPE_ELEVATOR:
-         break;
-      case AI_TYPE_DOOR:
-         break;
-      case AI_TYPE_ITEM_KEY:
-         sprite_load_sprite(SPRITE_ITEM_KEY);
-         break;
-      case AI_TYPE_ITEM_BULLET:
-         sprite_load_sprite(SPRITE_ITEM_BULLET);
-         break;
-      case AI_TYPE_ITEM_ROCKET:
-         sprite_load_sprite(SPRITE_ITEM_ROCKET);
-         break;
-      case AI_TYPE_ITEM_CELL:
-         sprite_load_sprite(SPRITE_ITEM_CELL);
-         break;
-      case AI_TYPE_ITEM_HEALTH:
-         sprite_load_sprite(SPRITE_ITEM_HEALTH);
-         break;
-      case AI_TYPE_MAX:
-      break;
-   }
 }
 
 static AI_statenum set_state(AI_ent *e, AI_statenum nstate)

@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -44,6 +44,13 @@ int message_first = -1;
 
 //Function implementations
 
+void message_reset()
+{
+   memset(messages,0,sizeof(messages));
+   messages[0].next = -1;
+   message_first = -1;
+}
+
 void message_queue(const char *msg)
 {
    //Add as first message if possible
@@ -59,7 +66,7 @@ void message_queue(const char *msg)
 
    //Find last message
    int msg_last = message_first;
-   while(messages[msg_last].next!=-1)
+   for(int i = 0;i<MESSAGE_MAX&&messages[msg_last].next!=-1;i++)
       msg_last = messages[msg_last].next;
 
    //Search for free mesage
@@ -99,17 +106,17 @@ void message_draw(uint8_t index)
       return;
 
    //Remove timed out messages
-   while(message_first!=-1&&messages[message_first].tick_timeout<game_tick)
+   for(int i = 0;i<MESSAGE_MAX&&message_first!=-1&&messages[message_first].tick_timeout<game_tick;i++)
       message_first = messages[message_first].next;
 
    //Draw messages
    int message = message_first;
    int y = 2;
-   while(message!=-1)
+   for(int i = 0;i<MESSAGE_MAX&&message!=-1;i++)
    {
       RvR_draw_string(2,y,1,messages[message].msg,index);
       message = messages[message].next;
-      y+=6;
+      y+=8;
    }
 }
 //-------------------------------------

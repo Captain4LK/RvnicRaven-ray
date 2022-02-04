@@ -33,6 +33,5 @@ typedef enum
 }Sprite;
 
 uint16_t sprite_rot(Sprite sp, uint8_t rot);
-void sprite_load_sprite(Sprite sp);
 
 #endif

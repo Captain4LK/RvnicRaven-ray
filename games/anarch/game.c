@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -17,6 +17,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "../../src/RvnicRaven.h"
 #include "game.h"
 #include "sprite.h"
+#include "collision.h"
 #include "ai.h"
 #include "player.h"
 #include "message.h"
@@ -30,6 +31,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 uint32_t game_tick = 0;
+
+static int map_current = 0;
 //-------------------------------------
 
 //Function prototypes
@@ -38,12 +41,21 @@ static AI_type u16_to_type(uint16_t type);
 
 //Function implementations
 
-void game_map_load()
+void game_map_load(uint16_t id)
 {
+   message_reset();
+
+   map_current = id;
+
+   game_tick = 0;
+   int player_health = 100;
+   if(player.entity!=NULL)
+      player_health = player.entity->health;
+
    //Free entities
    ai_ent_clear();
 
-   RvR_ray_map_load(0);
+   RvR_ray_map_load(id);
 
    for(int i = 0;i<RvR_ray_map_sprite_count();i++)
    {
@@ -51,20 +63,14 @@ void game_map_load()
 
       AI_ent *e = ai_ent_new();
       ai_ent_add(e);
-      //e->next = ai_ents;
-      //if(e->next!=NULL)
-         //e->next->prev = e;
-      //e->prev = NULL;
-      //ai_ents = e;
-      ai_init(e,u16_to_type(s->type));
-      sprite_load(u16_to_type(s->type));
       e->pos = s->pos;
+      e->direction = s->direction;
+      e->direction_vec = RvR_vec2_rot(s->direction);
       e->extra0 = s->extra0;
       e->extra1 = s->extra1;
       e->extra2 = s->extra2;
       e->extra3 = s->extra3;
-
-      e->health = 100;
+      ai_init(e,ai_type_from_tex(s->type));
 
       if(u16_to_type(s->type)==AI_TYPE_PLAYER)
       {
