@@ -358,4 +358,50 @@ void collision_remove(Collider *c)
 {
    c->removed = 1;
 }
+
+void collision_free(Collider *c)
+{
+   if(c==NULL)
+      return;
+
+   *c->prev_next = c->next;
+   if(c->next!=NULL)
+      c->next->prev_next = c->prev_next;
+
+   c->next = collider_pool;
+   collider_pool = c;
+}
+
+void collision_clear()
+{
+   Collider *c = colliders;
+   while(c!=NULL)
+   {
+      Collider *next = c->next;
+      c->ent = NULL;
+      collision_free(c);
+      c = next;
+   }
+   colliders = NULL;
+
+   Collider *pool = collider_pool;
+   while(pool!=NULL)
+   {
+      Collider *next = pool->next;
+      memset(pool,0,sizeof(*pool));
+      pool = next;
+   }
+}
+
+void collision_post()
+{
+   Collider *c = colliders;
+   while(c!=NULL)
+   {
+      Collider *next = c->next;
+      if(c->removed)
+         collision_free(c);
+      c = next;
+   }
+}
 //-------------------------------------

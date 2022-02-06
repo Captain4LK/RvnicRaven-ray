@@ -37,5 +37,6 @@ void collision_add(Collider *c);
 void collision_remove(Collider *c);
 void collision_free(Collider *c);
 void collision_clear();
+void collision_post();
 
 #endif

@@ -99,6 +99,7 @@ static void mode_title()
          music_play();
          sound_play(SOUND_SWITCH,0);
          game_map_load(0);
+         player_init_new();
          break;
       case 1:
          mode = STATE_CREDITS;

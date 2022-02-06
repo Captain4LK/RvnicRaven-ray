@@ -33,24 +33,21 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function prototypes
-static AI_statenum set_state(AI_ent *e, AI_statenum nstate);
-static AI_statenum run_state(AI_ent *e);
+static void mutant_idle(AI_ent *e);
+static void shotgun(AI_ent *e);
+static void shotgun_open(AI_ent *e);
+static void shotgun_load(AI_ent *e);
+static void shotgun_close(AI_ent *e);
 
-static AI_statenum mutant_idle(AI_ent *e);
-static AI_statenum shotgun(AI_ent *e);
-static AI_statenum shotgun_open(AI_ent *e);
-static AI_statenum shotgun_load(AI_ent *e);
-static AI_statenum shotgun_close(AI_ent *e);
+static void elevator_rise(AI_ent *e);
+static void elevator_lower(AI_ent *e);
+static void door(AI_ent *e);
 
-static AI_statenum elevator_rise(AI_ent *e);
-static AI_statenum elevator_lower(AI_ent *e);
-static AI_statenum door(AI_ent *e);
-
-static AI_statenum item_key(AI_ent *e);
-static AI_statenum item_bullet(AI_ent *e);
-static AI_statenum item_rocket(AI_ent *e);
-static AI_statenum item_cell(AI_ent *e);
-static AI_statenum item_health(AI_ent *e);
+static void item_key(AI_ent *e);
+static void item_bullet(AI_ent *e);
+static void item_rocket(AI_ent *e);
+static void item_cell(AI_ent *e);
+static void item_health(AI_ent *e);
 
 static void add_collider(AI_ent *e, RvR_vec3 pos, RvR_fix22 radius, RvR_fix22 height, uint32_t flags);
 //-------------------------------------
@@ -59,7 +56,7 @@ static void add_collider(AI_ent *e, RvR_vec3 pos, RvR_fix22 radius, RvR_fix22 he
 
 //This array will contain the possible states of every possible ai type.
 //Having this in a central place allows for easy tweaking of AI behaviour.
-static const AI_state _ai_state[AI_STATE_MAX] = {
+static const AI_state ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_NULL, .action = NULL, .ticks = 0},                                                    //STATE_NULL
   { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun, .ticks = 0, .sprite = SPRITE_KNIFE}, //STATE_SHOTGUN_READY
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD1, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD0
@@ -81,13 +78,13 @@ static const AI_state _ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_ELEVATOR_RISE, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLL
   { .next = AI_STATE_DOOR, .action = door, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_DOOR
   { .next = AI_STATE_ITEM_KEY, .action = item_key, .ticks = 0, .sprite = SPRITE_ITEM_KEY},   //STATE_ITEM_KEY
-  { .next = AI_STATE_ITEM_BULLET, .action = item_bullet, .ticks = 0, .sprite = SPRITE_ITEM_BULLET},   //STATE_ITEM_BULLET
+  { .next = AI_STATE_ITEM_BULLET, .action = item_bullet, .ticks = 1, .sprite = SPRITE_ITEM_BULLET},   //STATE_ITEM_BULLET
   { .next = AI_STATE_ITEM_ROCKET, .action = item_rocket, .ticks = 0, .sprite = SPRITE_ITEM_ROCKET},   //STATE_ITEM_ROCKET
   { .next = AI_STATE_ITEM_CELL, .action = item_cell, .ticks = 0, .sprite = SPRITE_ITEM_CELL},   //STATE_ITEM_CELL
   { .next = AI_STATE_ITEM_HEALTH, .action = item_health, .ticks = 0, .sprite = SPRITE_ITEM_HEALTH},   //STATE_ITEM_HEALTH
 };
 
-static const AI_info _ai_entinfo[AI_TYPE_MAX] = {
+static const AI_info ai_entinfo[AI_TYPE_MAX] = {
   //AI_TYPE_PLAYER
   {
     .state_idle = AI_STATE_PLAYER_SHOTGUN_READY,
@@ -191,7 +188,7 @@ AI_type ai_type_from_tex(uint16_t tex)
    case 21263: return AI_TYPE_TERMINAL;
 
    case 21254: return AI_TYPE_ITEM_KEY;
-   case 21253: return AI_TYPE_ITEM_BULLET;
+   case 1029: return AI_TYPE_ITEM_BULLET;
    case 21260: return AI_TYPE_ITEM_ROCKET;
    case 21259: return AI_TYPE_ITEM_CELL;
    case 21257: return AI_TYPE_ITEM_HEALTH;
@@ -203,9 +200,14 @@ AI_type ai_type_from_tex(uint16_t tex)
 void ai_init(AI_ent *e, AI_type type)
 {
    e->ai.type = type;
-   e->ai.state = &_ai_state[_ai_entinfo[e->ai.type].state_idle];
-   e->ai.tick_end = game_tick+e->ai.state->ticks;
+   e->ai.state = &ai_state[ai_entinfo[e->ai.type].state_idle];
+   e->attack_delay = ai_entinfo[e->ai.type].attack_delay;
+   e->move_dir = 8;
+   e->move = 0;
+   e->ai.ticks = e->ai.state->ticks;
+   e->health = ai_entinfo[e->ai.type].health;
 
+   //Type specifc attributes, colliders
    switch(e->ai.type)
    {
    case AI_TYPE_PLAYER: add_collider(e,e->pos,312,1024,1); break;
@@ -216,26 +218,59 @@ void ai_init(AI_ent *e, AI_type type)
 void ai_run(AI_ent *e)
 {
    if(e->ai.state==NULL)
+   {
+      if(e->collider!=NULL)
+         collision_remove(e->collider);
+      e->collider = NULL;
+      ai_ent_free(e);
       return;
+   }
 
-   AI_statenum next;
-   if(game_tick>=e->ai.tick_end)
-      next = set_state(e,e->ai.state->next);
-   else
-      next = run_state(e);
-
-   while(next!=AI_STATE_NULL)
-      next = set_state(e,next);
+   e->ai.ticks--;
+   if(e->ai.ticks<=0)
+      ai_set_state(e,e->ai.state->next);
 }
 
-void ai_damage(AI_ent *to, AI_index *source)
+void ai_damage(AI_ent *to, AI_index *source, int damage)
 {
+   if(to==NULL||to->ai.state==NULL)
+      return;
+
+   if(to->collider==NULL)
+      return;
+
+   //Not shootable
+   if(!(to->collider->flags&1))
+      return;
+
    //Go after attacker
    AI_ent *target = ai_index_try(to->ai.target);
-   if(target==NULL&&ai_index_try(*source)!=NULL)
+
+   to->health-=damage;
+   if(to->health<=0)
    {
+      if(ai_entinfo[to->ai.type].state_death!=AI_STATE_NULL)
+      {
+         ai_set_state(to,ai_entinfo[to->ai.type].state_death);
+      }
+
+      return;
+   }
+
+   //if(to->ai.type==AI_TYPE_PLAYER)
+      //sound_play(SOUND_PLAYER_DAMAGE,ai_index_get(to),255);
+
+   if(target==NULL&&ai_index_try(*source)!=NULL&&ai_index_try(*source)->collider!=NULL&&to!=player.entity)
+   {
+      int rnd = RvR_rand()%3;
+      //Sound rnd_sounds[] = {SOUND_ALIEN_ALERT0,SOUND_ALIEN_ALERT1,SOUND_ALIEN_ALERT2};
+      //sound_play(rnd_sounds[rnd],ai_index_get(to),255);
+
       to->ai.target = *source;
-      set_state(to,AI_STATE_NULL);
+      if(ai_entinfo[to->ai.type].state_move!=AI_STATE_NULL)
+         ai_set_state(to,ai_entinfo[to->ai.type].state_move);
+
+      return;
    }
 }
 
@@ -271,16 +306,29 @@ AI_ent *ai_ent_new()
    n->next = NULL;
    n->prev_next = NULL;
 
+   uint32_t gen = n->generation;
+   memset(n,0,sizeof(*n));
+   n->generation = gen;
+
    return n;
 }
 
 void ai_ent_add(AI_ent *e)
 {
-   e->prev_next = &ents;
+    e->prev_next = &ents;
    if(ents!=NULL)
       ents->prev_next = &e->next;
    e->next = ents;
    ents = e;
+}
+
+void ai_ent_remove(AI_ent *e)
+{
+   if(e==NULL)
+      return;
+
+   e->generation++;
+   e->ai.state = NULL;
 }
 
 void ai_ent_free(AI_ent *e)
@@ -291,12 +339,7 @@ void ai_ent_free(AI_ent *e)
    *e->prev_next = e->next;
    if(e->next!=NULL)
       e->next->prev_next = e->prev_next;
-   //if(e->prev!=NULL)
-      //e->prev->next = e->next;
-   //if(e->next!=NULL)
-      //e->next->prev = e->prev;
 
-   e->generation++;
    e->next = ai_ent_pool;
    ai_ent_pool = e;
 }
@@ -307,10 +350,20 @@ void ai_ent_clear()
    while(e!=NULL)
    {
       AI_ent *next = e->next;
+
       ai_ent_free(e);
       e = next;
    }
    ents = NULL;
+
+   //Reset pool
+   AI_ent *pool = ai_ent_pool;
+   while(pool!=NULL)
+   {
+      AI_ent *next = pool->next;
+      memset(pool,0,sizeof(*pool));
+      pool = next;
+   }
 }
 
 AI_ent *ai_ents()
@@ -318,72 +371,93 @@ AI_ent *ai_ents()
    return ents;
 }
 
-static AI_statenum set_state(AI_ent *e, AI_statenum nstate)
+void ai_set_state(AI_ent *e, AI_statenum nstate)
 {
-   e->ai.state = &_ai_state[nstate];
-   e->ai.tick_end = game_tick+e->ai.state->ticks;
+   if(e==NULL||e->ai.state==NULL)
+      return;
 
-   if(e->ai.state->action!=NULL)
-      return e->ai.state->action(e);
-   return AI_STATE_NULL;
+   do
+   {
+      if(nstate==AI_STATE_NULL)
+      {
+         if(e->collider!=NULL)
+            collision_remove(e->collider);
+         ai_ent_remove(e);
+
+         return;
+      }
+
+      e->ai.state = &ai_state[nstate];
+      e->ai.ticks = e->ai.state->ticks;
+
+      if(e->ai.state->action!=NULL)
+         e->ai.state->action(e);
+
+      if(e->ai.state==NULL)
+         return;
+
+      nstate = e->ai.state->next;
+   }while(e->ai.ticks<=0);
 }
 
-static AI_statenum run_state(AI_ent *e)
+static void mutant_idle(AI_ent *e)
 {
-   if(e->ai.state->action!=NULL)
-      return e->ai.state->action(e);
-   return AI_STATE_NULL;
+   if(e->ai.state==NULL)
+      return;
 }
 
-static AI_statenum mutant_idle(AI_ent *e)
+static void shotgun(AI_ent *e)
 {
-   *e = *e;
-
-   return AI_STATE_NULL;
-}
-
-static AI_statenum shotgun(AI_ent *e)
-{
-   *e = *e;
+   if(e->ai.state==NULL)
+      return;
+   /**e = *e;
 
    if(RvR_core_mouse_down(RVR_BUTTON_LEFT))
    {
       sound_play(SOUND_DSG,1);
       return AI_STATE_PLAYER_SHOTGUN_LOAD0;
    }
-   return AI_STATE_NULL;
+   return AI_STATE_NULL;*/
 }
 
-static AI_statenum shotgun_open(AI_ent *e)
+static void shotgun_open(AI_ent *e)
 {
-   *e = *e;
+   if(e->ai.state==NULL)
+      return;
+   /**e = *e;
 
    sound_play(SOUND_DSG_OPEN,1);
 
-   return AI_STATE_NULL;
+   return AI_STATE_NULL;*/
 }
 
-static AI_statenum shotgun_load(AI_ent *e)
+static void shotgun_load(AI_ent *e)
 {
-   *e = *e;
+   if(e->ai.state==NULL)
+      return;
+   /**e = *e;
 
    sound_play(SOUND_DSG_LOAD,1);
 
-   return AI_STATE_NULL;
+   return AI_STATE_NULL;*/
 }
 
-static AI_statenum shotgun_close(AI_ent *e)
+static void shotgun_close(AI_ent *e)
 {
-   *e = *e;
+   if(e->ai.state==NULL)
+      return;
+   /**e = *e;
 
    sound_play(SOUND_DSG_CLOSE,1);
 
-   return AI_STATE_NULL;
+   return AI_STATE_NULL;*/
 }
 
-static AI_statenum elevator_rise(AI_ent *e)
+static void elevator_rise(AI_ent *e)
 {
-   *e = *e;
+   if(e->ai.state==NULL)
+      return;
+   /**e = *e;
 
    RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
    if(z>=e->extra1)
@@ -391,12 +465,14 @@ static AI_statenum elevator_rise(AI_ent *e)
    z = RvR_min(e->extra1,z+48);
    RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
 
-   return AI_STATE_NULL;
+   return AI_STATE_NULL;*/
 }
 
-static AI_statenum elevator_lower(AI_ent *e)
+static void elevator_lower(AI_ent *e)
 {
-   *e = *e;
+   if(e->ai.state==NULL)
+      return;
+   /**e = *e;
 
    RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
    if(z<=e->extra0)
@@ -405,12 +481,14 @@ static AI_statenum elevator_lower(AI_ent *e)
    z = RvR_max(e->extra0,z-48);
    RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
    
-   return AI_STATE_NULL;
+   return AI_STATE_NULL;*/
 }
 
-static AI_statenum door(AI_ent *e)
+static void door(AI_ent *e)
 {
-   //Door lowers if the manhatten distance between the door and the player is smaller than 2048
+   if(e->ai.state==NULL)
+      return;
+   /*//Door lowers if the manhatten distance between the door and the player is smaller than 2048
    RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
    RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
 
@@ -430,77 +508,87 @@ static AI_statenum door(AI_ent *e)
       RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
    }
 
-   return AI_STATE_NULL;
+   return AI_STATE_NULL;*/
 }
 
-static AI_statenum item_key(AI_ent *e)
+static void item_key(AI_ent *e)
 {
+   if(e->ai.state==NULL)
+      return;
+
    RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
    if(dist<512)
    {
       player.key|=e->extra0;
-      ai_ent_free(e);
+      //sound_play(SOUND_PICKUP0,ai_index_get(player.entity),255);
+      ai_set_state(e,AI_STATE_NULL);
       message_queue("Picked up key");
-      return AI_STATE_NULL;
+      return;
    }
-
-   return AI_STATE_NULL;
 }
 
-static AI_statenum item_bullet(AI_ent *e)
+static void item_bullet(AI_ent *e)
 {
+   if(e->ai.state==NULL)
+      return;
+
    RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
-   if(dist<512)
+   if(dist<512&&player.ammo_bull<150)
    {
-      player.ammo_bull =  RvR_min(player.ammo_bull+10,200);
-      ai_ent_free(e);
+      player.ammo_bull =  RvR_min(player.ammo_bull+10,150);
+      //sound_play(SOUND_PICKUP0,ai_index_get(player.entity),255);
+      ai_set_state(e,AI_STATE_NULL);
       message_queue("Picked up bullets");
-      return AI_STATE_NULL;
+      return;
    }
-
-   return AI_STATE_NULL;
 }
 
-static AI_statenum item_rocket(AI_ent *e)
+static void item_rocket(AI_ent *e)
 {
+   if(e->ai.state==NULL)
+      return;
+
    RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
-   if(dist<512)
+   if(dist<512&&player.ammo_rckt<100)
    {
       player.ammo_rckt =  RvR_min(player.ammo_rckt+5,100);
-      ai_ent_free(e);
+      //sound_play(SOUND_PICKUP0,ai_index_get(player.entity),255);
+      ai_set_state(e,AI_STATE_NULL);
       message_queue("Picked up rockets");
-      return AI_STATE_NULL;
+      return;
    }
-
-   return AI_STATE_NULL;
 }
 
-static AI_statenum item_cell(AI_ent *e)
+static void item_cell(AI_ent *e)
 {
+   if(e->ai.state==NULL)
+      return;
+
    RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
-   if(dist<512)
+   if(dist<512&&player.ammo_cell<150)
    {
       player.ammo_cell =  RvR_min(player.ammo_cell+8,150);
-      ai_ent_free(e);
+      //sound_play(SOUND_PICKUP0,ai_index_get(player.entity),255);
+      ai_set_state(e,AI_STATE_NULL);
       message_queue("Picked up cells");
-      return AI_STATE_NULL;
+      return;
    }
-
-   return AI_STATE_NULL;
 }
 
-static AI_statenum item_health(AI_ent *e)
+static void item_health(AI_ent *e)
 {
+   if(e->ai.state==NULL)
+      return;
+
    RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
-   if(dist<512)
+   if(dist<512&&player.entity->health<125)
    {
       player.entity->health =  RvR_min(player.entity->health+20,125);
-      ai_ent_free(e);
+      //sound_play(SOUND_PICKUP0,ai_index_get(player.entity),255);
+      ai_set_state(e,AI_STATE_NULL);
       message_queue("Picked up health");
-      return AI_STATE_NULL;
+      return;
    }
-
-   return AI_STATE_NULL;
 }
 
 static void add_collider(AI_ent *e, RvR_vec3 pos, RvR_fix22 radius, RvR_fix22 height, uint32_t flags)

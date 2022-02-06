@@ -36,7 +36,6 @@ static int map_current = 0;
 //-------------------------------------
 
 //Function prototypes
-static AI_type u16_to_type(uint16_t type);
 //-------------------------------------
 
 //Function implementations
@@ -54,6 +53,7 @@ void game_map_load(uint16_t id)
 
    //Free entities
    ai_ent_clear();
+   collision_clear();
 
    RvR_ray_map_load(id);
 
@@ -75,17 +75,23 @@ void game_map_load(uint16_t id)
       if(ai_type_from_tex(s->type)==AI_TYPE_PLAYER)
       {
          player.entity = e;
+         player.entity->health = player_health;
          player.key = 0;
       }
    }
 }
 
+void game_map_reset()
+{
+   player_init_new();
+   player.entity = NULL;
+   game_map_load(map_current);
+}
+
 void game_update()
 {
-   RvR_texture *player_sprite = 0;
    game_tick++;
 
-   player_update();
    if(RvR_core_key_pressed(RVR_KEY_M))
       RvR_malloc_report();
 
@@ -98,9 +104,16 @@ void game_update()
       e = next;
    }
 
+   if(player.entity->health>0)
+      player_update();
+
+   RvR_texture *player_sprite = 0;
    e = ai_ents();
    while(e!=NULL)
    {
+      if(e->ai.state==NULL)
+         goto next;
+
       if(e->ai.type==AI_TYPE_PLAYER)
       {
          player_sprite = RvR_texture_get(sprite_rot(e->ai.state->sprite,0));
@@ -108,13 +121,20 @@ void game_update()
       else
       {
          RvR_vec3 pos = e->pos;
-         //pos.x+=512;
-         //TODO: calculate rotation
-         if(e->ai.state->sprite!=SPRITE_MAX)
-            RvR_ray_draw_sprite(pos,sprite_rot(e->ai.state->sprite,0));
+         if(e!=player.entity&&e->ai.state->sprite!=SPRITE_MAX)
+         {
+            RvR_fix22 rot = (RvR_fix22_atan2(player.entity->pos.x-pos.x,player.entity->pos.y-pos.y));
+            rot = (rot+64-e->direction)&1023;
+
+            RvR_ray_draw_sprite(pos,sprite_rot(e->ai.state->sprite,rot/128));
+         }
       }
+
+next:
       e = e->next;
    }
+
+   collision_post();
 
    //Graphics
    RvR_ray_draw();
@@ -158,26 +178,5 @@ void game_update()
 
    //Draw messages
    message_draw(7);
-}
-
-static AI_type u16_to_type(uint16_t type)
-{
-   switch(type)
-   {
-   case 0:  return AI_TYPE_PLAYER;
-   case 1:  return AI_TYPE_TREE;
-   case 2:  return AI_TYPE_LAMP;
-   case 3:  return AI_TYPE_RUIN;
-   case 4:  return AI_TYPE_TERMINAL;
-   case 5:  return AI_TYPE_ELEVATOR;
-   case 6:  return AI_TYPE_DOOR;
-   case 7:  return AI_TYPE_ITEM_KEY;
-   case 8:  return AI_TYPE_ITEM_BULLET;
-   case 9:  return AI_TYPE_ITEM_ROCKET;
-   case 10: return AI_TYPE_ITEM_CELL;
-   case 11: return AI_TYPE_ITEM_HEALTH;
-   }
-
-   return AI_TYPE_MAX;
 }
 //-------------------------------------

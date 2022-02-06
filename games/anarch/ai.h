@@ -61,7 +61,7 @@ typedef enum
    AI_TYPE_MAX,
 }AI_type;
 
-typedef AI_statenum (*ai_func)(AI_ent *);
+typedef void (*ai_func)(AI_ent *);
 
 typedef struct
 {
@@ -95,7 +95,7 @@ typedef struct
   AI_type type;
   AI_index target;
   AI_index parent;
-  uint32_t tick_end;
+  uint32_t ticks;
 }AI;
 
 struct AI_ent
@@ -131,15 +131,28 @@ struct AI_ent
 AI_type ai_type_from_tex(uint16_t tex);
 void ai_init(AI_ent *e, AI_type type);
 void ai_run(AI_ent *e);
-void ai_damage(AI_ent *to, AI_index *source);
+void ai_damage(AI_ent *to, AI_index *source, int damage);
+
+void ai_set_state(AI_ent *e, AI_statenum nstate);
 
 AI_index ai_index_get(AI_ent *e);
+AI_ent *ai_index_try(AI_index in);
+int ai_index_cmp(AI_index a, AI_index b);
+
+AI_ent *ai_ent_new();
+void    ai_ent_add(AI_ent *e);
+void    ai_ent_free(AI_ent *e);
+void ai_ent_remove(AI_ent *e);
+void    ai_ent_clear();
+AI_ent *ai_ents();
+
+/*AI_index ai_index_get(AI_ent *e);
 AI_ent *ai_index_try(AI_index in);
 
 AI_ent *ai_ent_new();
 void    ai_ent_add(AI_ent *e);
 void    ai_ent_free(AI_ent *e);
 void    ai_ent_clear();
-AI_ent *ai_ents();
+AI_ent *ai_ents();*/
 
 #endif
