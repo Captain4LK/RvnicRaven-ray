@@ -32,4 +32,10 @@ typedef struct Collider
 
 void collision_move(Collider *col_cur, RvR_vec3 offset, RvR_fix22 *floor_height, RvR_fix22 *ceiling_height, RvR_vec3 *moved, int on_ground);
 
+Collider *collision_new();
+void collision_add(Collider *c);
+void collision_remove(Collider *c);
+void collision_free(Collider *c);
+void collision_clear();
+
 #endif

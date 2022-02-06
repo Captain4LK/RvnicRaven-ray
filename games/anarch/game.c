@@ -72,14 +72,12 @@ void game_map_load(uint16_t id)
       e->extra3 = s->extra3;
       ai_init(e,ai_type_from_tex(s->type));
 
-      if(u16_to_type(s->type)==AI_TYPE_PLAYER)
+      if(ai_type_from_tex(s->type)==AI_TYPE_PLAYER)
       {
          player.entity = e;
          player.key = 0;
       }
    }
-
-   printf("%d %d\n",player.entity->pos.x,player.entity->pos.y);
 }
 
 void game_update()

@@ -11,6 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 //-------------------------------------
 
 //Internal includes
@@ -320,5 +321,41 @@ static void collision_intersects(Collider *a, Collider *b, RvR_fix22 *depth, RvR
       }
       *depth = r-*depth;
    }
+}
+
+Collider *collision_new()
+{
+   if(collider_pool==NULL)
+   {
+      Collider *nc = RvR_malloc(sizeof(*nc)*256);
+      memset(nc,0,sizeof(*nc)*256);
+      
+      for(int i = 0;i<256-1;i++)
+         nc[i].next = &nc[i+1];
+      collider_pool = nc;
+   }
+
+   Collider *c = collider_pool;
+   collider_pool = c->next;
+   c->next = NULL;
+   c->prev_next = NULL;
+
+   memset(c,0,sizeof(*c));
+
+   return c;
+}
+
+void collision_add(Collider *c)
+{
+   c->prev_next = &colliders;
+   if(colliders!=NULL)
+      colliders->prev_next = &c->next;
+   c->next = colliders;
+   colliders = c;
+}
+
+void collision_remove(Collider *c)
+{
+   c->removed = 1;
 }
 //-------------------------------------

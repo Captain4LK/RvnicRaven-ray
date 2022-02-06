@@ -51,6 +51,8 @@ static AI_statenum item_bullet(AI_ent *e);
 static AI_statenum item_rocket(AI_ent *e);
 static AI_statenum item_cell(AI_ent *e);
 static AI_statenum item_health(AI_ent *e);
+
+static void add_collider(AI_ent *e, RvR_vec3 pos, RvR_fix22 radius, RvR_fix22 height, uint32_t flags);
 //-------------------------------------
 
 //Variables
@@ -182,7 +184,7 @@ AI_type ai_type_from_tex(uint16_t tex)
 {
    switch(tex)
    {
-   case 256: return AI_TYPE_PLAYER;
+   case 2048: return AI_TYPE_PLAYER;
    case 21264: return AI_TYPE_TREE;
    case 21258: return AI_TYPE_LAMP;
    case 21261: return AI_TYPE_RUIN;
@@ -203,6 +205,12 @@ void ai_init(AI_ent *e, AI_type type)
    e->ai.type = type;
    e->ai.state = &_ai_state[_ai_entinfo[e->ai.type].state_idle];
    e->ai.tick_end = game_tick+e->ai.state->ticks;
+
+   switch(e->ai.type)
+   {
+   case AI_TYPE_PLAYER: add_collider(e,e->pos,312,1024,1); break;
+   default: break;
+   }
 }
 
 void ai_run(AI_ent *e)
@@ -493,5 +501,16 @@ static AI_statenum item_health(AI_ent *e)
    }
 
    return AI_STATE_NULL;
+}
+
+static void add_collider(AI_ent *e, RvR_vec3 pos, RvR_fix22 radius, RvR_fix22 height, uint32_t flags)
+{
+   e->collider = collision_new();
+   e->collider->pos = pos;
+   e->collider->radius = radius;
+   e->collider->height = height;
+   e->collider->flags = flags;
+   e->collider->ent = e;
+   collision_add(e->collider);
 }
 //-------------------------------------
