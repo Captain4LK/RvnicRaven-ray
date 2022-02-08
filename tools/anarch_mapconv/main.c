@@ -199,7 +199,6 @@ static void print_help(char **argv);
 
 int main(int argc, char **argv)
 {
-   const char *path_in = NULL;
    const char *path_out = NULL;
 
    for(int i = 1;i<argc;i++)
@@ -209,37 +208,164 @@ int main(int argc, char **argv)
          strcmp(argv[i],"-h")==0||
          strcmp(argv[i],"?")==0)
       { print_help(argv); return 0; }
-      else if(strcmp(argv[i],"-fin")==0)
-         path_in = READ_ARG(i);
       else if(strcmp(argv[i],"-fout")==0)
          path_out = READ_ARG(i);
    }
    
    if(path_out==NULL)
    {
-      RvR_log("output texture not specified, try %s -h for more info\n",argv[0]);
+      RvR_log("output map path not specified, try %s -h for more info\n",argv[0]);
       return 0;
    }
 
    RvR_ray_map_create(64,64);
    RvR_ray_map_cache *map = RvR_ray_map_cache_get();
+   map->sky_tex = level.backgroundImage;
+
+   //Read tiles
+   //TODO: elevators/doors/squeezer
    for(int y = 0;y<64;y++)
    {
       for(int x = 0;x<64;x++)
       {
-         uint16_t tile_dict = level.tileDictionary[level.mapArray[y*64+x]];
-         map->floor[y*64+x] = 2*SFG_TILE_FLOOR_HEIGHT(tile_dict);
-         map->ceiling[y*64+x] = SFG_TILE_CEILING_HEIGHT(tile_dict);
-         if(map->ceiling[y*64+x]==31)
+         //Read tile data
+         uint8_t map_entry = level.mapArray[y*64+x];
+         uint8_t type = map_entry&SFG_TILE_PROPERTY_MASK;
+         map_entry = map_entry&(~SFG_TILE_PROPERTY_MASK);
+         uint16_t tile_dict = level.tileDictionary[map_entry];
+         int8_t floor_height = SFG_TILE_FLOOR_HEIGHT(tile_dict);
+         int8_t ceiling_height = SFG_TILE_CEILING_HEIGHT(tile_dict);
+         uint16_t floor_tex = SFG_TILE_FLOOR_TEXTURE(tile_dict);
+         uint16_t ceiling_tex = SFG_TILE_CEILING_TEXTURE(tile_dict);
+
+         //Geometry and Textures
+         map->floor[y*64+x] = 2*floor_height;
+         if(ceiling_height==31)
             map->ceiling[y*64+x] = INT8_MAX;
          else
-            map->ceiling[y*64+x] = map->ceiling[y*64+x]*2+map->floor[y*64+x];
-         map->wall_ftex[y*64+x] = level.textureIndices[SFG_TILE_FLOOR_TEXTURE(tile_dict)]+3;
-         map->wall_ctex[y*64+x] = level.textureIndices[SFG_TILE_CEILING_TEXTURE(tile_dict)]+3;
-         map->floor_tex[y*64+x] = map->wall_ftex[y*64+x];
-         map->ceil_tex[y*64+x] = map->wall_ctex[y*64+x];
+            map->ceiling[y*64+x] = 2*floor_height+2*ceiling_height;
+         if(floor_tex==7)
+         {
+            map->wall_ftex[y*64+x] = level.backgroundImage;
+            map->floor_tex[y*64+x] = level.backgroundImage;
+         }
+         else
+         {
+            map->wall_ftex[y*64+x] = level.textureIndices[floor_tex]+3;
+            map->floor_tex[y*64+x] = level.textureIndices[floor_tex]+3;
+         }
+         if(ceiling_height==31)
+         {
+            map->wall_ctex[y*64+x] = level.backgroundImage;
+            map->ceil_tex[y*64+x] = level.backgroundImage;
+         }
+         else if(ceiling_tex==7)
+         {
+            map->wall_ctex[y*64+x] = level.backgroundImage;
+            map->ceil_tex[y*64+x] = level.textureIndices[ceiling_tex]+3;
+         }
+         else
+         {
+            map->wall_ctex[y*64+x] = level.textureIndices[ceiling_tex]+3;
+            map->ceil_tex[y*64+x] = level.textureIndices[ceiling_tex]+3;
+         }
+
+         //Type
+         if(type==SFG_TILE_PROPERTY_ELEVATOR)
+         {
+            int index = map->sprite_count++;
+            map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
+            map->sprites[index].type = 1024; //TODO
+            map->sprites[index].pos.x = x*1024+512;
+            map->sprites[index].pos.y = y*1024+512;
+            map->sprites[index].extra0 = map->floor[y*64+x]*128;
+            map->sprites[index].extra1 = map->ceiling[y*64+x]*128;
+
+            map->wall_ctex[y*64+x] = level.backgroundImage;
+            map->ceil_tex[y*64+x] = level.backgroundImage;
+            map->ceiling[y*64+x] = INT8_MAX;
+         }
+         else if(type==SFG_TILE_PROPERTY_SQUEEZER)
+         {
+            int index = map->sprite_count++;
+            map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
+            map->sprites[index].type = 1024; //TODO
+            map->sprites[index].pos.x = x*1024+512;
+            map->sprites[index].pos.y = y*1024+512;
+            map->sprites[index].extra0 = map->ceiling[y*64+x]*128;
+            map->sprites[index].extra1 = map->floor[y*64+x]*128;
+         }
+         else if(type==SFG_TILE_PROPERTY_DOOR)
+         {
+            int index = map->sprite_count++;
+            map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
+            map->sprites[index].type = 1024; //TODO
+            map->sprites[index].pos.x = x*1024+512;
+            map->sprites[index].pos.y = y*1024+512;
+            map->sprites[index].extra0 = map->floor[y*64+x]*128;
+            map->sprites[index].extra1 = map->ceiling[y*64+x]*128;
+            map->wall_ftex[y*64+x] = level.doorTextureIndex+3;
+            map->floor_tex[y*64+x] = level.doorTextureIndex+3;
+         }
       }
    }
+
+   //Entities
+   for(int i = 0;i<SFG_MAX_LEVEL_ELEMENTS;i++)
+   {
+      if(level.elements[i].type!=SFG_LEVEL_ELEMENT_NONE)
+      {
+         int index = map->sprite_count++;
+         map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
+
+         int pos_x = level.elements[i].coords[0];
+         int pos_y = level.elements[i].coords[1];
+         map->sprites[index].pos.x = pos_x*1024+512;
+         map->sprites[index].pos.y = pos_y*1024+512;
+         map->sprites[index].pos.z = map->floor[pos_y*64+pos_x]*128;
+
+         switch(level.elements[i].type)
+         {
+         case SFG_LEVEL_ELEMENT_BARREL: map->sprites[index].type = 1028; break;
+         case SFG_LEVEL_ELEMENT_HEALTH: map->sprites[index].type = 1033; break;
+         case SFG_LEVEL_ELEMENT_BULLETS: map->sprites[index].type = 1029; break;
+         case SFG_LEVEL_ELEMENT_ROCKETS: map->sprites[index].type = 1036; break;
+         case SFG_LEVEL_ELEMENT_PLASMA: map->sprites[index].type = 1035; break;
+         case SFG_LEVEL_ELEMENT_TREE: map->sprites[index].type = 1040; break;
+         case SFG_LEVEL_ELEMENT_FINISH: map->sprites[index].type = 1032; break;
+         case SFG_LEVEL_ELEMENT_TELEPORTER: map->sprites[index].type = 1038; break;
+         case SFG_LEVEL_ELEMENT_TERMINAL: map->sprites[index].type = 1039; break;
+         case SFG_LEVEL_ELEMENT_COLUMN: map->sprites[index].type = 1031; break;
+         case SFG_LEVEL_ELEMENT_RUIN: map->sprites[index].type = 1037; break;
+         case SFG_LEVEL_ELEMENT_LAMP: map->sprites[index].type = 1034; break;
+         case SFG_LEVEL_ELEMENT_CARD0: map->sprites[index].type = 1030; map->sprites[index].extra0 = 1; break;
+         case SFG_LEVEL_ELEMENT_CARD1: map->sprites[index].type = 1030; map->sprites[index].extra0 = 2; break;
+         case SFG_LEVEL_ELEMENT_CARD2: map->sprites[index].type = 1030; map->sprites[index].extra0 = 4; break;
+         case SFG_LEVEL_ELEMENT_LOCK0: map->sprites[index].type = 1030; map->sprites[index].extra2 = 1; break; //TODO
+         case SFG_LEVEL_ELEMENT_LOCK1: map->sprites[index].type = 1030; map->sprites[index].extra2 = 2; break; //TODO
+         case SFG_LEVEL_ELEMENT_LOCK2: map->sprites[index].type = 1030; map->sprites[index].extra2 = 4; break; //TODO
+         case SFG_LEVEL_ELEMENT_BLOCKER: map->sprites[index].type = 1030; break; //TODO
+         case SFG_LEVEL_ELEMENT_MONSTER_SPIDER: map->sprites[index].type = 1053; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER: map->sprites[index].type = 1043; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR: map->sprites[index].type = 1059; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT: map->sprites[index].type = 1051; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_ENDER: map->sprites[index].type = 1047; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_TURRET: map->sprites[index].type = 1056; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_EXPLODER: map->sprites[index].type = 1050; break;
+         default: map->sprites[index].type = 0; break;
+         }
+      }
+   }
+
+   //Add player
+   int index = map->sprite_count++;
+   map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
+   map->sprites[index].type = 2048;
+   map->sprites[index].pos.x = level.playerStart[0]*1024+512;
+   map->sprites[index].pos.y = level.playerStart[1]*1024+512;
+   map->sprites[index].pos.z = map->floor[level.playerStart[1]*64+level.playerStart[0]]*128;
+   map->sprites[index].direction = (1024-level.playerStart[2]*4);
+
    RvR_ray_map_save(path_out);
 
    return 0;
@@ -248,8 +374,7 @@ int main(int argc, char **argv)
 static void print_help(char **argv)
 {
    RvR_log("%s usage:\n"
-          "%s -fin filename -fout filename ]\n"
-          "   -fin        input gif path\n"
+          "%s -fout filename ]\n"
           "   -fout       output map path\n",
          argv[0],argv[0]);
 }
