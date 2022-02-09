@@ -275,7 +275,7 @@ int main(int argc, char **argv)
          {
             int index = map->sprite_count++;
             map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
-            map->sprites[index].type = 1024; //TODO
+            map->sprites[index].type = 2050;
             map->sprites[index].pos.x = x*1024+512;
             map->sprites[index].pos.y = y*1024+512;
             map->sprites[index].extra0 = map->floor[y*64+x]*128;
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
          {
             int index = map->sprite_count++;
             map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
-            map->sprites[index].type = 1024; //TODO
+            map->sprites[index].type = 2051;
             map->sprites[index].pos.x = x*1024+512;
             map->sprites[index].pos.y = y*1024+512;
             map->sprites[index].extra0 = map->ceiling[y*64+x]*128;
@@ -299,10 +299,10 @@ int main(int argc, char **argv)
          {
             int index = map->sprite_count++;
             map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
-            map->sprites[index].type = 1024; //TODO
+            map->sprites[index].type = 2049;
             map->sprites[index].pos.x = x*1024+512;
             map->sprites[index].pos.y = y*1024+512;
-            map->sprites[index].extra0 = map->floor[y*64+x]*128;
+            map->sprites[index].extra0 = map->floor[y*64+x]*128-1024;
             map->sprites[index].extra1 = map->ceiling[y*64+x]*128;
             map->wall_ftex[y*64+x] = level.doorTextureIndex+3;
             map->floor_tex[y*64+x] = level.doorTextureIndex+3;
@@ -341,10 +341,10 @@ int main(int argc, char **argv)
          case SFG_LEVEL_ELEMENT_CARD0: map->sprites[index].type = 1030; map->sprites[index].extra0 = 1; break;
          case SFG_LEVEL_ELEMENT_CARD1: map->sprites[index].type = 1030; map->sprites[index].extra0 = 2; break;
          case SFG_LEVEL_ELEMENT_CARD2: map->sprites[index].type = 1030; map->sprites[index].extra0 = 4; break;
-         case SFG_LEVEL_ELEMENT_LOCK0: map->sprites[index].type = 1030; map->sprites[index].extra2 = 1; break; //TODO
-         case SFG_LEVEL_ELEMENT_LOCK1: map->sprites[index].type = 1030; map->sprites[index].extra2 = 2; break; //TODO
-         case SFG_LEVEL_ELEMENT_LOCK2: map->sprites[index].type = 1030; map->sprites[index].extra2 = 4; break; //TODO
-         case SFG_LEVEL_ELEMENT_BLOCKER: map->sprites[index].type = 1030; break; //TODO
+         case SFG_LEVEL_ELEMENT_LOCK0: map->sprites[index].type = 2049; map->sprites[index].extra2 = 1; break;
+         case SFG_LEVEL_ELEMENT_LOCK1: map->sprites[index].type = 2049; map->sprites[index].extra2 = 2; break;
+         case SFG_LEVEL_ELEMENT_LOCK2: map->sprites[index].type = 2049; map->sprites[index].extra2 = 4; break;
+         case SFG_LEVEL_ELEMENT_BLOCKER: map->sprites[index].type = 2052; break;
          case SFG_LEVEL_ELEMENT_MONSTER_SPIDER: map->sprites[index].type = 1053; break;
          case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER: map->sprites[index].type = 1043; break;
          case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR: map->sprites[index].type = 1059; break;

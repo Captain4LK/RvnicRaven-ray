@@ -32,6 +32,6 @@ typedef enum
    SPRITE_MAX,
 }Sprite;
 
-uint16_t sprite_rot(Sprite sp, uint8_t rot);
+int32_t sprite_rot(Sprite sp, uint8_t rot);
 
 #endif

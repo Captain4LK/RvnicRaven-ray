@@ -58,7 +58,7 @@ static void add_collider(AI_ent *e, RvR_vec3 pos, RvR_fix22 radius, RvR_fix22 he
 //Having this in a central place allows for easy tweaking of AI behaviour.
 static const AI_state ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_NULL, .action = NULL, .ticks = 0},                                                    //STATE_NULL
-  { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun, .ticks = 0, .sprite = SPRITE_KNIFE}, //STATE_SHOTGUN_READY
+  { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun, .ticks = 1, .sprite = SPRITE_KNIFE}, //STATE_SHOTGUN_READY
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD1, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD0
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD2, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD1
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD3, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD2
@@ -68,20 +68,20 @@ static const AI_state ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD7, .action = shotgun_load, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD6
   { .next = AI_STATE_PLAYER_SHOTGUN_LOAD8, .action = NULL, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD7
   { .next = AI_STATE_PLAYER_SHOTGUN_READY, .action = shotgun_close, .ticks = 4, .sprite = SPRITE_TREE},   //STATE_SHOTGUN_LOAD8
-  { .next = AI_STATE_TREE, .action = NULL, .ticks = 0, .sprite = SPRITE_TREE},   //STATE_TREE
-  { .next = AI_STATE_LAMP, .action = NULL, .ticks = 0, .sprite = SPRITE_LAMP},   //STATE_LAMP
-  { .next = AI_STATE_RUIN, .action = NULL, .ticks = 0, .sprite = SPRITE_RUIN},   //STATE_RUIN
-  { .next = AI_STATE_TERMINAL, .action = NULL, .ticks = 0, .sprite = SPRITE_TERMINAL},   //STATE_TERMINAL
-  { .next = AI_STATE_ELEVATOR_RISE, .action = elevator_rise, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_RISE
-  { .next = AI_STATE_ELEVATOR_LOWER, .action = elevator_lower, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_LOWER
+  { .next = AI_STATE_TREE, .action = NULL, .ticks = 1, .sprite = SPRITE_TREE},   //STATE_TREE
+  { .next = AI_STATE_LAMP, .action = NULL, .ticks = 1, .sprite = SPRITE_LAMP},   //STATE_LAMP
+  { .next = AI_STATE_RUIN, .action = NULL, .ticks = 1, .sprite = SPRITE_RUIN},   //STATE_RUIN
+  { .next = AI_STATE_TERMINAL, .action = NULL, .ticks = 1, .sprite = SPRITE_TERMINAL},   //STATE_TERMINAL
+  { .next = AI_STATE_ELEVATOR_RISE, .action = elevator_rise, .ticks = 1, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_RISE
+  { .next = AI_STATE_ELEVATOR_LOWER, .action = elevator_lower, .ticks = 1, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_LOWER
   { .next = AI_STATE_ELEVATOR_LOWER, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLR
   { .next = AI_STATE_ELEVATOR_RISE, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLL
-  { .next = AI_STATE_DOOR, .action = door, .ticks = 0, .sprite = SPRITE_MAX},   //STATE_DOOR
-  { .next = AI_STATE_ITEM_KEY, .action = item_key, .ticks = 0, .sprite = SPRITE_ITEM_KEY},   //STATE_ITEM_KEY
+  { .next = AI_STATE_DOOR, .action = door, .ticks = 1, .sprite = SPRITE_MAX},   //STATE_DOOR
+  { .next = AI_STATE_ITEM_KEY, .action = item_key, .ticks = 1, .sprite = SPRITE_ITEM_KEY},   //STATE_ITEM_KEY
   { .next = AI_STATE_ITEM_BULLET, .action = item_bullet, .ticks = 1, .sprite = SPRITE_ITEM_BULLET},   //STATE_ITEM_BULLET
-  { .next = AI_STATE_ITEM_ROCKET, .action = item_rocket, .ticks = 0, .sprite = SPRITE_ITEM_ROCKET},   //STATE_ITEM_ROCKET
-  { .next = AI_STATE_ITEM_CELL, .action = item_cell, .ticks = 0, .sprite = SPRITE_ITEM_CELL},   //STATE_ITEM_CELL
-  { .next = AI_STATE_ITEM_HEALTH, .action = item_health, .ticks = 0, .sprite = SPRITE_ITEM_HEALTH},   //STATE_ITEM_HEALTH
+  { .next = AI_STATE_ITEM_ROCKET, .action = item_rocket, .ticks = 1, .sprite = SPRITE_ITEM_ROCKET},   //STATE_ITEM_ROCKET
+  { .next = AI_STATE_ITEM_CELL, .action = item_cell, .ticks = 1, .sprite = SPRITE_ITEM_CELL},   //STATE_ITEM_CELL
+  { .next = AI_STATE_ITEM_HEALTH, .action = item_health, .ticks = 1, .sprite = SPRITE_ITEM_HEALTH},   //STATE_ITEM_HEALTH
 };
 
 static const AI_info ai_entinfo[AI_TYPE_MAX] = {
@@ -181,17 +181,20 @@ AI_type ai_type_from_tex(uint16_t tex)
 {
    switch(tex)
    {
-   case 2048: return AI_TYPE_PLAYER;
-   case 21264: return AI_TYPE_TREE;
-   case 21258: return AI_TYPE_LAMP;
-   case 21261: return AI_TYPE_RUIN;
-   case 21263: return AI_TYPE_TERMINAL;
+   case 1040: return AI_TYPE_TREE;
+   case 1034: return AI_TYPE_LAMP;
+   case 1037: return AI_TYPE_RUIN;
+   case 1039: return AI_TYPE_TERMINAL;
 
-   case 21254: return AI_TYPE_ITEM_KEY;
+   case 1030: return AI_TYPE_ITEM_KEY;
    case 1029: return AI_TYPE_ITEM_BULLET;
-   case 21260: return AI_TYPE_ITEM_ROCKET;
-   case 21259: return AI_TYPE_ITEM_CELL;
-   case 21257: return AI_TYPE_ITEM_HEALTH;
+   case 1036: return AI_TYPE_ITEM_ROCKET;
+   case 1035: return AI_TYPE_ITEM_CELL;
+   case 1033: return AI_TYPE_ITEM_HEALTH;
+
+   case 2048: return AI_TYPE_PLAYER;
+   case 2049: return AI_TYPE_DOOR;
+   case 2050: return AI_TYPE_ELEVATOR;
    }
 
    return AI_TYPE_TREE;
@@ -457,41 +460,35 @@ static void elevator_rise(AI_ent *e)
 {
    if(e->ai.state==NULL)
       return;
-   /**e = *e;
 
    RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
    if(z>=e->extra1)
-      return AI_STATE_ELEVATOR_STILLR;
+      ai_set_state(e,AI_STATE_ELEVATOR_STILLR);
    z = RvR_min(e->extra1,z+48);
    RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
-
-   return AI_STATE_NULL;*/
 }
 
 static void elevator_lower(AI_ent *e)
 {
    if(e->ai.state==NULL)
       return;
-   /**e = *e;
 
    RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
    if(z<=e->extra0)
-      return AI_STATE_ELEVATOR_STILLL;
+      ai_set_state(e,AI_STATE_ELEVATOR_STILLL);
 
    z = RvR_max(e->extra0,z-48);
    RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
-   
-   return AI_STATE_NULL;*/
 }
 
 static void door(AI_ent *e)
 {
    if(e->ai.state==NULL)
       return;
-   /*//Door lowers if the manhatten distance between the door and the player is smaller than 2048
+
+   //Door lowers if the manhatten distance between the door and the player is smaller than 2048
    RvR_fix22 dist = RvR_abs(player.entity->pos.x-e->pos.x)+RvR_abs(player.entity->pos.y-e->pos.y);
    RvR_fix22 z = RvR_ray_map_floor_height_at(e->pos.x/1024,e->pos.y/1024);
-
 
    int locked = (e->extra2&player.key)!=e->extra2;
 
@@ -508,7 +505,7 @@ static void door(AI_ent *e)
       RvR_ray_map_floor_height_set(e->pos.x/1024,e->pos.y/1024,z);
    }
 
-   return AI_STATE_NULL;*/
+   //return AI_STATE_NULL;*/
 }
 
 static void item_key(AI_ent *e)
