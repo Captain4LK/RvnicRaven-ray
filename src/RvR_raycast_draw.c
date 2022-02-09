@@ -396,11 +396,11 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
       return limit;
    }
 
-   RvR_texture *texture = RvR_texture_get(0);
+   RvR_texture *texture = NULL;
    height = RvR_abs(height);
    RvR_fix22 wall_length = RvR_non_zero(RvR_abs(y_to-y_from-1));
    RvR_fix22 wall_position = RvR_abs(y_from-y_current)-increment;
-   RvR_fix22 height_scaled = height*1024;
+   RvR_fix22 height_scaled = height*65536;
    RvR_fix22 coord_step_scaled = (height_scaled/wall_length);
    RvR_fix22 texture_coord_scaled = 0;
 
@@ -426,7 +426,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
       {
          for(RvR_fix22 i = y_current+increment;i>=limit;i--)
          {
-            *pix = col[tex[(texture_coord_scaled>>14)&TEX_HIGH_AND]];
+            *pix = col[tex[(texture_coord_scaled>>20)&TEX_HIGH_AND]];
             texture_coord_scaled+=coord_step_scaled;
             pix-=RVR_XRES;
          }
@@ -435,7 +435,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
       {
          for(RvR_fix22 i = y_current+increment;i>=limit;i--)
          {
-            *pix = col[tex[(texture_coord_scaled>>14)&TEX_AND]];
+            *pix = col[tex[(texture_coord_scaled>>20)&TEX_AND]];
             texture_coord_scaled+=coord_step_scaled;
             pix-=RVR_XRES;
          }
@@ -447,7 +447,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
       {
          for(RvR_fix22 i = y_current+increment;i<=limit;i++)
          {
-            *pix = col[tex[(texture_coord_scaled>>14)&TEX_HIGH_AND]];
+            *pix = col[tex[(texture_coord_scaled>>20)&TEX_HIGH_AND]];
             texture_coord_scaled+=coord_step_scaled;
             pix+=RVR_XRES;
          }
@@ -456,7 +456,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
       {
          for(RvR_fix22 i = y_current+increment;i<=limit;i++)
          {
-            *pix = col[tex[(texture_coord_scaled>>14)&TEX_AND]];
+            *pix = col[tex[(texture_coord_scaled>>20)&TEX_AND]];
             texture_coord_scaled+=coord_step_scaled;
             pix+=RVR_XRES;
          }
