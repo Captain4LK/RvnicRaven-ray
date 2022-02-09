@@ -169,13 +169,6 @@ void RvR_ray_draw()
    ray_cam_dir0.y = (ray_cam_dir0.y*1024)/cos;
    ray_cam_dir1.x = (ray_cam_dir1.x*1024)/cos;
    ray_cam_dir1.y = (ray_cam_dir1.y*1024)/cos;
-   /*RvR_fix22 dx = ray_cam_dir1.x-ray_cam_dir0.x;
-   RvR_fix22 dy = ray_cam_dir1.y-ray_cam_dir0.y;
-   ray_cam_dir1.x = ray_cam_dir0.x+(dx*RVR_XRES-dx)/RVR_XRES;
-   ray_cam_dir1.y = ray_cam_dir0.y+(dy*RVR_XRES-dy)/RVR_XRES;
-   ray_cam_dir0.x = ray_cam_dir0.x+(dx)/RVR_XRES;
-   ray_cam_dir0.y = ray_cam_dir0.y+(dy)/RVR_XRES;*/
-   //printf("%d %d\n",ray_cam_dir1.x,ray_cam_dir1.y);
 
    for(int i = 0;i<ray_planes_used;i++)
    {
@@ -197,14 +190,12 @@ void RvR_ray_draw()
          for(int x = pl->min;x<pl->max+1;x++)
          {
             //Sky is rendered fullbright, no lut needed
-            //RvR_fix22 texture_coord = pl->start[x]*tex_step;
             uint8_t * restrict pix = &RvR_core_framebuffer()[(pl->start[x])*RVR_XRES+x-1];
             const uint8_t * restrict tex = &texture->data[((angle>>10)&TEX_SKYW_AND)*TEX_SKYH_MUL];
             const uint8_t * restrict col = RvR_shade_table(32);
 
             //Slip in two parts: above and below horizon
             int middle = RvR_max(0,RvR_min(RVR_YRES,ray_middle_row+RVR_YRES/32));
-            //int middle = ray_middle_row;
             int tex_start = pl->start[x];
             int tex_end = middle;
             if(tex_end>pl->end[x])
@@ -214,16 +205,7 @@ void RvR_ray_draw()
             if(tex_start>middle)
                tex_end = tex_start-1;
             int solid_end = pl->end[x];
-            //printf("%d %d\n",ray_middle_row,pl->start[x]);
             RvR_fix22 texture_coord = (RVR_YRES-middle+pl->start[x])*tex_step;
-            //printf("%d %d: %d  %d %d\n",pl->start[x],pl->end[x],tex_start,tex_end,solid_end);
-            /*int tex_start = pl->start[x];
-            int tex_end = pl->end[x];
-            int solid_end = pl->end[x];
-            if(pl->end[x]>ray_middle_row)
-               tex_end = ray_middle_row;
-            if(tex_start>tex_end)
-               tex_start = tex_end;j*/
 
             for(int y = tex_start;y<tex_end+1;y++)
             {
@@ -231,32 +213,19 @@ void RvR_ray_draw()
                texture_coord+=tex_step;
                pix+=RVR_XRES;
             }
-            //texture_coord = (RVR_YRES-middle+pl->start[x])*tex_step;
-            //texture_coord = texture_coord&(TEX_SKYH_MUL*1024-1);
-            ///texture_coord-=tex_step;
-            //texture_coord = tex_step*(RVR_YRES-1);
             RvR_fix22 tex_coord = (RVR_YRES)*tex_step-1;
             texture_coord = RvR_min(tex_coord,tex_coord-tex_step*(tex_end-middle));
-            //texture_coord-=tex_step*(tex_end-middle);
-            //RvR_max(texture_coord
             for(int y = tex_end+1;y<solid_end+1;y++)
             {
                *pix = col[tex[(texture_coord>>10)&TEX_SKYH_AND]];
                texture_coord-=tex_step;
                pix+=RVR_XRES;
             }
-            /*for(int y = pl->start[x];y<pl->end[x]+1;y++)
-            {
-               *pix = tex[texture_coord>>10];
-               texture_coord+=tex_step;
-               pix+=RVR_XRES;
-            }*/
 
             angle+=angle_step;
          }
          continue;
       }
-      //printf("%d %d\n",pl->min,pl->max);
 
       //Convert plane to horizontal spans
       for(int x = pl->min;x<pl->max+2;x++)
