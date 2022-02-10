@@ -72,6 +72,7 @@ static const AI_state ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_LAMP, .action = NULL, .ticks = 1, .sprite = SPRITE_LAMP},   //STATE_LAMP
   { .next = AI_STATE_RUIN, .action = NULL, .ticks = 1, .sprite = SPRITE_RUIN},   //STATE_RUIN
   { .next = AI_STATE_TERMINAL, .action = NULL, .ticks = 1, .sprite = SPRITE_TERMINAL},   //STATE_TERMINAL
+  { .next = AI_STATE_BLOCKER, .action = NULL, .ticks = 1, .sprite = SPRITE_MAX},   //STATE_BLOCKER
   { .next = AI_STATE_ELEVATOR_RISE, .action = elevator_rise, .ticks = 1, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_RISE
   { .next = AI_STATE_ELEVATOR_LOWER, .action = elevator_lower, .ticks = 1, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_LOWER
   { .next = AI_STATE_ELEVATOR_LOWER, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLR
@@ -119,6 +120,13 @@ static const AI_info ai_entinfo[AI_TYPE_MAX] = {
     .state_move = AI_STATE_TERMINAL,
     .state_attack = AI_STATE_TERMINAL,
     .state_death = AI_STATE_TERMINAL,
+  },
+  //AI_TYPE_BLOCKER
+  {
+    .state_idle = AI_STATE_BLOCKER,
+    .state_move = AI_STATE_BLOCKER,
+    .state_attack = AI_STATE_BLOCKER,
+    .state_death = AI_STATE_BLOCKER,
   },
   //AI_TYPE_ELEVATOR
   {
@@ -195,6 +203,7 @@ AI_type ai_type_from_tex(uint16_t tex)
    case 2048: return AI_TYPE_PLAYER;
    case 2049: return AI_TYPE_DOOR;
    case 2050: return AI_TYPE_ELEVATOR;
+   case 2052: return AI_TYPE_BLOCKER;
    }
 
    return AI_TYPE_TREE;
@@ -213,7 +222,11 @@ void ai_init(AI_ent *e, AI_type type)
    //Type specifc attributes, colliders
    switch(e->ai.type)
    {
-   case AI_TYPE_PLAYER: add_collider(e,e->pos,312,1024,1); break;
+   case AI_TYPE_PLAYER: add_collider(e,e->pos,384,1024,1); break;
+   case AI_TYPE_TREE: add_collider(e,e->pos,384,1024,1); break;
+   case AI_TYPE_LAMP: add_collider(e,e->pos,384,1024,1); break;
+   case AI_TYPE_RUIN: add_collider(e,e->pos,384,1024,1); break;
+   case AI_TYPE_BLOCKER: add_collider(e,e->pos,384,1024,1); break;
    default: break;
    }
 }
