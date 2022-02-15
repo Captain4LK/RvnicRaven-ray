@@ -45,8 +45,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //#include "RvR_vm.c"
 
-//#include "RvR_lisp.c"
-
 #include "RvR_raycast.c"
 #include "RvR_raycast_draw.c"
 #include "RvR_raycast_map.c"
