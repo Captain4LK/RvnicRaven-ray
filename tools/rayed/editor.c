@@ -159,6 +159,8 @@ void editor_draw()
 
    if(RvR_core_key_pressed(RVR_KEY_R))
       editor_redo();
+
+   RvR_ray_draw_debug(color_white);
 }
 
 void editor_undo()

@@ -78,7 +78,10 @@ struct
 
 //Function prototypes
 static void ray_plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1);
-static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, const RvR_texture *texture);
+
+static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR_texture *texture);
+static void ray_span_draw_flat(int x0, int x1, int y, uint8_t color);
+
 static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, RvR_ray_pixel_info *pixel_info);
 static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, int16_t increment, RvR_ray_pixel_info *pixel_info);
 static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
@@ -238,11 +241,23 @@ void RvR_ray_draw()
 
          //End spans top
          for(;s0<s1&&s0<=e0;s0++)
-            ray_span_horizontal_draw(ray_span_start[s0],x-1,s0,pl->height,texture);
+         {
+#if RVR_RAY_DRAW_PLANES==1
+            ray_span_draw_flat(ray_span_start[s0],x-1,s0,(i+1)&255);
+#elif RVR_RAY_DRAW_PLANES==2
+            ray_span_draw_tex(ray_span_start[s0],x-1,s0,pl->height,texture);
+#endif
+         }
 
          //End spans bottom
          for(;e0>e1&&e0>=s0;e0--)
-            ray_span_horizontal_draw(ray_span_start[e0],x-1,e0,pl->height,texture);
+         {
+#if RVR_RAY_DRAW_PLANES==1
+            ray_span_draw_flat(ray_span_start[e0],x-1,e0,(i+1)&255);
+#elif RVR_RAY_DRAW_PLANES==2
+            ray_span_draw_tex(ray_span_start[e0],x-1,e0,pl->height,texture);
+#endif
+         }
 
          //Start spans top
          for(;s1<s0&&s1<=e1;s1++)
@@ -744,7 +759,7 @@ static void ray_plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
    cur->start[x] = y0;
 }
 
-static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, const RvR_texture *texture)
+static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR_texture *texture)
 {
    //Shouldn't happen
    if(x0>=x1)
@@ -792,6 +807,39 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, co
       *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]];
       tx+=step_x;
       ty+=step_y;
+      pix++;
+   }
+
+#endif
+}
+
+static void ray_span_draw_flat(int x0, int x1, int y, uint8_t color)
+{
+   uint8_t * restrict pix = &RvR_core_framebuffer()[y*RVR_XRES+x0];
+
+#if RVR_UNROLL
+
+   int count = x1-x0;
+   int n = (count+7)/8;
+   switch(count%8)
+   {
+   case 0: do {
+           *pix = color; pix++; //fallthrough
+   case 7: *pix = color; pix++; //fallthrough
+   case 6: *pix = color; pix++; //fallthrough
+   case 5: *pix = color; pix++; //fallthrough
+   case 4: *pix = color; pix++; //fallthrough
+   case 3: *pix = color; pix++; //fallthrough
+   case 2: *pix = color; pix++; //fallthrough
+   case 1: *pix = color; pix++; //fallthrough
+           }while(--n>0);
+   }
+
+#else
+
+   for(int x = x0;x<x1;x++)
+   {
+      *pix = color;
       pix++;
    }
 

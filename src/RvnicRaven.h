@@ -69,6 +69,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //HEIGHT of sky texture, calculated as 1<<RVR_RAY_TEXTURE_SKY_H
 #define RVR_RAY_TEXTURE_SKY_H 7
+
+//Debug features
+
+//0 -> no planes
+//1 -> DEBUG single colored planes (different color for each plane), WARNING FLICKERING COLORS!!
+//2 -> textured planes
+#define RVR_RAY_DRAW_PLANES 2
 //-------------------------------------
 
 //Config end
