@@ -78,7 +78,7 @@ struct
 
 //Function prototypes
 static void ray_plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1);
-static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, uint16_t texture);
+static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, const RvR_texture *texture);
 static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, RvR_ray_pixel_info *pixel_info);
 static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, int16_t increment, RvR_ray_pixel_info *pixel_info);
 static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
@@ -228,6 +228,7 @@ void RvR_ray_draw()
       }
 
       //Convert plane to horizontal spans
+      RvR_texture *texture = RvR_texture_get(pl->tex);
       for(int x = pl->min;x<pl->max+2;x++)
       {
          RvR_fix22 s0 = pl->start[x-1];
@@ -237,11 +238,11 @@ void RvR_ray_draw()
 
          //End spans top
          for(;s0<s1&&s0<=e0;s0++)
-            ray_span_horizontal_draw(ray_span_start[s0],x-1,s0,pl->height,pl->tex);
+            ray_span_horizontal_draw(ray_span_start[s0],x-1,s0,pl->height,texture);
 
          //End spans bottom
          for(;e0>e1&&e0>=s0;e0--)
-            ray_span_horizontal_draw(ray_span_start[e0],x-1,e0,pl->height,pl->tex);
+            ray_span_horizontal_draw(ray_span_start[e0],x-1,e0,pl->height,texture);
 
          //Start spans top
          for(;s1<s0&&s1<=e1;s1++)
@@ -613,11 +614,6 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
             entry->limit = limit_clip;
             entry->next = ray_depth_buffer.floor[p.position.x];
             ray_depth_buffer.floor[p.position.x] = entry;
-            /*if(ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][2]>limit_clip)
-            {
-               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][2] = limit_clip;
-               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][3] = p.depth;
-            }*/
          }
 
          //draw ceiling wall
@@ -644,11 +640,6 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
             entry->limit = limit_clip+1;
             entry->next = ray_depth_buffer.ceiling[p.position.x];
             ray_depth_buffer.ceiling[p.position.x] = entry;
-            /*if(ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][0]<limit_clip)
-            {
-               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][0] = limit_clip;
-               ray_depth_buffer[p.depth/(1<<RVR_RAY_DEPTH_BUFFER_PRECISION)][p.position.x][1] = p.depth;
-            }*/
          }
       }
    }
@@ -753,7 +744,7 @@ static void ray_plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
    cur->start[x] = y0;
 }
 
-static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, uint16_t texture)
+static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, const RvR_texture *texture)
 {
    //Shouldn't happen
    if(x0>=x1)
@@ -774,7 +765,7 @@ static void ray_span_horizontal_draw(int x0, int x1, int y, RvR_fix22 height, ui
    //const and restrict don't seem to influence the generated assembly in this case
    uint8_t * restrict pix = &RvR_core_framebuffer()[y*RVR_XRES+x0];
    const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(depth>>8)));
-   const uint8_t * restrict tex = RvR_texture_get(texture)->data;
+   const uint8_t * restrict tex = texture->data;
 
 #if RVR_UNROLL
 

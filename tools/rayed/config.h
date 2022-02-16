@@ -18,4 +18,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define UNDO_BUFFER_SIZE (1<<22)
 #define TEXTURE_MRU_SIZE (1<<7)
 
+#define CAMERA_COLL_RADIUS 256
+#define CAMERA_COLL_HEIGHT_BELOW 800
+#define CAMERA_COLL_HEIGHT_ABOVE 200
+#define CAMERA_COLL_STEP_HEIGHT (1024/4)
+
 #endif

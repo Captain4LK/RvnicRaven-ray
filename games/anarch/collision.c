@@ -19,6 +19,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
+#include "config.h"
 #include "sprite.h"
 #include "collision.h"
 #include "ai.h"
