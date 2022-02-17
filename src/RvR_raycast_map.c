@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -168,22 +168,6 @@ void RvR_ray_map_reset()
       ray_map.floor[i] = (int16_t)ray_map_cache.floor[i]*128;
       ray_map.ceiling[i] = (int16_t)ray_map_cache.ceiling[i]*128;
    }
-
-   /*//Textures
-   RvR_texture_load_begin();
-   RvR_texture_load(0); //Texture 0 is always loaded, since it's used as a fallback texture
-   RvR_texture_load(ray_map.sky_tex); //Sky texture is always used
-   for(int i = 0;i<ray_map.width*ray_map.height;i++)
-   {
-      RvR_texture_load(ray_map.wall_ftex[i]);
-      RvR_texture_load(ray_map.wall_ctex[i]);
-      RvR_texture_load(ray_map.floor_tex[i]);
-      RvR_texture_load(ray_map.ceil_tex[i]);
-   }
-   RvR_texture_load_end();
-
-   //TODO: do we want to do this here?
-   RvR_pak_flush();*/
 }
 
 int RvR_ray_map_sprite_count()
