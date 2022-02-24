@@ -373,11 +373,6 @@ int         RvR_lump_exists(const char *name);
 RvR_texture *RvR_texture_get(uint16_t id); //Pointer returned is only valid until next RvR_texture_get() call (unless the texture has been manually created)
 void RvR_texture_create(uint16_t id, int width, int height); //These textures need to be manually managed
 void RvR_texture_create_free(uint16_t id);
-/*void RvR_texture_load_begin();
-void RvR_texture_load_end();
-void RvR_texture_load(uint16_t id);
-void RvR_font_load(uint16_t id);
-void RvR_font_unload(uint16_t id);*/
 
 //RvnicRaven core functions end
 //-------------------------------------
