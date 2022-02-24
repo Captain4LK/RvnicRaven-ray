@@ -38,8 +38,7 @@ typedef struct
 static SDL_Window *sdl_window;
 static SDL_Renderer *renderer;
 static SDL_Texture *layer_texture;
-static int pixel_scale;
-static float scale;
+static float pixel_scale;
 static int window_width;
 static int window_height;
 static int view_x;
@@ -81,8 +80,6 @@ static int get_gamepad_index(int which);
 
 void RvR_backend_init(const char *title, int scale)
 {
-   pixel_scale = scale;
-
    Uint32 flags = 
 #ifndef __EMSCRIPTEN__
    SDL_INIT_VIDEO|SDL_INIT_EVENTS;
@@ -96,7 +93,7 @@ void RvR_backend_init(const char *title, int scale)
       exit(-1);
    }
 
-   if(pixel_scale==0)
+   if(scale==0)
    {
       SDL_Rect max_size;
 
@@ -111,15 +108,15 @@ void RvR_backend_init(const char *title, int scale)
          max_x = max_size.w/RVR_XRES;
          max_y = max_size.h/RVR_YRES;
 
-         pixel_scale = (max_x>max_y)?max_y:max_x;
+         scale = (max_x>max_y)?max_y:max_x;
       }
       
    }
 
-   if(pixel_scale<=0)
-      pixel_scale = 1;
+   if(scale<=0)
+      scale = 1;
 
-   sdl_window = SDL_CreateWindow(title,SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,RVR_XRES*pixel_scale,RVR_YRES*pixel_scale,SDL_WINDOW_RESIZABLE);
+   sdl_window = SDL_CreateWindow(title,SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,RVR_XRES*scale,RVR_YRES*scale,SDL_WINDOW_RESIZABLE);
    if(sdl_window==NULL)
    {
       RvR_log_line("SDL_CreateWindow ","%s\n",SDL_GetError());
@@ -130,7 +127,6 @@ void RvR_backend_init(const char *title, int scale)
    if(renderer==NULL)
    {
       RvR_log_line("SDL_CreateRenderer ","%s\n",SDL_GetError());
-      //RvR_log("RvR_backend_sdl2: failed to create renderer: %s",SDL_GetError());
       exit(-1);
    }
 
@@ -390,12 +386,12 @@ void RvR_backend_update()
 
    x-=view_x;
    y-=view_y;
-   mouse_x = x/scale;
-   mouse_y = y/scale;
+   mouse_x = x/pixel_scale;
+   mouse_y = y/pixel_scale;
 
    SDL_GetRelativeMouseState(&mouse_x_rel,&mouse_y_rel);
-   mouse_x_rel = mouse_x_rel/scale;
-   mouse_y_rel = mouse_y_rel/scale;
+   mouse_x_rel = mouse_x_rel/pixel_scale;
+   mouse_y_rel = mouse_y_rel/pixel_scale;
 
    if(mouse_x>=RVR_XRES)
      mouse_x = RVR_XRES-1;
@@ -446,14 +442,12 @@ void RvR_backend_mouse_relative(int relative)
 {
    if(SDL_SetRelativeMouseMode(relative)<0)
       RvR_log_line("SDL_SetRelativeMouseMode ","%s\n",SDL_GetError());
-      //RvR_log("RvR_backend_sdl2: failed to set relative mouse mode: %s",SDL_GetError());
 }
 
 void RvR_backend_mouse_show(int show)
 {
    if(SDL_ShowCursor(show?SDL_ENABLE:SDL_DISABLE)<0)
       RvR_log_line("SDL_ShowCursor ","%s\n",SDL_GetError());
-      //RvR_log("RvR_backend_sdl2: failed to show/hide cursor: %s",SDL_GetError());
 }
 
 static void backend_update_viewport()
@@ -475,23 +469,10 @@ static void backend_update_viewport()
       view_height = ((float)RVR_YRES/(float)RVR_XRES)*(float)window_width;
    }
 
-   //view_height = window_height;
-   //view_width = ((float)RVR_XRES/(float)RVR_YRES)*(float)window_height;
-   //view_width = RVR_XRES*pixel_scale;
-   //view_height = RVR_YRES*pixel_scale;
-
    view_x = (window_width-view_width)/2;
    view_y = (window_height-view_height)/2;
 
-   scale = (float)view_width/(float)RVR_XRES;
-
-   /*SDL_Rect v;
-   v.x = view_x;
-   v.y = view_y;
-   v.w = view_width;
-   v.h = view_height;*/
-   //if(SDL_RenderSetViewport(renderer,&v)<0)
-      //RvR_log("RvR_backend_sdl2: failed to set render viewport: %s",SDL_GetError());
+   pixel_scale = (float)view_width/(float)RVR_XRES;
 }
 
 static int get_gamepad_index(int which)
@@ -569,8 +550,8 @@ void RvR_backend_mouse_set_pos(int x, int y)
 {
    mouse_x = x;
    mouse_y = y;
-   x*=scale;
-   y*=scale;
+   x*=pixel_scale;
+   y*=pixel_scale;
 
    SDL_WarpMouseInWindow(sdl_window,x,y);
 }
