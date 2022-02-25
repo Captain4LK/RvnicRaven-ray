@@ -470,24 +470,24 @@ void editor2d_draw()
    RvR_draw_vertical_line(mx,my+1,my+4,color_magenta);
 
    RvR_draw_rectangle_fill(0,RVR_YRES-12,RVR_XRES,12,color_dark_gray);
-   char tmp[512];
+   char tmp[1024];
       
    switch(menu)
    {
-   case -2: snprintf(tmp,512,"Saved map to %s",map_path_get()); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case -2: snprintf(tmp,1024,"Saved map to %s",map_path_get()); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case -1: RvR_draw_string(5,RVR_YRES-10,1,"Invalid input",color_white); break;
-   case 0: snprintf(tmp,512,"x: %d y:%d ang:%d",camera.pos.x,camera.pos.y,camera.direction); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 0: snprintf(tmp,1024,"x: %d y:%d ang:%d",camera.pos.x,camera.pos.y,camera.direction); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case 1: RvR_draw_string(5,RVR_YRES-10,1,"(N)ew, (L)oad, (S)ave , save (A)s, (Q)uit",color_white); break;
    case 2: RvR_draw_string(5,RVR_YRES-10,1,"Are you sure you want to start a new map? (Y/N)",color_white); break;
-   case 3: snprintf(tmp,512,"Map width: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
-   case 4: snprintf(tmp,512,"Map height: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
-   case 5: snprintf(tmp,512,"Save as: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 3: snprintf(tmp,1024,"Map width: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 4: snprintf(tmp,1024,"Map height: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 5: snprintf(tmp,1024,"Save as: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case 6: RvR_draw_string(5,RVR_YRES-10,1,"Are you sure you want to quit? (Y/N)",color_white); break;
    case 7: RvR_draw_string(5,RVR_YRES-10,1,"Save changes? (Y/N)",color_white); break;
-   case 9: snprintf(tmp,512,"Sprite (type %"PRIu16") extra0: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
-   case 10: snprintf(tmp,512,"Sprite (type %"PRIu16") extra1: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
-   case 11: snprintf(tmp,512,"Sprite (type %"PRIu16") extra2: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
-   case 12: snprintf(tmp,512,"Sprite (type %"PRIu16") extra3: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 9: snprintf(tmp,1024,"Sprite (type %"PRIu16") extra0: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 10: snprintf(tmp,1024,"Sprite (type %"PRIu16") extra1: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 11: snprintf(tmp,1024,"Sprite (type %"PRIu16") extra2: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 12: snprintf(tmp,1024,"Sprite (type %"PRIu16") extra3: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    }
 }
 //-------------------------------------
