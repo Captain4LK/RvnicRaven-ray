@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -177,7 +177,7 @@ void map_path_add(const char *path)
       path_list.data = RvR_malloc(sizeof(*path_list.data)*path_list.data_size);
    }
 
-   for(int i = 0;i<path_list.data_used;i++)
+   for(unsigned i = 0;i<path_list.data_used;i++)
       if(strcmp(path,path_list.data[i])==0)
          return;
 
@@ -200,7 +200,7 @@ static void map_list_add(const char *path)
       map_list.data = RvR_malloc(sizeof(*map_list.data)*map_list.data_size);
    }
 
-   for(int i = 0;i<map_list.data_used;i++)
+   for(unsigned i = 0;i<map_list.data_used;i++)
       if(strcmp(path,map_list.data[i])==0)
          return;
 
@@ -244,7 +244,7 @@ Map_list *map_list_get()
    char path[128];
    map_list.data_used = 0;
 
-   for(int i = 0;i<path_list.data_used;i++)
+   for(unsigned i = 0;i<path_list.data_used;i++)
    {
       cf_dir_t dir = {0};
       //RvR_log_line("map_list_get ","opening directory %s\n",path_list.data[i]);

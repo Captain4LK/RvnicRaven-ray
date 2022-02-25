@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -92,7 +92,7 @@ void texture_list_used_add(uint16_t tex)
       {  
          if(i!=texture_list_used.data_last)
          {
-            int index = texture_list_used_wrap(i);
+            unsigned index = texture_list_used_wrap(i);
             while(index!=texture_list_used.data_last)
             {
                texture_list_used.data[texture_list_used_wrap(index)] = texture_list_used.data[texture_list_used_wrap(index+1)];
