@@ -362,6 +362,13 @@ int32_t RvR_wrap(int32_t a, int32_t mod);
 #define RvR_sign(a) (a<0?-1:1)
 #define RvR_clamp(a,min,max) (RvR_max((min),RvR_min((max),(a))))
 
+//These are here to make some code more understandable
+#define RvR_sign_equal(a,b) (((a)^(b))>=0)
+#define RvR_negative(a) ((a)<0)
+#define RvR_positive(a) ((a)>0)
+#define RvR_even(a) (!((a)&1))
+#define RvR_odd(a) ((a)&1)
+
 void        RvR_pak_add(const char *path);
 void        RvR_pak_create_from_csv(const char *path_csv, const char *path_pak);
 void        RvR_pak_flush();
