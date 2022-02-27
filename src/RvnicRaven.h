@@ -565,4 +565,34 @@ void RvR_ray_draw_debug(uint8_t index);
 //RvnicRaven raycast functions end
 //-------------------------------------
 
+//RvnicRaven portal types
+
+typedef struct
+{
+   RvR_fix22 x;
+   RvR_fix22 y;
+   int16_t p2;
+   int16_t portal;
+   uint16_t tex;
+}RvR_port_wall;
+
+typedef struct
+{
+   int16_t num_walls;
+   int16_t first_wall;
+   uint16_t ftex;
+   uint16_t ctex;
+}RvR_port_sector;
+
+//RvnicRaven portal types end
+//-------------------------------------
+
+//RvnicRaven portal functions
+
+int RvR_port_sector_inside(int16_t sector, RvR_fix22 x, RvR_fix22 y);
+int16_t RvR_port_sector_update(int16_t last_setor, RvR_fix22 x, RvR_fix22 y);
+
+//RvnicRaven portal functions end
+//-------------------------------------
+
 #endif
