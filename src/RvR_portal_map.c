@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -9,9 +9,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 //-------------------------------------
 
 //Internal includes
+#include "RvnicRaven.h"
 //-------------------------------------
 
 //#defines
@@ -21,37 +25,21 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
+RvR_port_map port_map = {0};
 //-------------------------------------
 
 //Function prototypes
 //-------------------------------------
 
 //Function implementations
-#include "RvR_pak.c"
-#include "RvR_rw.c"
-#include "RvR_core.c"
-#include "RvR_log.c"
-#include "RvR_endian.c"
-#include "RvR_rand.c"
-#include "RvR_hash.c"
-#include "RvR_math.c"
-#include "RvR_pal.c"
 
-#include "RvR_config.c"
-#include "RvR_malloc.c"
-#include "RvR_compress.c"
-#include "RvR_draw.c"
-#include "RvR_texture.c"
+void RvR_port_map_create()
+{
+   memset(&port_map,0,sizeof(port_map));
+}
 
-//#include "RvR_vm.c"
-
-#include "RvR_raycast.c"
-#include "RvR_raycast_draw.c"
-#include "RvR_raycast_map.c"
-
-#include "RvR_portal.c"
-#include "RvR_portal_sector.c"
-#include "RvR_portal_map.c"
-
-#include "backend/RvR_backend_sdl2.c"
+RvR_port_map *RvR_port_map_get()
+{
+   return &port_map;
+}
 //-------------------------------------

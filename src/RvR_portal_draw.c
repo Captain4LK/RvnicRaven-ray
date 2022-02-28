@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -9,49 +9,48 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 //-------------------------------------
 
 //Internal includes
+#include "RvnicRaven.h"
 //-------------------------------------
 
 //#defines
 //-------------------------------------
 
 //Typedefs
+RvR_stack_type(int16_t,port_stack_i16);
 //-------------------------------------
 
 //Variables
 //-------------------------------------
 
 //Function prototypes
+RvR_stack_function_prototype(int16_t,port_stack_i16,static);
 //-------------------------------------
 
 //Function implementations
-#include "RvR_pak.c"
-#include "RvR_rw.c"
-#include "RvR_core.c"
-#include "RvR_log.c"
-#include "RvR_endian.c"
-#include "RvR_rand.c"
-#include "RvR_hash.c"
-#include "RvR_math.c"
-#include "RvR_pal.c"
 
-#include "RvR_config.c"
-#include "RvR_malloc.c"
-#include "RvR_compress.c"
-#include "RvR_draw.c"
-#include "RvR_texture.c"
+void RvR_port_draw_2d()
+{
+}
 
-//#include "RvR_vm.c"
+void RvR_port_draw()
+{
+   //Look through all sectors and build potential visible set
+   static port_stack_i16 to_visit = {0};
 
-#include "RvR_raycast.c"
-#include "RvR_raycast_draw.c"
-#include "RvR_raycast_map.c"
+   port_stack_i16_clear(&to_visit);
+   port_stack_i16_push(&to_visit,RvR_port_get_sector());
 
-#include "RvR_portal.c"
-#include "RvR_portal_sector.c"
-#include "RvR_portal_map.c"
+   while(!port_stack_i16_empty(&to_visit))
+   {
+      int16_t sector = port_stack_i16_pop(&to_visit);
+   }
+}
 
-#include "backend/RvR_backend_sdl2.c"
+RvR_stack_function(int16_t,port_stack_i16,16,16,static);
 //-------------------------------------

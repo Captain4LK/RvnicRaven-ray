@@ -76,6 +76,20 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //1 -> DEBUG single colored planes (different color for each plane), WARNING FLICKERING COLORS!!
 //2 -> textured planes
 #define RVR_RAY_DRAW_PLANES 2
+
+//Macro functions
+//The beautiful abomination
+#define RvR_stack_type(type,name) typedef struct { type *data; unsigned data_size; unsigned data_used; }name
+#define RvR_stack_function_prototype(type,name,prefix) prefix type name##_pop(name *st); prefix void name##_push(name *st, type v); prefix void name##_clear(name *st); prefix void name##_free(name *st); prefix int name##_empty(const name *st)
+//TODO: handle non-growing stacks in _push
+#define RvR_stack_function(type,name,grow,min_size,prefix) prefix type name##_pop(name *st) { if(st->data==NULL||st->data_used==0) return (type)0; return st->data[--st->data_used]; } prefix void name##_push(name *st, type v) { if(st->data==NULL) { st->data_size = min_size; st->data = RvR_malloc(sizeof(*st->data)*st->data_size); } st->data[st->data_used++] = v; if(st->data_used==st->data_size) { st->data_size+=grow; st->data = RvR_realloc(st->data,sizeof(*st->data)*st->data_size); } } prefix void name##_clear(name *st) { st->data_used = 0; } prefix void name##_free(name *st) { if(st->data==NULL) return; RvR_free(st->data); st->data = NULL; st->data_used = 0; st->data_size = 0; } prefix int name##_empty(const name *st) { return st->data_used==0; }
+
+//-------------------------------------
+
+//RvnicRaven raycasting
+
+#define RVR_PORT_MAX_SECTORS 4096
+#define RVR_PORT_MAX_WALLS 16384
 //-------------------------------------
 
 //Config end
@@ -381,6 +395,8 @@ RvR_texture *RvR_texture_get(uint16_t id); //Pointer returned is only valid unti
 void RvR_texture_create(uint16_t id, int width, int height); //These textures need to be manually managed
 void RvR_texture_create_free(uint16_t id);
 
+
+
 //RvnicRaven core functions end
 //-------------------------------------
 
@@ -580,17 +596,55 @@ typedef struct
 {
    int16_t num_walls;
    int16_t first_wall;
-   uint16_t ftex;
-   uint16_t ctex;
+
+   RvR_fix22 floor_height;
+   RvR_fix22 ceiling_height;
+
+   uint16_t floor_tex;
+   uint16_t ceiling_tex;
 }RvR_port_sector;
+
+typedef struct
+{
+
+}RvR_port_sprite;
+
+typedef struct
+{
+   int16_t num_sectors;
+   int16_t num_walls;
+
+   RvR_port_sector sectors[RVR_PORT_MAX_SECTORS];
+   RvR_port_wall walls[RVR_PORT_MAX_WALLS];
+}RvR_port_map;
 
 //RvnicRaven portal types end
 //-------------------------------------
 
 //RvnicRaven portal functions
 
+void      RvR_port_set_angle(RvR_fix22 angle);
+RvR_fix22 RvR_port_get_angle();
+void      RvR_port_set_shear(int16_t shear);
+int16_t   RvR_port_get_shear();
+void      RvR_port_set_position(RvR_vec3 position);
+RvR_vec3  RvR_port_get_position();
+void      RvR_port_set_sector(int16_t sector);
+int16_t   RvR_port_get_sector();
+
+void RvR_port_map_create();
+void RvR_port_map_load_path();
+void RvR_port_map_load(uint16_t id);
+void RvR_port_map_load_rw(RvR_rw *rw);
+void RvR_port_map_save(const char *path);
+
+RvR_port_map *RvR_port_map_get();
+
 int RvR_port_sector_inside(int16_t sector, RvR_fix22 x, RvR_fix22 y);
-int16_t RvR_port_sector_update(int16_t last_setor, RvR_fix22 x, RvR_fix22 y);
+int16_t RvR_port_sector_update(int16_t last_sector, RvR_fix22 x, RvR_fix22 y);
+
+void RvR_port_draw_2d();
+void RvR_port_draw();
 
 //RvnicRaven portal functions end
 //-------------------------------------
