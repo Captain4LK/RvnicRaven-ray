@@ -79,6 +79,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Macro functions
 //The beautiful abomination
+//Stack/dynamic array implementation
 #define RvR_stack_type(type,name) typedef struct { type *data; unsigned data_size; unsigned data_used; }name
 #define RvR_stack_function_prototype(type,name,prefix) prefix type name##_pop(name *st); prefix void name##_push(name *st, type v); prefix void name##_clear(name *st); prefix void name##_free(name *st); prefix int name##_empty(const name *st)
 //TODO: handle non-growing stacks in _push
