@@ -67,6 +67,7 @@ void RvR_port_draw()
       RvR_vec2 to_point1 = {0};
       for(int i = 0;i<map->sectors[sector].num_walls;i++,wall0++)
       {
+         wall1 = &map->walls[wall0->p2];
          int32_t x0 = wall0->x-RvR_port_get_position().x;
          int32_t y0 = wall0->y-RvR_port_get_position().y;
          int32_t x1 = wall1->x-RvR_port_get_position().x;
@@ -76,16 +77,17 @@ void RvR_port_draw()
          if(portal>=0&&!(visited[portal/32]&(1<<(portal&31))))
          {
             //TODO: increase/decrease value/bounds check (-1024,1024)
+            //TODO: only add portal when wall is added to potvis
             if((x0*y1-x1*y0)>-1024)
                port_stack_i16_push(&to_visit,wall0->portal);
          }
 
+         //Rotate to camera space
+         //TODO: cache
+         RvR_fix22 cos = RvR_fix22_cos(RvR_port_get_angle());
+         RvR_fix22 sin = RvR_fix22_sin(RvR_port_get_angle());
          if(i==0||(wall0-1)->p2!=i)
          {
-            //TODO: cache
-            RvR_fix22 cos = RvR_fix22_cos(RvR_ray_get_angle());
-            RvR_fix22 sin = RvR_fix22_sin(RvR_ray_get_angle());
-
             to_point0.x = (x0*cos+y0*sin)/1024; 
             to_point0.y = (x0*sin-y0*cos)/1024; 
          }
@@ -93,23 +95,21 @@ void RvR_port_draw()
          {
             to_point0 = to_point1;
          }
-
-         //TODO: cache
-         RvR_fix22 cos = RvR_fix22_cos(RvR_ray_get_angle());
-         RvR_fix22 sin = RvR_fix22_sin(RvR_ray_get_angle());
-
          to_point1.x = (x1*cos+y1*sin)/1024; 
          to_point1.y = (x1*sin-y1*cos)/1024; 
          
-         if(to_point0.y<2048||to_point1.y<2048)
-            goto add_wall;
+         //Wall fully behind camera 
+         if(to_point0.x<128&&to_point1.x<128)
+            goto skip;
 
          //Wedge product, again
+         //Wall not facing camera (determined by winding order of sector walls)
          if((to_point0.x*to_point1.y)/1024-(to_point1.x*to_point0.y)/1024>=0)
-            goto add_wall;
+            goto skip;
 
-
-add_wall:
+         RvR_draw_line(to_point0.x/128+RVR_XRES/2,to_point0.y/128+RVR_YRES/2,to_point1.x/128+RVR_XRES/2,to_point1.y/128+RVR_YRES/2,16);
+skip:
+         continue;
       }
 
 

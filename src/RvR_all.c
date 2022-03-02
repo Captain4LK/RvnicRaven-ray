@@ -52,6 +52,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR_portal.c"
 #include "RvR_portal_sector.c"
 #include "RvR_portal_map.c"
+#include "RvR_portal_draw.c"
 
 #include "backend/RvR_backend_sdl2.c"
 //-------------------------------------
