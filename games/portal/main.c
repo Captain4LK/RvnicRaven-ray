@@ -138,6 +138,7 @@ int main(int argc, char **argv)
    RvR_vec3 pos = {0};
    RvR_fix22 dir = 0;
    int16_t sector = 0;
+   RvR_fix22 fov = 256;
 
    while(RvR_core_running())
    {
@@ -164,9 +165,15 @@ int main(int argc, char **argv)
       int16_t sector_n = RvR_port_sector_update(sector,pos.x,pos.y);
       sector = sector_n<0?sector:sector_n;
 
+      if(RvR_core_key_down(RVR_KEY_NP_ADD))
+         fov++;
+      else if(RvR_core_key_down(RVR_KEY_NP_SUB))
+         fov--;
+
       RvR_port_set_position(pos);
       RvR_port_set_angle(dir);
       RvR_port_set_sector(sector);
+      RvR_port_set_fov(fov);
 
       RvR_draw_clear(1);
       RvR_port_draw();

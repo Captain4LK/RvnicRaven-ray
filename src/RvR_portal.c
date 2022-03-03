@@ -29,6 +29,8 @@ static RvR_fix22 port_cam_angle = 0;
 static RvR_vec3 port_cam_position = {0};
 static int16_t port_cam_shear = 0;
 static int16_t port_cam_sector = 0;
+
+static RvR_fix22 port_fov = 256;
 //-------------------------------------
 
 //Function prototypes
@@ -74,5 +76,15 @@ void RvR_port_set_sector(int16_t sector)
 int16_t RvR_port_get_sector()
 {
    return port_cam_sector;
+}
+
+void RvR_port_set_fov(RvR_fix22 fov)
+{
+   port_fov = fov;
+}
+
+RvR_fix22 RvR_port_get_fov()
+{
+   return port_fov;
 }
 //-------------------------------------

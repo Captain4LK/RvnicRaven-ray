@@ -633,6 +633,9 @@ RvR_vec3  RvR_port_get_position();
 void      RvR_port_set_sector(int16_t sector);
 int16_t   RvR_port_get_sector();
 
+void      RvR_port_set_fov(RvR_fix22 fov);
+RvR_fix22 RvR_port_get_fov();
+
 void RvR_port_map_create();
 void RvR_port_map_load_path();
 void RvR_port_map_load(uint16_t id);

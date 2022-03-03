@@ -53,6 +53,13 @@ void RvR_port_draw()
    port_stack_i16_clear(&potvis_end);
    port_stack_i16_push(&to_visit,RvR_port_get_sector());
 
+   //TODO: cache?
+   RvR_fix22 cos = RvR_fix22_cos(RvR_port_get_angle());
+   RvR_fix22 sin = RvR_fix22_sin(RvR_port_get_angle());
+   RvR_fix22 tan = RvR_fix22_tan(RvR_port_get_fov()/2);
+   RvR_fix22 cos_fov = (cos*tan)/1024;
+   RvR_fix22 sin_fov = (sin*tan)/1024;
+
    while(!port_stack_i16_empty(&to_visit))
    {
       int16_t sector = port_stack_i16_pop(&to_visit);
@@ -83,19 +90,16 @@ void RvR_port_draw()
          }
 
          //Rotate to camera space
-         //TODO: cache
-         RvR_fix22 cos = RvR_fix22_cos(RvR_port_get_angle());
-         RvR_fix22 sin = RvR_fix22_sin(RvR_port_get_angle());
          if(i==0||(wall0-1)->p2!=i)
          {
-            to_point0.x = (x0*cos+y0*sin)/1024; 
+            to_point0.x = (x0*cos_fov+y0*sin_fov)/1024; 
             to_point0.y = (x0*sin-y0*cos)/1024; 
          }
          else
          {
             to_point0 = to_point1;
          }
-         to_point1.x = (x1*cos+y1*sin)/1024; 
+         to_point1.x = (x1*cos_fov+y1*sin_fov)/1024; 
          to_point1.y = (x1*sin-y1*cos)/1024; 
          
          //Wall fully behind camera 
@@ -104,8 +108,23 @@ void RvR_port_draw()
 
          //Wedge product, again
          //Wall not facing camera (determined by winding order of sector walls)
-         if((to_point0.x*to_point1.y)/1024-(to_point1.x*to_point0.y)/1024>=0)
+         if(to_point0.x*to_point1.y-to_point1.x*to_point0.y>=0)
             goto skip;
+
+         //Check if in fov
+         if(-to_point0.x>to_point0.y)
+         {
+            //Wall completely out of sight
+            if(to_point0.x>to_point0.y)
+               goto skip;
+         }
+
+         if(to_point1.x<to_point1.y)
+         {
+            //Wall completely out of sight
+            if(-to_point1.x<to_point1.y)
+               goto skip;
+         }
 
          RvR_draw_line(to_point0.x/128+RVR_XRES/2,to_point0.y/128+RVR_YRES/2,to_point1.x/128+RVR_XRES/2,to_point1.y/128+RVR_YRES/2,16);
 skip:
