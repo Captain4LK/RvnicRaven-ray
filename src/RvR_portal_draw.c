@@ -80,15 +80,6 @@ void RvR_port_draw()
          int32_t x1 = wall1->x-RvR_port_get_position().x;
          int32_t y1 = wall1->y-RvR_port_get_position().y;
 
-         int16_t portal = wall0->portal;
-         if(portal>=0&&!(visited[portal/32]&(1<<(portal&31))))
-         {
-            //TODO: increase/decrease value/bounds check (-1024,1024)
-            //TODO: only add portal when wall is added to potvis
-            if((x0*y1-x1*y0)>-1024)
-               port_stack_i16_push(&to_visit,wall0->portal);
-         }
-
          //Rotate to camera space
          if(i==0||(wall0-1)->p2!=i)
          {
@@ -118,7 +109,6 @@ void RvR_port_draw()
             if(to_point0.x>to_point0.y)
                goto skip;
          }
-
          if(to_point1.x<to_point1.y)
          {
             //Wall completely out of sight
@@ -127,35 +117,13 @@ void RvR_port_draw()
          }
 
          RvR_draw_line(to_point0.x/128+RVR_XRES/2,to_point0.y/128+RVR_YRES/2,to_point1.x/128+RVR_XRES/2,to_point1.y/128+RVR_YRES/2,16);
+
+         int16_t portal = wall0->portal;
+         if(portal>=0&&!(visited[portal/32]&(1<<(portal&31))))
+            port_stack_i16_push(&to_visit,wall0->portal);
 skip:
          continue;
       }
-
-
-      /*RvR_port_wall *wall0 = &map->walls[map->sectors[sector].first_wall];
-      RvR_port_wall *wall1 = NULL;
-      for(int i = map->sectors[sector].first_wall;i<map->sectors[sector].first_wall+map->sectors[sector].num_walls;i++,wall0++)
-      {
-         wall1 = &map->walls[wall0->p2];
-
-         int32_t x0 = wall0->x-RvR_port_get_position().x;
-         int32_t y0 = wall0->y-RvR_port_get_position().y;
-         int32_t x1 = wall1->x-RvR_port_get_position().x;
-         int32_t y1 = wall1->y-RvR_port_get_position().y;
-
-         //Check if wall is portal
-         if(wall0->portal>=0&&!(visited[wall0->portal/32]&(1<<(wall0->portal&31))))
-         {
-            //Check if wall is facing player
-            //The wall is facing the player if the wedge product (explained in RvR_portal_sector.c) is greater (why? it should be smaller...) than 0
-            //Additionally some tolerance is added to prevent some funky behaviour
-            if((x0*y1-x1*y0)>-1024)
-               port_stack_i16_push(&to_visit,wall0->portal);
-         }
-
-         //Rotate points to viewspace,
-         //cache when possible
-      }*/
    }
 }
 

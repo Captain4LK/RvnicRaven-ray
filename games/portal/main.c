@@ -63,12 +63,12 @@ int main(int argc, char **argv)
    map->walls[1].x = 160*256;
    map->walls[1].y = 32*256;
    map->walls[1].p2 = 2;
-   map->walls[1].portal = -1;
+   map->walls[1].portal = 1;
 
    map->walls[2].x = 160*256;
    map->walls[2].y = 160*256;
    map->walls[2].p2 = 3;
-   map->walls[2].portal = 1;
+   map->walls[2].portal = -1;
 
    map->walls[3].x = 32*256;
    map->walls[3].y = 200*256;
