@@ -22,14 +22,35 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
+
+typedef struct
+{
+   //Word coordinates
+   RvR_fix22 w0_x;
+   RvR_fix22 w1_x;
+   RvR_fix22 w0_depth;
+   RvR_fix22 w1_depth;
+
+   //Drawing "coordinates"
+   RvR_fix22 d0_x;
+   RvR_fix22 d1_x;
+   RvR_fix22 d0_depth;
+   RvR_fix22 d1_depth;
+
+   int next;
+}port_potvis_wall;
+
 RvR_stack_type(int16_t,port_stack_i16);
+RvR_stack_type(port_potvis_wall,port_stack_potwall);
 //-------------------------------------
 
 //Variables
+static port_stack_potwall port_potwall = {0};
 //-------------------------------------
 
 //Function prototypes
 RvR_stack_function_prototype(int16_t,port_stack_i16,static);
+RvR_stack_function_prototype(port_potvis_wall,port_stack_potwall,static);
 //-------------------------------------
 
 //Function implementations
@@ -51,6 +72,7 @@ void RvR_port_draw()
    port_stack_i16_clear(&to_visit);
    port_stack_i16_clear(&potvis_start);
    port_stack_i16_clear(&potvis_end);
+   port_stack_potwall_clear(&port_potwall);
    port_stack_i16_push(&to_visit,RvR_port_get_sector());
 
    //TODO: cache?
@@ -79,8 +101,11 @@ void RvR_port_draw()
          int32_t y0 = wall0->y-RvR_port_get_position().y;
          int32_t x1 = wall1->x-RvR_port_get_position().x;
          int32_t y1 = wall1->y-RvR_port_get_position().y;
+         port_potvis_wall potwall = {0};
 
          //Rotate to camera space
+         //x is depth
+         //y is x [sic] coordinate
          if(i==0||(wall0-1)->p2!=i)
          {
             to_point0.x = (x0*cos_fov+y0*sin_fov)/1024; 
@@ -97,18 +122,29 @@ void RvR_port_draw()
          if(to_point0.x<128&&to_point1.x<128)
             goto skip;
 
-         //Wedge product, again
          //Wall not facing camera (determined by winding order of sector walls)
          if(to_point0.x*to_point1.y-to_point1.x*to_point0.y>=0)
             goto skip;
 
          //Check if in fov
+         //Left point in fov
          if(-to_point0.x>to_point0.y)
          {
             //Wall completely out of sight
             if(to_point0.x>to_point0.y)
                goto skip;
+
+            potwall.d0_x = RvR_min(RVR_XRES/2+(to_point0.y*(RVR_XRES/2))/to_point0.x,RVR_XRES-1);
+            potwall.d0_depth = to_point0.x;
          }
+         //Left point to the left of fov
+         else
+         {
+            //Wall completely out of sight
+            //if(-to_point1.x<to_point1.y)
+               //goto skip;
+         }
+
          if(to_point1.x<to_point1.y)
          {
             //Wall completely out of sight
@@ -121,6 +157,12 @@ void RvR_port_draw()
          int16_t portal = wall0->portal;
          if(portal>=0&&!(visited[portal/32]&(1<<(portal&31))))
             port_stack_i16_push(&to_visit,wall0->portal);
+
+         //Well, lets swap x and y, I'm sure this won't cause any problems later...
+         potwall.w0_x = to_point0.y;
+         potwall.w1_x = to_point1.y;
+         potwall.w0_depth = to_point0.x;
+         potwall.w1_depth = to_point1.x;
 skip:
          continue;
       }
@@ -128,4 +170,5 @@ skip:
 }
 
 RvR_stack_function(int16_t,port_stack_i16,16,16,static);
+RvR_stack_function(port_potvis_wall,port_stack_potwall,16,16,static);
 //-------------------------------------
