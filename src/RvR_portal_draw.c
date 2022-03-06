@@ -128,10 +128,10 @@ void RvR_port_draw()
 
          //Check if in fov
          //Left point in fov
-         if(-to_point0.x>to_point0.y)
+         if(to_point0.x>to_point0.y)
          {
             //Wall completely out of sight
-            if(to_point0.x>to_point0.y)
+            if(-to_point0.x>to_point0.y)
                goto skip;
 
             potwall.d0_x = RvR_min(RVR_XRES/2+(to_point0.y*(RVR_XRES/2))/to_point0.x,RVR_XRES-1);
@@ -141,16 +141,36 @@ void RvR_port_draw()
          else
          {
             //Wall completely out of sight
-            //if(-to_point1.x<to_point1.y)
-               //goto skip;
+            if(to_point1.x<to_point1.y)
+               goto skip;
+
+            potwall.d0_x = 0;
+
          }
 
-         if(to_point1.x<to_point1.y)
+         //Right point in fov
+         if(to_point1.x>-to_point1.y)
          {
             //Wall completely out of sight
-            if(-to_point1.x<to_point1.y)
+            if(to_point1.x<to_point1.y)
                goto skip;
+
+            potwall.d1_x = RvR_min(RVR_XRES/2+(to_point1.y*(RVR_XRES/2))/to_point1.x,RVR_XRES-1);
+            potwall.d1_depth = to_point1.x;
          }
+         //Right point to the right of fov
+         else
+         {
+            //Wall completely out of sight
+            if(-to_point0.x>to_point0.y)
+               goto skip;
+
+            potwall.d1_x = RVR_XRES-1;
+         }
+
+         //Near clip wall
+         //if(potwall.d0_depth<128||potwall.d1_depth<128)
+            //goto skip;
 
          RvR_draw_line(to_point0.x/128+RVR_XRES/2,to_point0.y/128+RVR_YRES/2,to_point1.x/128+RVR_XRES/2,to_point1.y/128+RVR_YRES/2,16);
 
