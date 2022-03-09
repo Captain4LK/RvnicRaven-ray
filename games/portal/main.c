@@ -178,17 +178,6 @@ int main(int argc, char **argv)
       RvR_draw_clear(1);
       RvR_port_draw();
 
-      int grid_size = 32;
-      direction = RvR_vec2_rot(0);
-      int dsx = (direction.x*grid_size)/1024;
-      int dsy = (direction.y*grid_size)/1024;
-      RvR_draw_line(RVR_XRES/2+dsx/2,RVR_YRES/2+dsy/2,RVR_XRES/2-dsx/2,RVR_YRES/2-dsy/2,12);
-      direction = RvR_vec2_rot(0+128);
-      RvR_draw_line(RVR_XRES/2+dsx/2,RVR_YRES/2+dsy/2,RVR_XRES/2+dsx/2-(direction.x*grid_size/2)/1024,RVR_YRES/2+dsy/2-(direction.y*grid_size/2)/1024,12);
-      direction = RvR_vec2_rot(0-128);
-      RvR_draw_line(RVR_XRES/2+dsx/2,RVR_YRES/2+dsy/2,RVR_XRES/2+dsx/2-(direction.x*grid_size/2)/1024,RVR_YRES/2+dsy/2-(direction.y*grid_size/2)/1024,12);
-
-
       RvR_core_render_present();
    }
 

@@ -43,7 +43,7 @@ typedef struct
    int16_t sector;
 
    int16_t next;
-}port_potvis_wall;
+}port_potwall_element;
 
 typedef struct
 {
@@ -52,21 +52,28 @@ typedef struct
 }port_potvis_element;
 
 RvR_stack_type(int16_t,port_stack_i16);
-RvR_stack_type(port_potvis_wall,port_stack_potwall);
+RvR_stack_type(port_potwall_element,port_stack_potwall);
 RvR_stack_type(port_potvis_element,port_stack_potvis);
 //-------------------------------------
 
 //Variables
 static port_stack_potwall port_potwall = {0};
 static port_stack_potvis port_potvis = {0};
+static int32_t port_middle_row = 0;
+
+static int_fast16_t port_ymin[RVR_XRES];
+static int_fast16_t port_ymax[RVR_XRES];
 //-------------------------------------
 
 //Function prototypes
 RvR_stack_function_prototype(int16_t,port_stack_i16,static);
-RvR_stack_function_prototype(port_potvis_wall,port_stack_potwall,static);
+RvR_stack_function_prototype(port_potwall_element,port_stack_potwall,static);
 RvR_stack_function_prototype(port_potvis_element,port_stack_potvis,static);
 
-static int port_comp_wall(const void *a, const void *b);
+static void port_wall_draw(int wall_num);
+
+static int port_potvis_order(int16_t va, int16_t vb);
+static int port_wall_order(int16_t a, int16_t b);
 //-------------------------------------
 
 //Function implementations
@@ -78,11 +85,15 @@ void RvR_port_draw_2d()
 void RvR_port_draw()
 {
    RvR_port_map *map = RvR_port_map_get();
+   port_middle_row = (RVR_YRES/2)+RvR_port_get_shear();
+
+   //Clear occlusion arrays
+   memset(port_ymin,0,sizeof(port_ymin));
+   for(int i = 0;i<RVR_XRES;i++) port_ymax[i] = RVR_YRES-1;
 
    //-------------------------------------
    //Look through all sectors and build potential visible set
    static port_stack_i16 to_visit = {0};
-   static port_stack_i16 potwall_sort = {0};
    uint32_t visited[(RVR_PORT_MAX_SECTORS+31)/32] = {0};
 
    //TODO: cache?
@@ -93,7 +104,6 @@ void RvR_port_draw()
    RvR_fix22 sin_fov = (sin*tan)/1024;
 
    port_stack_i16_clear(&to_visit);
-   port_stack_i16_clear(&potwall_sort);
    port_stack_potwall_clear(&port_potwall);
    port_stack_potvis_clear(&port_potvis);
 
@@ -101,7 +111,6 @@ void RvR_port_draw()
    while(!port_stack_i16_empty(&to_visit))
    {
       int16_t sector = port_stack_i16_pop(&to_visit);
-
       visited[sector/32]|=1<<(sector&31);
 
       int potwall_start_used = port_potwall.data_used;
@@ -111,7 +120,6 @@ void RvR_port_draw()
       RvR_port_wall *wall1 = NULL;
       RvR_vec2 to_point0 = {0};
       RvR_vec2 to_point1 = {0};
-
       for(int i = 0;i<map->sectors[sector].num_walls;i++,wall0++)
       {
          wall1 = &map->walls[wall0->p2];
@@ -119,7 +127,7 @@ void RvR_port_draw()
          int32_t y0 = wall0->y-RvR_port_get_position().y;
          int32_t x1 = wall1->x-RvR_port_get_position().x;
          int32_t y1 = wall1->y-RvR_port_get_position().y;
-         port_potvis_wall potwall = {0};
+         port_potwall_element potwall = {0};
 
          //Rotate to camera space
          //x is depth
@@ -141,11 +149,16 @@ void RvR_port_draw()
             goto skip;
 
          //Wall not facing camera (determined by winding order of sector walls)
+         //Wall points MUST be ordered left to right when the wall is
+         //facing the camera
          if(to_point0.x*to_point1.y-to_point1.x*to_point0.y>=0)
             goto skip;
 
+         //Here we can treat everything as if we have a 90 degree
+         //fov, since the rotation to camera space transforms it to
+         //that
          //Check if in fov
-         //Left point in fov
+         //Right point in fov
          if(to_point0.x>to_point0.y)
          {
             //Wall completely out of sight
@@ -155,7 +168,7 @@ void RvR_port_draw()
             potwall.d1_x = RvR_min(RVR_XRES/2+(to_point0.y*(RVR_XRES/2))/to_point0.x,RVR_XRES-1);
             potwall.d1_depth = to_point0.x;
          }
-         //Left point to the left of fov
+         //Right point to the right of fov
          else
          {
             //Wall completely out of sight
@@ -169,7 +182,7 @@ void RvR_port_draw()
             potwall.d1_depth = to_point0.x+((to_point1.x-to_point0.x)*(to_point0.x-to_point0.y))/wall_dx;
          }
 
-         //Right point in fov
+         //Left point in fov
          if(to_point1.x>-to_point1.y)
          {
             //Wall completely out of sight
@@ -179,7 +192,7 @@ void RvR_port_draw()
             potwall.d0_x = RvR_min(RVR_XRES/2+(to_point1.y*(RVR_XRES/2))/to_point1.x,RVR_XRES-1)-1;
             potwall.d0_depth = to_point1.x;
          }
-         //Right point to the right of fov
+         //Left point to the left of fov
          else
          {
             //Wall completely out of sight
@@ -194,14 +207,12 @@ void RvR_port_draw()
          }
 
          //Near clip wall
-         if(potwall.d0_depth<128||potwall.d1_depth<128||potwall.d0_x>=potwall.d1_x)
+         //Special case, near clipped portals still need to be processed
+         if(potwall.d0_depth<128||potwall.d1_depth<128)
+            goto skip_near;
+
+         if(potwall.d0_x>=potwall.d1_x)
             goto skip;
-
-         RvR_draw_line(to_point0.x/128+RVR_XRES/2,to_point0.y/128+RVR_YRES/2,to_point1.x/128+RVR_XRES/2,to_point1.y/128+RVR_YRES/2,16);
-
-         int16_t portal = wall0->portal;
-         if(portal>=0&&!(visited[portal/32]&(1<<(portal&31))))
-            port_stack_i16_push(&to_visit,wall0->portal);
 
          //Well, lets swap x and y, I'm sure this won't cause any problems later...
          potwall.w0_x = to_point0.y;
@@ -212,7 +223,17 @@ void RvR_port_draw()
          potwall.sector = sector;
          potwall.next = port_potwall.data_used+1;
          port_stack_potwall_push(&port_potwall,potwall);
-         port_stack_i16_push(&potwall_sort,potwall_sort.data_used);
+
+skip_near:
+
+         //Wrapped in block to avoid compiler warning
+         //Could also move the portal declaration somewhere else, though
+         {
+         int16_t portal = wall0->portal;
+         if(portal>=0&&!(visited[portal/32]&(1<<(portal&31))))
+            port_stack_i16_push(&to_visit,wall0->portal);
+         }
+
 skip:
 
          if(wall0->p2<i+map->sectors[sector].first_wall&&potwall_first<port_potwall.data_used)
@@ -225,7 +246,7 @@ skip:
       int port_potvis_used = port_potvis.data_used;
       for(int i = potwall_start_used;i<port_potwall.data_used;i++)
       {
-         port_potvis_wall *wl = &port_potwall.data[i];
+         port_potwall_element *wl = &port_potwall.data[i];
          if(map->walls[wl->wall].p2!=port_potwall.data[wl->next].wall||wl->d1_x>=port_potwall.data[wl->next].d0_x)
          {
             port_stack_potvis_push(&port_potvis,(port_potvis_element){.start = wl->next});
@@ -244,49 +265,160 @@ skip:
    //-------------------------------------
 
    //Sort and draw potvis walls
-   int16_t start[RVR_XRES] = {0};
-   int16_t end[RVR_XRES];
-   for(int i = 0;i<RVR_XRES;i++) end[i] = RVR_YRES;
-   qsort(potwall_sort.data,potwall_sort.data_used,sizeof(*potwall_sort.data),port_comp_wall);
-   for(int i = 0;i<potwall_sort.data_used;i++)
+   while(!port_stack_potvis_empty(&port_potvis))
+   {
+      uint8_t certain[port_potvis.data_used];
+      memset(certain,0,sizeof(*certain)*port_potvis.data_used);
+      int16_t near = 0;
+      certain[near] = 1;
+      int done = 0;
+
+      //puts("-------------");
+      do
+      {
+         done = 1;
+         //puts("run");
+         for(int i = 0;i<port_potvis.data_used;i++)
+         {
+            if(certain[i])
+               continue;
+
+            int order = port_potvis_order(i,near);
+            if(order<0)
+               continue;
+            certain[i] = 1;
+            if(order==0)
+            {
+               done = 0;
+               certain[near] = 1;
+               near = i;
+            }
+         }
+      }while(!done);
+
+      for(int i = port_potvis.data[near].start;i<=port_potvis.data[near].end;i++)
+         port_wall_draw(i);
+
+      port_potvis.data_used--;
+      port_potvis.data[near] = port_potvis.data[port_potvis.data_used];
+   }
+   /*for(int i = 0;i<potwall_sort.data_used;i++)
    {
       port_potvis_wall *wall = &port_potwall.data[potwall_sort.data[i]];
-      int height0 = (RVR_YRES*1024)/wall->d0_depth;
-      int height1 = (RVR_YRES*1024)/wall->d1_depth;
-      RvR_fix22 width = (wall->d1_x-wall->d0_x);
-      RvR_fix22 step_y = ((RVR_YRES/2-height1)*1024-(RVR_YRES/2-height0)*1024)/width;
-      RvR_fix22 step_h = (height1*1024*2-height0*1024*2)/width;
-      RvR_fix22 y = (RVR_YRES/2-height0)*1024;
-      RvR_fix22 h = height0*1024*2;
+      RvR_draw_line(wall->w0_depth/128+RVR_XRES/2,wall->w0_x/128+RVR_YRES/2,wall->w1_depth/128+RVR_XRES/2,wall->w1_x/128+RVR_YRES/2,16);
+   }*/
+   //-------------------------------------
+}
 
+static void port_wall_draw(int wall_num)
+{
+   RvR_port_map *map = RvR_port_map_get();
+
+   port_potwall_element *wall = &port_potwall.data[wall_num];
+   int height0 = (RVR_YRES*1024*1024)/wall->d0_depth;
+   int height1 = (RVR_YRES*1024*1024)/wall->d1_depth;
+   RvR_fix22 width = (wall->d1_x-wall->d0_x);
+   RvR_fix22 step_y = ((RVR_YRES*512-height1)-(RVR_YRES*512-height0))/width;
+   RvR_fix22 step_h = (height1*2-height0*2)/width;
+   RvR_fix22 y = (RVR_YRES*512-height0);
+   RvR_fix22 h = height0*2;
+   int16_t portal = map->walls[wall->wall].portal;
+
+   //Normal wall
+   if(portal<0)
+   {
       for(int x = wall->d0_x;x<wall->d1_x;x++)
       {
-         if(map->walls[wall->wall].portal<0)
+         uint8_t * restrict pix = &RvR_core_framebuffer()[port_ymin[x]*RVR_XRES+x];
+
+         //Ceiling
+         int y_to = RvR_min(y/1024-1,port_ymax[x]);
+         int wy = port_ymin[x];
+         for(;wy<y_to;wy++)
          {
-            RvR_draw_vertical_line(x,y/1024,(y+h)/1024,i+2);
-            RvR_draw_vertical_line(x,0,y/1024,wall->sector+128);
-            RvR_draw_vertical_line(x,(y+h)/1024,RVR_YRES-1,wall->sector+129);
+            *pix = 128;
+            pix+=RVR_XRES;
          }
-         else
+
+         //Wall
+         y_to = RvR_min((y+h)/1024,port_ymax[x]);
+         for(;wy<y_to;wy++)
          {
+            *pix = 4;
+            pix+=RVR_XRES;
          }
+
+         //Floor
+         y_to = RvR_min(RVR_YRES-1,port_ymax[x]);
+         for(;wy<y_to;wy++)
+         {
+            *pix = 129;
+            pix+=RVR_XRES;
+         }
+
+         port_ymin[x] = RVR_YRES;
+         port_ymax[x] = 0;
+
          y+=step_y;
          h+=step_h;
       }
    }
-   //-------------------------------------
+   //Portal
+   else
+   {
+      //
+   }
+   /*for(int x = wall->d0_x;x<wall->d1_x;x++)
+   {
+      if(map->walls[wall->wall].portal<0)
+      {
+         //if(start[x]==0)
+         //{
+            RvR_draw_vertical_line(x,y/1024,(y+h)/1024,4);
+            RvR_draw_vertical_line(x,0,y/1024-1,128);
+            RvR_draw_vertical_line(x,(y+h)/1024+1,RVR_YRES-1,129);
+            //start[x] = RVR_YRES;
+         //}
+      }
+      else
+      {
+      }
+      y+=step_y;
+      h+=step_h;
+   }*/
 }
 
-static int port_comp_wall(const void *a, const void *b)
+static int port_potvis_order(int16_t va, int16_t vb)
+{
+   port_potvis_element *a = &port_potvis.data[va];
+   port_potvis_element *b = &port_potvis.data[vb];
+
+   RvR_fix22 xaf = port_potwall.data[a->start].d0_x;
+   RvR_fix22 xal = port_potwall.data[a->end].d1_x;
+   RvR_fix22 xbf = port_potwall.data[b->start].d0_x;
+   RvR_fix22 xbl = port_potwall.data[b->end].d1_x;
+
+   //No overlap
+   if(xaf>=xbl||xbf>=xal)
+      return -1;
+
+   if(xaf>=xbf)
+   {
+      int i;
+      for(i = b->start;port_potwall.data[i].d1_x<xaf;i = port_potwall.data[i].next);
+      return port_wall_order(a->start,i);
+   }
+
+   int i;
+   for(i = a->start;port_potwall.data[i].d1_x<xbf;i = port_potwall.data[i].next);
+   return port_wall_order(i,b->start);
+}
+
+static int port_wall_order(int16_t a, int16_t b)
 {
    RvR_port_map *map = RvR_port_map_get();
-   port_potvis_wall *wa = &port_potwall.data[*((int16_t *)a)];
-   port_potvis_wall *wb = &port_potwall.data[*((int16_t *)b)];
-
-   if(wa->d0_x>=wb->d1_x)
-      return 0;
-   if(wa->d1_x<wb->d0_x)
-      return 0;
+   port_potwall_element *wa = &port_potwall.data[a];
+   port_potwall_element *wb = &port_potwall.data[b];
 
    RvR_fix22 x00 = map->walls[wa->wall].x;
    RvR_fix22 y00 = map->walls[wa->wall].y;
@@ -304,7 +436,7 @@ static int port_comp_wall(const void *a, const void *b)
    if(t0==0)
    {
       if(t1==0)
-         return 0;
+         return -1;
       t0 = t1;
    }
    else if(t1==0)
@@ -315,7 +447,7 @@ static int port_comp_wall(const void *a, const void *b)
    if(RvR_sign_equal(t0,t1))
    {
       t1 = ((RvR_port_get_position().x-x00)*dy-(RvR_port_get_position().y-y00)*dx)/1024;
-      return RvR_sign_equal(t0,t1)?-1:1;
+      return RvR_sign_equal(t0,t1);
    }
 
    dx = x11-x10;
@@ -325,7 +457,7 @@ static int port_comp_wall(const void *a, const void *b)
    if(t0==0)
    {
       if(t1==0)
-         return 0;
+         return -1;
       t0 = t1;
    }
    else if(t1==0)
@@ -336,13 +468,13 @@ static int port_comp_wall(const void *a, const void *b)
    if(RvR_sign_equal(t0,t1))
    {
       t1 = ((RvR_port_get_position().x-x10)*dy-(RvR_port_get_position().y-y10)*dx)/1024;
-      return (!RvR_sign_equal(t0,t1))?-1:1;
+      return !RvR_sign_equal(t0,t1);
    }
 
-   return 0;
+   return -1;
 }
 
 RvR_stack_function(int16_t,port_stack_i16,16,16,static);
-RvR_stack_function(port_potvis_wall,port_stack_potwall,16,16,static);
+RvR_stack_function(port_potwall_element,port_stack_potwall,16,16,static);
 RvR_stack_function(port_potvis_element,port_stack_potvis,16,16,static);
 //-------------------------------------
