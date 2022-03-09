@@ -287,11 +287,12 @@ skip:
             if(order<0)
                continue;
             certain[i] = 1;
-            if(order==0)
+            if(order)
             {
                done = 0;
                certain[near] = 1;
                near = i;
+               certain[near] = 1;
             }
          }
       }while(!done);
@@ -414,6 +415,10 @@ static int port_potvis_order(int16_t va, int16_t vb)
    return port_wall_order(i,b->start);
 }
 
+//Returns:
+//-1 walls don't obstruct each other
+//0 wall a is obstructed by wall b --> wall b first
+//1 wall b is obstructed by wall a --> wall a first
 static int port_wall_order(int16_t a, int16_t b)
 {
    RvR_port_map *map = RvR_port_map_get();
@@ -429,48 +434,66 @@ static int port_wall_order(int16_t a, int16_t b)
    RvR_fix22 x11 = map->walls[map->walls[wb->wall].p2].x;
    RvR_fix22 y11 = map->walls[map->walls[wb->wall].p2].y;
 
-   RvR_fix22 dx = x01-x00;
-   RvR_fix22 dy = y01-y00;
-   RvR_fix22 t0 = ((x10-x00)*dy-(y10-y00)*dx)/1024;
-   RvR_fix22 t1 = ((x11-x00)*dy-(y11-y00)*dx)/1024;
+   //(x00/y00) is origin, all calculations centered arround it
+   //t0 is relation of (b,p0) to wall a
+   //t1 is relation of (b,p1) to wall a
+   //See RvR_port_sector_inside for more in depth explanation
+   RvR_fix22 x = x01-x00;
+   RvR_fix22 y = y01-y00;
+   RvR_fix22 t0 = ((x10-x00)*y-(y10-y00)*x)/1024;
+   RvR_fix22 t1 = ((x11-x00)*y-(y11-y00)*x)/1024;
+
+   //(b,p0) on extension of wall a (shared corner, etc)
    if(t0==0)
    {
+      //(b,p1) on extension of wall a
+      //--> walls on the same line (maybe identicall or adjacent)
       if(t1==0)
          return -1;
+
+      //Set to t1 to trigger RvR_sign_equal check (and for the return !RvR_sign_equal to be correct)
       t0 = t1;
    }
+   //(b,p1) on extension of wall a
    else if(t1==0)
    {
+      //Set to t1 to trigger RvR_sign_equal check
       t1 = t0;
    }
 
+   //Wall either to the left or to the right of other wall
    if(RvR_sign_equal(t0,t1))
    {
-      t1 = ((RvR_port_get_position().x-x00)*dy-(RvR_port_get_position().y-y00)*dx)/1024;
-      return RvR_sign_equal(t0,t1);
-   }
-
-   dx = x11-x10;
-   dy = y11-y10;
-   t0 = ((x00-x10)*dy-(y00-y10)*dx)/1024;
-   t1 = ((x01-x10)*dy-(y01-y10)*dx)/1024;
-   if(t0==0)
-   {
-      if(t1==0)
-         return -1;
-      t0 = t1;
-   }
-   else if(t1==0)
-   {
-      t1 = t0;
-   }
-
-   if(RvR_sign_equal(t0,t1))
-   {
-      t1 = ((RvR_port_get_position().x-x10)*dy-(RvR_port_get_position().y-y10)*dx)/1024;
+      //Compare with player position relative to wall a
+      //if wall b and the player share the same relation, wall a needs to be drawn first
+      t1 = ((RvR_port_get_position().x-x00)*y-(RvR_port_get_position().y-y00)*x)/1024;
       return !RvR_sign_equal(t0,t1);
    }
 
+   //Same as above, but for wall b to wall a instead
+   //(x10/y10) is origin, all calculations centered arround it
+   x = x11-x10;
+   y = y11-y10;
+   t0 = ((x00-x10)*y-(y00-y10)*x)/1024;
+   t1 = ((x01-x10)*y-(y01-y10)*x)/1024;
+   if(t0==0)
+   {
+      if(t1==0)
+         return -1;
+      t0 = t1;
+   }
+   else if(t1==0)
+   {
+      t1 = t0;
+   }
+
+   if(RvR_sign_equal(t0,t1))
+   {
+      t1 = ((RvR_port_get_position().x-x10)*y-(RvR_port_get_position().y-y10)*x)/1024;
+      return RvR_sign_equal(t0,t1);
+   }
+
+   //Invalid case, expect rendering glitches
    return -1;
 }
 
