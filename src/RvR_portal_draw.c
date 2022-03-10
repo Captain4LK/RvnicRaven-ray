@@ -389,6 +389,10 @@ static void port_wall_draw(int wall_num)
    }*/
 }
 
+//Returns:
+//-1 potvis don't obstruct each other
+//0 potvis a is obstructed by potvis b --> potvis b first
+//1 potvis b is obstructed by potvis a --> potvis a first
 static int port_potvis_order(int16_t va, int16_t vb)
 {
    port_potvis_element *a = &port_potvis.data[va];
@@ -443,25 +447,21 @@ static int port_wall_order(int16_t a, int16_t b)
    RvR_fix22 t0 = ((x10-x00)*y-(y10-y00)*x)/1024;
    RvR_fix22 t1 = ((x11-x00)*y-(y11-y00)*x)/1024;
 
+   //walls on the same line (identicall or adjacent)
+   if(t0==0&&t1==0)
+      return -1;
+
    //(b,p0) on extension of wall a (shared corner, etc)
+   //Set t0 = t1 to trigger RvR_sign_equal check (and for the return !RvR_sign_equal to be correct)
    if(t0==0)
-   {
-      //(b,p1) on extension of wall a
-      //--> walls on the same line (maybe identicall or adjacent)
-      if(t1==0)
-         return -1;
-
-      //Set to t1 to trigger RvR_sign_equal check (and for the return !RvR_sign_equal to be correct)
       t0 = t1;
-   }
-   //(b,p1) on extension of wall a
-   else if(t1==0)
-   {
-      //Set to t1 to trigger RvR_sign_equal check
-      t1 = t0;
-   }
 
-   //Wall either to the left or to the right of other wall
+   //(b,p1) on extension of wall a
+   //Set t0 = t1 to trigger RvR_sign_equal check
+   if(t1==0)
+      t1 = t0;
+
+   //Wall either completely to the left or to the right of other wall
    if(RvR_sign_equal(t0,t1))
    {
       //Compare with player position relative to wall a
@@ -470,30 +470,32 @@ static int port_wall_order(int16_t a, int16_t b)
       return !RvR_sign_equal(t0,t1);
    }
 
-   //Same as above, but for wall b to wall a instead
+   //Extension of wall a intersects with wall b
+   //--> check wall b instead
    //(x10/y10) is origin, all calculations centered arround it
    x = x11-x10;
    y = y11-y10;
    t0 = ((x00-x10)*y-(y00-y10)*x)/1024;
    t1 = ((x01-x10)*y-(y01-y10)*x)/1024;
-   if(t0==0)
-   {
-      if(t1==0)
-         return -1;
-      t0 = t1;
-   }
-   else if(t1==0)
-   {
-      t1 = t0;
-   }
 
+   //(a,p0) on extension of wall b
+   if(t0==0)
+      t0 = t1;
+
+   //(a,p1) on extension of wall b
+   if(t1==0)
+      t1 = t0;
+
+   //Wall either completely to the left or to the right of other wall
    if(RvR_sign_equal(t0,t1))
    {
+      //Compare with player position relative to wall b
+      //if wall a and the player share the same relation, wall b needs to be drawn first
       t1 = ((RvR_port_get_position().x-x10)*y-(RvR_port_get_position().y-y10)*x)/1024;
       return RvR_sign_equal(t0,t1);
    }
 
-   //Invalid case, expect rendering glitches
+   //Invalid case (walls are intersecting), expect rendering glitches
    return -1;
 }
 
