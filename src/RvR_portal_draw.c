@@ -369,24 +369,6 @@ static void port_wall_draw(int wall_num)
    {
       //
    }
-   /*for(int x = wall->d0_x;x<wall->d1_x;x++)
-   {
-      if(map->walls[wall->wall].portal<0)
-      {
-         //if(start[x]==0)
-         //{
-            RvR_draw_vertical_line(x,y/1024,(y+h)/1024,4);
-            RvR_draw_vertical_line(x,0,y/1024-1,128);
-            RvR_draw_vertical_line(x,(y+h)/1024+1,RVR_YRES-1,129);
-            //start[x] = RVR_YRES;
-         //}
-      }
-      else
-      {
-      }
-      y+=step_y;
-      h+=step_h;
-   }*/
 }
 
 //Returns:
