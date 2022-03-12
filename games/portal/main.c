@@ -50,10 +50,16 @@ int main(int argc, char **argv)
    map->num_walls = 16;
    map->sectors[0].num_walls = 8;
    map->sectors[0].first_wall = 0;
+   map->sectors[0].floor_height = 0;
+   map->sectors[0].ceiling_height = 2048;
    map->sectors[1].num_walls = 4;
    map->sectors[1].first_wall = 8;
+   map->sectors[1].floor_height = 1024;
+   map->sectors[1].ceiling_height = 2048;
    map->sectors[2].num_walls = 4;
    map->sectors[2].first_wall = 12;
+   map->sectors[2].floor_height = 1024;
+   map->sectors[2].ceiling_height = 2048;
 
    map->walls[0].x = 32*256;
    map->walls[0].y = 32*256;

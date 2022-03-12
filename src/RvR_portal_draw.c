@@ -273,11 +273,9 @@ skip:
       certain[near] = 1;
       int done = 0;
 
-      //puts("-------------");
       do
       {
          done = 1;
-         //puts("run");
          for(int i = 0;i<port_potvis.data_used;i++)
          {
             if(certain[i])
@@ -316,8 +314,9 @@ static void port_wall_draw(int wall_num)
    RvR_port_map *map = RvR_port_map_get();
 
    port_potwall_element *wall = &port_potwall.data[wall_num];
-   int height0 = (RVR_YRES*1024*1024)/wall->d0_depth;
-   int height1 = (RVR_YRES*1024*1024)/wall->d1_depth;
+   RvR_fix22 wall_diff = map->sectors[wall->sector].ceiling_height-map->sectors[wall->sector].floor_height;
+   int height0 = (RVR_YRES*wall_diff*1024)/wall->d0_depth;
+   int height1 = (RVR_YRES*wall_diff*1024)/wall->d1_depth;
    RvR_fix22 width = (wall->d1_x-wall->d0_x);
    RvR_fix22 step_y = ((RVR_YRES*512-height1)-(RVR_YRES*512-height0))/width;
    RvR_fix22 step_h = (height1*2-height0*2)/width;
@@ -367,7 +366,21 @@ static void port_wall_draw(int wall_num)
    //Portal
    else
    {
-      //
+      //Floor height diff
+      //<=0 --> no floor wall drawn
+      RvR_fix22 floor_diff = map->sectors[portal].floor_height-map->sectors[wall->sector].floor_height;
+      RvR_fix22 fh0 = (RVR_YRES*floor_diff*1024)/wall->d0_depth;
+      RvR_fix22 fh1 = (RVR_YRES*floor_diff*1024)/wall->d1_depth;
+      RvR_fix22 step_fh = (fh1*2-fh0*2)/width;
+      RvR_fix22 fh = fh0*2;
+
+      //Ceiling height diff
+      //<=0 --> no ceiling wall drawn
+      RvR_fix22 ceiling_diff = map->sectors[wall->sector].ceiling_height-map->sectors[portal].ceiling_height;
+      RvR_fix22 ch0 = (RVR_YRES*ceiling_diff*1024)/wall->d0_depth;
+      RvR_fix22 ch1 = (RVR_YRES*ceiling_diff*1024)/wall->d1_depth;
+      RvR_fix22 step_ch = (ch1*2-ch0*2)/width;
+      RvR_fix22 ch = ch0*2;
    }
 }
 
@@ -389,6 +402,7 @@ static int port_potvis_order(int16_t va, int16_t vb)
    if(xaf>=xbl||xbf>=xal)
       return -1;
 
+   //potvis a starts in potvis b
    if(xaf>=xbf)
    {
       int i;
@@ -396,6 +410,7 @@ static int port_potvis_order(int16_t va, int16_t vb)
       return port_wall_order(a->start,i);
    }
 
+   //potvis a starts to the left of potvis b
    int i;
    for(i = a->start;port_potwall.data[i].d1_x<xbf;i = port_potwall.data[i].next);
    return port_wall_order(i,b->start);
