@@ -132,7 +132,7 @@ void RvR_port_draw()
          //Rotate to camera space
          //x is depth
          //y is x [sic] coordinate
-         if(i==0||(wall0-1)->p2!=i)
+         if(i==0||(wall0-1)->p2!=i+map->sectors[sector].first_wall)
          {
             to_point0.x = (x0*cos_fov+y0*sin_fov)/1024; 
             to_point0.y = (x0*sin-y0*cos)/1024; 
@@ -165,7 +165,7 @@ void RvR_port_draw()
             if(-to_point0.x>to_point0.y)
                goto skip;
 
-            potwall.d1_x = RvR_min(RVR_XRES/2+(to_point0.y*(RVR_XRES/2))/to_point0.x,RVR_XRES-1);
+            potwall.d1_x = RvR_min(RVR_XRES/2+(to_point0.y*(RVR_XRES/2))/to_point0.x,RVR_XRES-1)-1;
             potwall.d1_depth = to_point0.x;
          }
          //Right point to the right of fov
@@ -247,7 +247,9 @@ skip:
       for(int i = potwall_start_used;i<port_potwall.data_used;i++)
       {
          port_potwall_element *wl = &port_potwall.data[i];
-         if(map->walls[wl->wall].p2!=port_potwall.data[wl->next].wall||wl->d1_x>=port_potwall.data[wl->next].d0_x)
+         //printf("%d %d\n",wl->d1_x,port_potwall.data[wl->next].d0_x);
+
+         if(map->walls[wl->wall].p2!=port_potwall.data[wl->next].wall||wl->d1_x>port_potwall.data[wl->next].d0_x)
          {
             port_stack_potvis_push(&port_potvis,(port_potvis_element){.start = wl->next});
             wl->next = -1;
@@ -263,6 +265,17 @@ skip:
       }
    }
    //-------------------------------------
+
+   if(RvR_core_key_pressed(RVR_KEY_P))
+   {
+      for(int i = 0;i<port_potvis.data_used;i++)
+      {
+         printf("Potvis %d: ",i);
+         for(int j = port_potvis.data[i].start;j<=port_potvis.data[i].end;j++)
+            printf("%d ",port_potwall.data[j].wall);
+         puts("");
+      }
+   }
 
    //Sort and draw potvis walls
    while(!port_stack_potvis_empty(&port_potvis))
@@ -284,11 +297,11 @@ skip:
             int order = port_potvis_order(i,near);
             if(order<0)
                continue;
+
             certain[i] = 1;
             if(order)
             {
                done = 0;
-               certain[near] = 1;
                near = i;
                certain[near] = 1;
             }
@@ -312,75 +325,170 @@ skip:
 static void port_wall_draw(int wall_num)
 {
    RvR_port_map *map = RvR_port_map_get();
-
    port_potwall_element *wall = &port_potwall.data[wall_num];
-   RvR_fix22 wall_diff = map->sectors[wall->sector].ceiling_height-map->sectors[wall->sector].floor_height;
-   int height0 = (RVR_YRES*wall_diff*1024)/wall->d0_depth;
-   int height1 = (RVR_YRES*wall_diff*1024)/wall->d1_depth;
    RvR_fix22 width = (wall->d1_x-wall->d0_x);
-   RvR_fix22 step_y = ((RVR_YRES*512-height1)-(RVR_YRES*512-height0))/width;
-   RvR_fix22 step_h = (height1*2-height0*2)/width;
-   RvR_fix22 y = (RVR_YRES*512-height0);
-   RvR_fix22 h = height0*2;
    int16_t portal = map->walls[wall->wall].portal;
 
    //Normal wall
    if(portal<0)
    {
+      //Depth
+      RvR_fix22 step_depth = (wall->d1_depth-wall->d1_depth)/width;
+      RvR_fix22 depth = wall->d0_depth;
+
+      //Ceiling
+      RvR_fix22 cy0 = (RVR_YRES*(map->sectors[wall->sector].ceiling_height-RvR_port_get_position().z)*1024)/wall->d0_depth;
+      RvR_fix22 cy1 = (RVR_YRES*(map->sectors[wall->sector].ceiling_height-RvR_port_get_position().z)*1024)/wall->d1_depth;
+      cy0 = port_middle_row*1024-cy0;
+      cy1 = port_middle_row*1024-cy1;
+      RvR_fix22 step_cy = (cy1-cy0)/width;
+      RvR_fix22 cy = cy0;
+
+      //Floor
+      RvR_fix22 fy0 = (RVR_YRES*(map->sectors[wall->sector].floor_height-RvR_port_get_position().z)*1024)/wall->d0_depth;
+      RvR_fix22 fy1 = (RVR_YRES*(map->sectors[wall->sector].floor_height-RvR_port_get_position().z)*1024)/wall->d1_depth;
+      fy0 = port_middle_row*1024-fy0;
+      fy1 = port_middle_row*1024-fy1;
+      RvR_fix22 step_fy = (fy1-fy0)/width;
+      RvR_fix22 fy = fy0;
+
       for(int x = wall->d0_x;x<wall->d1_x;x++)
       {
+         int wy = port_ymin[x];
          uint8_t * restrict pix = &RvR_core_framebuffer()[port_ymin[x]*RVR_XRES+x];
 
          //Ceiling
-         int y_to = RvR_min(y/1024-1,port_ymax[x]);
-         int wy = port_ymin[x];
+         int y_to = RvR_min(cy/1024,port_ymax[x]);
          for(;wy<y_to;wy++)
          {
-            *pix = 128;
+            *pix = map->sectors[wall->sector].ceiling_tex;
             pix+=RVR_XRES;
          }
 
+         if(RvR_core_key_down(RVR_KEY_SPACE))
+            RvR_core_render_present();
+
          //Wall
-         y_to = RvR_min((y+h)/1024,port_ymax[x]);
+         y_to = RvR_min(fy/1024-1,port_ymax[x]);
          for(;wy<y_to;wy++)
          {
             *pix = 4;
             pix+=RVR_XRES;
          }
 
+         if(RvR_core_key_down(RVR_KEY_SPACE))
+            RvR_core_render_present();
+
          //Floor
          y_to = RvR_min(RVR_YRES-1,port_ymax[x]);
          for(;wy<y_to;wy++)
          {
-            *pix = 129;
+            *pix = map->sectors[wall->sector].floor_tex;
             pix+=RVR_XRES;
          }
+
+         if(RvR_core_key_down(RVR_KEY_SPACE))
+            RvR_core_render_present();
 
          port_ymin[x] = RVR_YRES;
          port_ymax[x] = 0;
 
-         y+=step_y;
-         h+=step_h;
+         cy+=step_cy;
+         fy+=step_fy;
+         depth+=step_depth;
       }
    }
    //Portal
    else
    {
-      //Floor height diff
-      //<=0 --> no floor wall drawn
-      RvR_fix22 floor_diff = map->sectors[portal].floor_height-map->sectors[wall->sector].floor_height;
-      RvR_fix22 fh0 = (RVR_YRES*floor_diff*1024)/wall->d0_depth;
-      RvR_fix22 fh1 = (RVR_YRES*floor_diff*1024)/wall->d1_depth;
-      RvR_fix22 step_fh = (fh1*2-fh0*2)/width;
-      RvR_fix22 fh = fh0*2;
+      //Current sector ceiling
+      RvR_fix22 cy0 = (RVR_YRES*(map->sectors[wall->sector].ceiling_height-RvR_port_get_position().z)*1024)/wall->d0_depth;
+      RvR_fix22 cy1 = (RVR_YRES*(map->sectors[wall->sector].ceiling_height-RvR_port_get_position().z)*1024)/wall->d1_depth;
+      cy0 = port_middle_row*1024-cy0;
+      cy1 = port_middle_row*1024-cy1;
+      RvR_fix22 step_cy = (cy1-cy0)/width;
+      RvR_fix22 cy = cy0;
 
-      //Ceiling height diff
-      //<=0 --> no ceiling wall drawn
-      RvR_fix22 ceiling_diff = map->sectors[wall->sector].ceiling_height-map->sectors[portal].ceiling_height;
-      RvR_fix22 ch0 = (RVR_YRES*ceiling_diff*1024)/wall->d0_depth;
-      RvR_fix22 ch1 = (RVR_YRES*ceiling_diff*1024)/wall->d1_depth;
-      RvR_fix22 step_ch = (ch1*2-ch0*2)/width;
-      RvR_fix22 ch = ch0*2;
+      //Portal sector ceiling
+      RvR_fix22 cph0 = RvR_max(0,(RVR_YRES*(map->sectors[wall->sector].ceiling_height-map->sectors[portal].ceiling_height)*1024)/wall->d0_depth);
+      RvR_fix22 cph1 = RvR_max(0,(RVR_YRES*(map->sectors[wall->sector].ceiling_height-map->sectors[portal].ceiling_height)*1024)/wall->d1_depth);
+      RvR_fix22 step_cph = (cph1-cph0)/width;
+      RvR_fix22 cph = cph0;
+
+      //Current sector floor
+      RvR_fix22 fy0 = (RVR_YRES*(map->sectors[wall->sector].floor_height-RvR_port_get_position().z)*1024)/wall->d0_depth;
+      RvR_fix22 fy1 = (RVR_YRES*(map->sectors[wall->sector].floor_height-RvR_port_get_position().z)*1024)/wall->d1_depth;
+      fy0 = port_middle_row*1024-fy0;
+      fy1 = port_middle_row*1024-fy1;
+      RvR_fix22 step_fy = (fy1-fy0)/width;
+      RvR_fix22 fy = fy0;
+
+      //Portal sector floor
+      RvR_fix22 fph0 = RvR_max(0,(RVR_YRES*(map->sectors[portal].floor_height-map->sectors[wall->sector].floor_height)*1024)/wall->d0_depth);
+      RvR_fix22 fph1 = RvR_max(0,(RVR_YRES*(map->sectors[portal].floor_height-map->sectors[wall->sector].floor_height)*1024)/wall->d1_depth);
+      RvR_fix22 step_fph = (fph1-fph0)/width;
+      RvR_fix22 fph = fph0;
+
+      for(int x = wall->d0_x;x<wall->d1_x;x++)
+      {
+         int wy = port_ymin[x];
+         uint8_t * restrict pix = &RvR_core_framebuffer()[wy*RVR_XRES+x];
+
+         //Draw ceiling until ceiling wall
+         int y_to = RvR_min(cy/1024,port_ymax[x]);
+         for(;wy<y_to;wy++)
+         {
+            *pix = map->sectors[wall->sector].ceiling_tex;
+            pix+=RVR_XRES;
+         }
+
+         if(RvR_core_key_down(RVR_KEY_SPACE))
+            RvR_core_render_present();
+
+         //Draw ceiling wall
+         y_to = RvR_min((cy+cph)/1024,port_ymax[x]);
+         for(;wy<y_to;wy++)
+         {
+            *pix = 4;
+            pix+=RVR_XRES;
+         }
+
+         port_ymin[x] = wy;
+         wy = RvR_max(wy,(fy-fph)/1024);
+         pix = &RvR_core_framebuffer()[wy*RVR_XRES+x];
+
+         if(RvR_core_key_down(RVR_KEY_SPACE))
+            RvR_core_render_present();
+
+         //Draw floor wall
+         y_to = RvR_min(fy/1024-1,port_ymax[x]);
+         for(;wy<y_to;wy++)
+         {
+            *pix = 4;
+            pix+=RVR_XRES;
+         }
+
+         if(RvR_core_key_down(RVR_KEY_SPACE))
+            RvR_core_render_present();
+
+         //Draw floor
+         y_to = RvR_min(RVR_YRES-1,port_ymax[x]);
+         for(;wy<y_to;wy++)
+         {
+            *pix = map->sectors[wall->sector].floor_tex;
+            pix+=RVR_XRES;
+         }
+
+         if(RvR_core_key_down(RVR_KEY_SPACE))
+            RvR_core_render_present();
+
+         port_ymax[x] = RvR_min((fy-fph)/1024,port_ymax[x]);
+
+         cy+=step_cy;
+         cph+=step_cph;
+         fy+=step_fy;
+         fph+=step_fph;
+      }
    }
 }
 
@@ -403,7 +511,7 @@ static int port_potvis_order(int16_t va, int16_t vb)
       return -1;
 
    //potvis a starts in potvis b
-   if(xaf>=xbf)
+   if(xaf>xbf)
    {
       int i;
       for(i = b->start;port_potwall.data[i].d1_x<xaf;i = port_potwall.data[i].next);
