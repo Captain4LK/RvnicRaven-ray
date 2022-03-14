@@ -145,7 +145,7 @@ void RvR_port_draw()
          to_point1.y = (x1*sin-y1*cos)/1024; 
          
          //Wall fully behind camera 
-         if(to_point0.x<128&&to_point1.x<128)
+         if(to_point0.x<-128&&to_point1.x<-128)
             goto skip;
 
          //Wall not facing camera (determined by winding order of sector walls)
@@ -176,10 +176,9 @@ void RvR_port_draw()
                goto skip;
 
             potwall.d1_x = RVR_XRES-1;
-            RvR_fix22 wall_dx = (to_point1.y-to_point0.y)+(to_point0.x-to_point1.x);
-            if(wall_dx==0)
-               goto skip;
-            potwall.d1_depth = to_point0.x+((to_point1.x-to_point0.x)*(to_point0.x-to_point0.y))/wall_dx;
+
+            //Basically just this equation: (0,0)+n(1,1) = (to_point0.x,to_point0.y)+m(to_point1.x-to_point0.x,to_point1.y-to_point0.y), reodered to n = ...
+            potwall.d1_depth = to_point0.x-((to_point1.x-to_point0.x)*(((to_point0.y-to_point0.x)*1024)/RvR_non_zero(to_point1.y-to_point0.y-to_point1.x+to_point0.x)))/1024;
          }
 
          //Left point in fov
@@ -200,10 +199,9 @@ void RvR_port_draw()
                goto skip;
 
             potwall.d0_x = 0;
-            RvR_fix22 wall_dx = (to_point0.x-to_point1.x)+(to_point0.y-to_point1.y);
-            if(wall_dx==0)
-               goto skip;
-            potwall.d0_depth = to_point0.x+((to_point1.x-to_point0.x)*(to_point0.x+to_point0.y))/wall_dx;
+
+            //Basically just this equation: (0,0)+n(1,-1) = (to_point0.x,to_point0.y)+m(to_point1.x-to_point0.x,to_point1.y-to_point0.y), reodered to n = ...
+            potwall.d0_depth = to_point0.x-((to_point1.x-to_point0.x)*(((to_point0.y+to_point0.x)*1024)/RvR_non_zero(to_point1.y-to_point0.y+to_point1.x-to_point0.x)))/1024;
          }
 
          //Near clip wall
