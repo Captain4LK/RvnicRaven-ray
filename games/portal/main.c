@@ -67,83 +67,83 @@ int main(int argc, char **argv)
    map->sectors[2].floor_tex = 67;
    map->sectors[2].ceiling_tex = 35;
 
-   map->walls[0].x = 32*256;
-   map->walls[0].y = 32*256;
+   map->walls[0].x = 32*64;
+   map->walls[0].y = 32*64;
    map->walls[0].p2 = 1;
    map->walls[0].portal = -1;
 
-   map->walls[1].x = 160*256;
-   map->walls[1].y = 32*256;
+   map->walls[1].x = 160*64;
+   map->walls[1].y = 32*64;
    map->walls[1].p2 = 2;
    map->walls[1].portal = 1;
 
-   map->walls[2].x = 160*256;
-   map->walls[2].y = 160*256;
+   map->walls[2].x = 160*64;
+   map->walls[2].y = 160*64;
    map->walls[2].p2 = 3;
    map->walls[2].portal = -1;
 
-   map->walls[3].x = 32*256;
-   map->walls[3].y = 200*256;
+   map->walls[3].x = 32*64;
+   map->walls[3].y = 200*64;
    map->walls[3].p2 = 0;
    map->walls[3].portal = -1;
 
-   map->walls[4].x = 64*256;
-   map->walls[4].y = 64*256;
+   map->walls[4].x = 64*64;
+   map->walls[4].y = 64*64;
    map->walls[4].p2 = 5;
    map->walls[4].portal = -1;
 
-   map->walls[5].x = 64*256;
-   map->walls[5].y = 128*256;
+   map->walls[5].x = 64*64;
+   map->walls[5].y = 128*64;
    map->walls[5].p2 = 6;
    map->walls[5].portal = -1;
 
-   map->walls[6].x = 128*256;
-   map->walls[6].y = 128*256;
+   map->walls[6].x = 128*64;
+   map->walls[6].y = 128*64;
    map->walls[6].p2 = 7;
    map->walls[6].portal = -1;
 
-   map->walls[7].x = 128*256;
-   map->walls[7].y = 64*256;
+   map->walls[7].x = 128*64;
+   map->walls[7].y = 64*64;
    map->walls[7].p2 = 4;
    map->walls[7].portal = -1;
 
-   map->walls[8].x = 160*256;
-   map->walls[8].y = 32*256;
+   map->walls[8].x = 160*64;
+   map->walls[8].y = 32*64;
    map->walls[8].p2 = 9;
    map->walls[8].portal = -1;
 
-   map->walls[9].x = 200*256;
-   map->walls[9].y = 32*256;
+   map->walls[9].x = 200*64;
+   map->walls[9].y = 32*64;
    map->walls[9].p2 = 10;
    map->walls[9].portal = -1;
 
-   map->walls[10].x = 200*256;
-   map->walls[10].y = 200*256;
+   map->walls[10].x = 200*64;
+   map->walls[10].y = 200*64;
    map->walls[10].p2 = 11;
    map->walls[10].portal = 2;
 
-   map->walls[11].x = 160*256;
-   map->walls[11].y = 160*256;
+   map->walls[11].x = 160*64;
+   map->walls[11].y = 160*64;
    map->walls[11].p2 = 8;
    map->walls[11].portal = 0;
 
-   map->walls[12].x = 160*256;
-   map->walls[12].y = 160*256;
+   map->walls[12].x = 160*64;
+   map->walls[12].y = 160*64;
    map->walls[12].p2 = 13;
    map->walls[12].portal = 1;
 
-   map->walls[13].x = 200*256;
-   map->walls[13].y = 200*256;
+   map->walls[13].x = 200*64;
+   map->walls[13].y = 200*64;
    map->walls[13].p2 = 14;
    map->walls[13].portal = -1;
 
-   map->walls[14].x = 200*256;
-   map->walls[14].y = 230*256;
+   map->walls[14].x = 200*64;
+   map->walls[14].y = 230*64;
    map->walls[14].p2 = 15;
    map->walls[14].portal = -1;
 
-   map->walls[15].x = 32*256;
-   map->walls[15].y = 200*256;
+   map->walls[15].x = 32*64;
+   map->walls[15].y = 200*64;
    map->walls[15].p2 = 11;
    map->walls[15].portal = -1;
 
@@ -158,8 +158,8 @@ int main(int argc, char **argv)
       RvR_core_update();
 
       RvR_vec2 direction = RvR_vec2_rot(dir);
-      direction.x/=4;
-      direction.y/=4;
+      direction.x/=16;
+      direction.y/=16;
       if(RvR_core_key_down(RVR_KEY_UP))
       {
          pos.x+=direction.x;
@@ -171,9 +171,9 @@ int main(int argc, char **argv)
          pos.y-=direction.y;
       }
       if(RvR_core_key_down(RVR_KEY_LEFT))
-         dir+=10;      
+         dir-=10;      
       if(RvR_core_key_down(RVR_KEY_RIGHT))
-         dir-=10;
+         dir+=10;
 
       int16_t sector_n = RvR_port_sector_update(sector,pos.x,pos.y);
       sector = sector_n<0?sector:sector_n;

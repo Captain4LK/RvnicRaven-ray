@@ -130,93 +130,106 @@ void RvR_port_draw()
          port_potwall_element potwall = {0};
 
          //Rotate to camera space
-         //x is depth
-         //y is x [sic] coordinate
+         //y is depth
+         //x is x coordinate
          if(i==0||(wall0-1)->p2!=i+map->sectors[sector].first_wall)
          {
-            to_point0.x = (x0*cos_fov+y0*sin_fov)/1024; 
-            to_point0.y = (x0*sin-y0*cos)/1024; 
+            to_point0.x = (-x0*sin+y0*cos)/1024; 
+            to_point0.y = (x0*cos_fov+y0*sin_fov)/1024; 
          }
          else
          {
             to_point0 = to_point1;
          }
-         to_point1.x = (x1*cos_fov+y1*sin_fov)/1024; 
-         to_point1.y = (x1*sin-y1*cos)/1024; 
+         to_point1.x = (-x1*sin+y1*cos)/1024; 
+         to_point1.y = (x1*cos_fov+y1*sin_fov)/1024; 
          
          //Wall fully behind camera 
-         if(to_point0.x<-128&&to_point1.x<-128)
+         if(to_point0.y<-128&&to_point1.y<-128)
             goto skip;
 
          //Wall not facing camera (determined by winding order of sector walls)
          //Wall points MUST be ordered left to right when the wall is
          //facing the camera
-         if(to_point0.x*to_point1.y-to_point1.x*to_point0.y>=0)
+         if((to_point0.x*to_point1.y-to_point1.x*to_point0.y)/65536>0)
             goto skip;
 
          //Here we can treat everything as if we have a 90 degree
          //fov, since the rotation to camera space transforms it to
          //that
          //Check if in fov
-         //Right point in fov
-         if(to_point0.x>to_point0.y)
-         {
-            //Wall completely out of sight
-            if(-to_point0.x>to_point0.y)
-               goto skip;
-
-            potwall.d1_x = RvR_min(RVR_XRES/2+(to_point0.y*(RVR_XRES/2))/to_point0.x,RVR_XRES-1)-1;
-            potwall.d1_depth = to_point0.x;
-         }
-         //Right point to the right of fov
-         else
-         {
-            //Wall completely out of sight
-            if(to_point1.x<to_point1.y)
-               goto skip;
-
-            potwall.d1_x = RVR_XRES-1;
-
-            //Basically just this equation: (0,0)+n(1,1) = (to_point0.x,to_point0.y)+m(to_point1.x-to_point0.x,to_point1.y-to_point0.y), reodered to n = ...
-            potwall.d1_depth = to_point0.x-((to_point1.x-to_point0.x)*(((to_point0.y-to_point0.x)*1024)/RvR_non_zero(to_point1.y-to_point0.y-to_point1.x+to_point0.x)))/1024;
-         }
-
          //Left point in fov
-         if(to_point1.x>-to_point1.y)
+         if(to_point0.x>=-to_point0.y)
          {
             //Wall completely out of sight
-            if(to_point1.x<to_point1.y)
+            if(to_point0.x>to_point0.y)
                goto skip;
 
-            potwall.d0_x = RvR_min(RVR_XRES/2+(to_point1.y*(RVR_XRES/2))/to_point1.x,RVR_XRES-1)-1;
-            potwall.d0_depth = to_point1.x;
+            potwall.d0_x = RvR_min(RVR_XRES/2+(to_point0.x*(RVR_XRES/2))/to_point0.y,RVR_XRES-1);
+            potwall.d0_depth = to_point0.y;
          }
          //Left point to the left of fov
          else
          {
             //Wall completely out of sight
-            if(-to_point0.x>to_point0.y)
+            if(to_point1.x<-to_point1.y)
                goto skip;
 
             potwall.d0_x = 0;
 
-            //Basically just this equation: (0,0)+n(1,-1) = (to_point0.x,to_point0.y)+m(to_point1.x-to_point0.x,to_point1.y-to_point0.y), reodered to n = ...
-            potwall.d0_depth = to_point0.x-((to_point1.x-to_point0.x)*(((to_point0.y+to_point0.x)*1024)/RvR_non_zero(to_point1.y-to_point0.y+to_point1.x-to_point0.x)))/1024;
+            //Basically just this equation: (0,0)+n(-1,1) = (to_point0.x,to_point0.y)+m(to_point1.x-to_point0.x,to_point1.y-to_point0.y), reordered to n = ...
+            //This is here to circumvent a multiplication overflow while also minimizing the resulting error
+            //TODO: the first version might be universally better, making the if statement useless
+            RvR_fix22 dx0 = to_point1.x-to_point0.x;
+            RvR_fix22 dx1 = to_point0.y+to_point0.x;
+            if(RvR_abs(dx0)>RvR_abs(dx1))
+               potwall.d0_depth = (dx1*((dx0*1024)/RvR_non_zero(to_point1.y-to_point0.y+to_point1.x-to_point0.x)))/1024-to_point0.x;
+            else
+               potwall.d0_depth = (dx0*((dx1*1024)/RvR_non_zero(to_point1.y-to_point0.y+to_point1.x-to_point0.x)))/1024-to_point0.x;
+         }
+
+         //Right point in fov
+         if(to_point1.x<=to_point1.y)
+         {
+            //Wall completely out of sight
+            if(to_point1.x<-to_point1.y)
+               goto skip;
+
+            potwall.d1_x = RvR_min(RVR_XRES/2+(to_point1.x*(RVR_XRES/2))/to_point1.y-1,RVR_XRES-1);
+            potwall.d1_depth = to_point1.y;
+         }
+         //Right point to the right of fov
+         else
+         {
+            //Wall completely out of sight
+            if(to_point0.x>to_point0.y)
+               goto skip;
+
+            potwall.d1_x = RVR_XRES-1;
+
+            //Basically just this equation: (0,0)+n(1,1) = (to_point0.x,to_point0.y)+m(to_point1.x-to_point0.x,to_point1.y-to_point0.y), reordered to n = ...
+            //This is here to circumvent a multiplication overflow while also minimizing the resulting error
+            //TODO: the first version might be universally better, making the if statement useless
+            RvR_fix22 dx0 = to_point1.x-to_point0.x;
+            RvR_fix22 dx1 = to_point0.y-to_point0.x;
+            if(RvR_abs(dx0)>RvR_abs(dx1))
+               potwall.d1_depth = to_point0.x-(dx1*((dx0*1024)/RvR_non_zero(to_point1.y-to_point0.y-to_point1.x+to_point0.x)))/1024;
+            else
+               potwall.d1_depth = to_point0.x-(dx0*((dx1*1024)/RvR_non_zero(to_point1.y-to_point0.y-to_point1.x+to_point0.x)))/1024;
          }
 
          //Near clip wall
          //Special case, near clipped portals still need to be processed
-         if(potwall.d0_depth<128||potwall.d1_depth<128)
+         if(potwall.d0_depth<16||potwall.d1_depth<16)
             goto skip_near;
 
-         if(potwall.d0_x>=potwall.d1_x)
+         if(potwall.d0_x>potwall.d1_x)
             goto skip;
 
-         //Well, lets swap x and y, I'm sure this won't cause any problems later...
-         potwall.w0_x = to_point0.y;
-         potwall.w1_x = to_point1.y;
-         potwall.w0_depth = to_point0.x;
-         potwall.w1_depth = to_point1.x;
+         potwall.w0_x = to_point0.x;
+         potwall.w1_x = to_point1.x;
+         potwall.w0_depth = to_point0.y;
+         potwall.w1_depth = to_point1.y;
          potwall.wall = i+map->sectors[sector].first_wall;
          potwall.sector = sector;
          potwall.next = port_potwall.data_used+1;
@@ -245,9 +258,8 @@ skip:
       for(int i = potwall_start_used;i<port_potwall.data_used;i++)
       {
          port_potwall_element *wl = &port_potwall.data[i];
-         //printf("%d %d\n",wl->d1_x,port_potwall.data[wl->next].d0_x);
 
-         if(map->walls[wl->wall].p2!=port_potwall.data[wl->next].wall||wl->d1_x>port_potwall.data[wl->next].d0_x)
+         if(map->walls[wl->wall].p2!=port_potwall.data[wl->next].wall||wl->d1_x>=port_potwall.data[wl->next].d0_x)
          {
             port_stack_potvis_push(&port_potvis,(port_potvis_element){.start = wl->next});
             wl->next = -1;
@@ -269,7 +281,7 @@ skip:
       for(int i = 0;i<port_potvis.data_used;i++)
       {
          printf("Potvis %d: ",i);
-         for(int j = port_potvis.data[i].start;j<=port_potvis.data[i].end;j++)
+         for(int j = port_potvis.data[i].start;j>=0;j = port_potwall.data[j].next)
             printf("%d ",port_potwall.data[j].wall);
          puts("");
       }
@@ -306,7 +318,7 @@ skip:
          }
       }while(!done);
 
-      for(int i = port_potvis.data[near].start;i<=port_potvis.data[near].end;i++)
+      for(int i = port_potvis.data[near].start;i>=0;i = port_potwall.data[i].next)
          port_wall_draw(i);
 
       port_potvis.data_used--;
@@ -324,7 +336,7 @@ static void port_wall_draw(int wall_num)
 {
    RvR_port_map *map = RvR_port_map_get();
    port_potwall_element *wall = &port_potwall.data[wall_num];
-   RvR_fix22 width = (wall->d1_x-wall->d0_x);
+   RvR_fix22 width = (wall->d1_x-wall->d0_x)+1;
    int16_t portal = map->walls[wall->wall].portal;
 
    //Normal wall
@@ -350,7 +362,7 @@ static void port_wall_draw(int wall_num)
       RvR_fix22 step_fy = (fy1-fy0)/width;
       RvR_fix22 fy = fy0;
 
-      for(int x = wall->d0_x;x<wall->d1_x;x++)
+      for(int x = wall->d0_x;x<=wall->d1_x;x++)
       {
          int wy = port_ymin[x];
          uint8_t * restrict pix = &RvR_core_framebuffer()[port_ymin[x]*RVR_XRES+x];
@@ -427,7 +439,7 @@ static void port_wall_draw(int wall_num)
       RvR_fix22 step_fph = (fph1-fph0)/width;
       RvR_fix22 fph = fph0;
 
-      for(int x = wall->d0_x;x<wall->d1_x;x++)
+      for(int x = wall->d0_x;x<=wall->d1_x;x++)
       {
          int wy = port_ymin[x];
          uint8_t * restrict pix = &RvR_core_framebuffer()[wy*RVR_XRES+x];
@@ -509,7 +521,7 @@ static int port_potvis_order(int16_t va, int16_t vb)
       return -1;
 
    //potvis a starts in potvis b
-   if(xaf>xbf)
+   if(xaf>=xbf)
    {
       int i;
       for(i = b->start;port_potwall.data[i].d1_x<xaf;i = port_potwall.data[i].next);
