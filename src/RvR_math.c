@@ -415,6 +415,14 @@ RvR_fix22 RvR_len2(RvR_vec2 v)
    return RvR_dist2(zero,v);
 }
 
+uint32_t RvR_log2(uint32_t a)
+{
+   uint32_t r = 0;
+   while(a>>=1) r++;
+
+   return r;
+}
+
 int32_t RvR_abs(int32_t a)
 {
    return a*(((a>=0)<<1)-1);

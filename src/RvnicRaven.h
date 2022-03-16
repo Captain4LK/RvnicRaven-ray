@@ -366,9 +366,10 @@ RvR_vec2  RvR_vec2_rot(RvR_fix22 angle);
 RvR_fix22 RvR_dist2(RvR_vec2 p0, RvR_vec2 p1);
 RvR_fix22 RvR_len2(RvR_vec2 v);
 
-int32_t RvR_div_round_down(int32_t a, int32_t b);
-int32_t RvR_abs(int32_t a);
-int32_t RvR_wrap(int32_t a, int32_t mod);
+int32_t  RvR_div_round_down(int32_t a, int32_t b);
+int32_t  RvR_abs(int32_t a);
+int32_t  RvR_wrap(int32_t a, int32_t mod);
+uint32_t RvR_log2(uint32_t a);
 
 #define RvR_non_zero(a) ((a)+((a)==0)) ///< To prevent zero divisions.
 #define RvR_zero_clamp(x) ((x)*((x)>=0))
@@ -632,6 +633,8 @@ void      RvR_port_set_position(RvR_vec3 position);
 RvR_vec3  RvR_port_get_position();
 void      RvR_port_set_sector(int16_t sector);
 int16_t   RvR_port_get_sector();
+
+RvR_fix22 RvR_port_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix22 sc_size);
 
 void      RvR_port_set_fov(RvR_fix22 fov);
 RvR_fix22 RvR_port_get_fov();

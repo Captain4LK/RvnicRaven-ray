@@ -87,4 +87,14 @@ RvR_fix22 RvR_port_get_fov()
 {
    return port_fov;
 }
+
+RvR_fix22 RvR_port_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix22 sc_size)
+{
+   static RvR_fix22 correction_factor;
+   correction_factor = RvR_fix22_tan(RvR_port_get_fov()/2);
+
+   if(sc_size==0)
+      return RvR_fix22_infinity;
+   return ((org_size*1024)/RvR_non_zero((correction_factor*sc_size)/1024));
+}
 //-------------------------------------

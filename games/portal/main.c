@@ -38,7 +38,8 @@ int main(int argc, char **argv)
    RvR_core_init("Portal",0);
    RvR_core_mouse_relative(1);
 
-   RvR_pak_add("test.pak");
+   RvR_pak_add("data_demo/main.csv");
+   //RvR_pak_add("test.pak");
 
    RvR_palette_load(0);
    RvR_draw_font_set(0xF000);
@@ -52,20 +53,20 @@ int main(int argc, char **argv)
    map->sectors[0].first_wall = 0;
    map->sectors[0].floor_height = 0;
    map->sectors[0].ceiling_height = 2048;
-   map->sectors[0].floor_tex = 65;
-   map->sectors[0].ceiling_tex = 33;
+   map->sectors[0].floor_tex = 5;
+   map->sectors[0].ceiling_tex = 3;
    map->sectors[1].num_walls = 4;
    map->sectors[1].first_wall = 8;
    map->sectors[1].floor_height = 256;
    map->sectors[1].ceiling_height = 1280;
-   map->sectors[1].floor_tex = 66;
-   map->sectors[1].ceiling_tex = 34;
+   map->sectors[1].floor_tex = 4;
+   map->sectors[1].ceiling_tex = 7;
    map->sectors[2].num_walls = 4;
    map->sectors[2].first_wall = 12;
    map->sectors[2].floor_height = 256;
    map->sectors[2].ceiling_height = 1280;
-   map->sectors[2].floor_tex = 67;
-   map->sectors[2].ceiling_tex = 35;
+   map->sectors[2].floor_tex = 1;
+   map->sectors[2].ceiling_tex = 8;
 
    map->walls[0].x = 32*64;
    map->walls[0].y = 32*64;
