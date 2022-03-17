@@ -28,6 +28,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 static RvR_fix22 ray_cam_angle = 0;
 static RvR_vec3 ray_cam_position = {0};
 static int16_t ray_cam_shear = 0;
+static RvR_fix22 ray_cam_fov = 256;
 //-------------------------------------
 
 //Function prototypes
@@ -191,7 +192,7 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
       }
 
       hit_results[*hit_results_len] = h;
-      *hit_results_len+=1;
+      (*hit_results_len)++;
 
       if(*hit_results_len>=RVR_RAY_MAX_STEPS)
          break;
@@ -210,22 +211,19 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
 
    RvR_fix22 dx = dir1.x-dir0.x;
    RvR_fix22 dy = dir1.y-dir0.y;
+   RvR_fix22 current_dx = 0;
+   RvR_fix22 current_dy = 0;
 
    RvR_ray_hit_result hits[RVR_RAY_MAX_STEPS] = {0};
    uint16_t hit_count = 0;
 
-   RvR_ray r;
-   r.start = (RvR_vec2) {ray_cam_position.x,ray_cam_position.y};
-
-   RvR_fix22 current_dx = 0;
-   RvR_fix22 current_dy = 0;
-
    for(int16_t i = 0;i<RVR_XRES;i++)
    {
-       /* Here by linearly interpolating the direction vector its length changes,
-       which in result achieves correcting the fish eye effect (computing
-       perpendicular distance). */
-
+      //Here by linearly interpolating the direction vector its length changes,
+      //which in result achieves correcting the fish eye effect (computing
+      //perpendicular distance).
+      RvR_ray r;
+      r.start = (RvR_vec2) {ray_cam_position.x,ray_cam_position.y};
       r.direction.x = dir0.x+(current_dx/RVR_XRES);
       r.direction.y = dir0.y+(current_dy/RVR_XRES);
       
@@ -236,8 +234,6 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
       current_dx+=dx;
       current_dy+=dy;
    }
-
-   //printf("(%d %d) (%d %d) %d %d\n",dir1.x,dir1.y,dir0.x+(current_dx-dx)/RVR_XRES,dir0.y+(current_dy-dy)/RVR_XRES,dx,dy);
 }
 
 RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 distance)
@@ -301,6 +297,16 @@ void RvR_ray_set_position(RvR_vec3 position)
 RvR_vec3 RvR_ray_get_position()
 {
    return ray_cam_position;
+}
+
+void RvR_ray_set_fov(RvR_fix22 fov)
+{
+   ray_cam_fov = fov;
+}
+
+RvR_fix22 RvR_ray_get_fov()
+{
+   return ray_cam_fov;
 }
 
 static RvR_fix22 ray_fov_correction_factor(RvR_fix22 fov)

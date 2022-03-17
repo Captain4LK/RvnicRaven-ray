@@ -74,6 +74,8 @@ struct
    uint32_t data_used;
    uint32_t data_size;
 }ray_sprite_stack = {0};
+
+static RvR_fix22 ray_fov_factor;
 //-------------------------------------
 
 //Function prototypes
@@ -156,10 +158,13 @@ void RvR_ray_draw()
    //Clear planes
    ray_planes_used = 0;
 
+   //Initialize needed vars
+   ray_fov_factor = RvR_fix22_tan(RvR_ray_get_fov()/2);
+
    //Render walls and fill plane data
    ray_middle_row = (RVR_YRES/2)+RvR_ray_get_shear();
-   ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_div_round_down(RvR_ray_get_position().x,1024),RvR_div_round_down(RvR_ray_get_position().y,1024))-RvR_ray_get_position().z;
-   ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_div_round_down(RvR_ray_get_position().x,1024),RvR_div_round_down(RvR_ray_get_position().y,1024))-RvR_ray_get_position().z;
+   ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
+   ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
 
    RvR_rays_cast_multi_hit(ray_draw_column);
    //-------------------------------------
@@ -272,7 +277,7 @@ void RvR_ray_draw()
 
    //Sort sprites
    qsort(ray_sprite_stack.data,ray_sprite_stack.data_used,sizeof(*ray_sprite_stack.data),ray_sort);
-   //TODO: radix sort
+   //TODO: radix sort?
 
    //ray_sprite rendering
    for(unsigned i = 0;i<ray_sprite_stack.data_used;i++)
@@ -401,7 +406,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
 
       return limit;
    }
-   if(increment==1&&pixel_info->hit.wall_ctex==RvR_ray_map_sky_tex())
+   else if(increment==1&&pixel_info->hit.wall_ctex==RvR_ray_map_sky_tex())
    {
       RvR_fix22 c_start = y_current+increment;
       RvR_fix22 c_end = limit;
@@ -545,13 +550,13 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
 
          f_wall_height = RvR_ray_map_floor_height_at(hit.square.x,hit.square.y);
          f_z2_world = f_wall_height-RvR_ray_get_position().z;
-         f_z1_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((f_z1_world*RVR_YRES)/1024,distance);
-         f_z2_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((f_z2_world*RVR_YRES)/1024,distance);
+         f_z1_screen = ray_middle_row-((f_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor*distance)/1024));
+         f_z2_screen = ray_middle_row-((f_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor*distance)/1024));
 
          c_wall_height = RvR_ray_map_ceiling_height_at(hit.square.x,hit.square.y);
          c_z2_world = c_wall_height-RvR_ray_get_position().z;
-         c_z1_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((c_z1_world*RVR_YRES)/1024,distance);
-         c_z2_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((c_z2_world*RVR_YRES)/1024,distance);
+         c_z1_screen = ray_middle_row-((c_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor*distance)/1024));
+         c_z2_screen = ray_middle_row-((c_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor*distance)/1024));
       }
       else
       {
@@ -672,8 +677,7 @@ RvR_ray_pixel_info RvR_ray_map_to_screen(RvR_vec3 world_position)
    RvR_fix22 middle_column = RVR_XRES/2;
 
    //rotate the point to camera space (y left/right, x forw/backw)
-   //TODO: cache cosine, sinus values
-
+   //TODO: cache cosine, sinus values?
    RvR_fix22 cos = RvR_fix22_cos(RvR_ray_get_angle());
    RvR_fix22 sin = RvR_fix22_sin(RvR_ray_get_angle());
 
@@ -772,10 +776,11 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
    //Calculate texture mapping step size and starting coordinates
    RvR_fix22 step_x = (depth*(ray_cam_dir1.x-ray_cam_dir0.x))/(RVR_XRES);
    RvR_fix22 step_y = (depth*(ray_cam_dir1.y-ray_cam_dir0.y))/(RVR_XRES);
-   RvR_fix22 tx = ((RvR_ray_get_position().x)&1023)*1024+(depth*ray_cam_dir0.x);
-   RvR_fix22 ty = ((RvR_ray_get_position().y)&1023)*1024+(depth*ray_cam_dir0.y);
-   tx+=x0*step_x;
-   ty+=x0*step_y;
+   RvR_fix22 tx = ((RvR_ray_get_position().x)&1023)*1024+(depth*ray_cam_dir0.x)+x0*step_x;
+   RvR_fix22 ty = ((RvR_ray_get_position().y)&1023)*1024+(depth*ray_cam_dir0.y)+x0*step_y;
+   RvR_fix22 x_and = (1<<RvR_log2(texture->width))-1;
+   RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
+   RvR_fix22 y_log2 = RvR_log2(texture->height);
 
    //const and restrict don't seem to influence the generated assembly in this case
    uint8_t * restrict pix = &RvR_core_framebuffer()[y*RVR_XRES+x0];
@@ -789,14 +794,14 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
    switch(count%8)
    {
    case 0: do {
-           *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 7: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 6: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 5: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 4: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 3: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 2: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
-   case 1: *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+           *pix = col[tex[(((tx>>14)&x_and)<<y_log2)+((ty>>14)&y_and)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 7: *pix = col[tex[(((tx>>14)&x_and)<<y_log2)+((ty>>14)&y_and)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 6: *pix = col[tex[(((tx>>14)&x_and)<<y_log2)+((ty>>14)&y_and)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 5: *pix = col[tex[(((tx>>14)&x_and)<<y_log2)+((ty>>14)&y_and)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 4: *pix = col[tex[(((tx>>14)&x_and)<<y_log2)+((ty>>14)&y_and)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 3: *pix = col[tex[(((tx>>14)&x_and)<<y_log2)+((ty>>14)&y_and)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 2: *pix = col[tex[(((tx>>14)&x_and)<<y_log2)+((ty>>14)&y_and)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
+   case 1: *pix = col[tex[(((tx>>14)&x_and)<<y_log2)+((ty>>14)&y_and)]]; tx+=step_x; ty+=step_y; pix++; //fallthrough
            }while(--n>0);
    }
 
@@ -804,7 +809,7 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
 
    for(int x = x0;x<x1;x++)
    {
-      *pix = col[tex[((tx>>14)&TEX_AND)*TEX_MUL+((ty>>14)&TEX_AND)]];
+      *pix = col[tex[(((tx>>14)&x_and)<<y_log2)+((ty>>14)&y_and)]];
       tx+=step_x;
       ty+=step_y;
       pix++;

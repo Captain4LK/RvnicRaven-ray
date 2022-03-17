@@ -56,7 +56,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Field of view, 360deg is 1024
 #define RVR_RAY_HORIZONTAL_FOV 256
-#define RVR_RAY_VERTICAL_FOV 330
+#define RVR_RAY_VERTICAL_FOV 256
 
 //Texture resolution for walls/ceilings/floors, calculated as 1<<RVR_RAY_TEXTURE
 #define RVR_RAY_TEXTURE 6
@@ -537,6 +537,8 @@ void      RvR_ray_set_shear(int16_t shear);
 int16_t   RvR_ray_get_shear();
 void      RvR_ray_set_position(RvR_vec3 position);
 RvR_vec3  RvR_ray_get_position();
+void      RvR_ray_set_fov(RvR_fix22 fov);
+RvR_fix22 RvR_ray_get_fov();
 
 void RvR_ray_map_create(uint16_t width, uint16_t height);
 void RvR_ray_map_reset();

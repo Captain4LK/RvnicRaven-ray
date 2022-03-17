@@ -1,3 +1,3 @@
 #!/bin/sh
 
-gcc -o rayed *.c ../../RvR_all.o -std=c99 -Wall -Wextra -Wshadow -pedantic -Og -g -lSDL2 -lm
+gcc -o rayed *.c ../../RvR_all.o -std=c99 -Wall -Wextra -Wshadow -pedantic -lSDL2 -lm -Og -g
