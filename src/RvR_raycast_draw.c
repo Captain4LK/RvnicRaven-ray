@@ -85,7 +85,6 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
 static void ray_span_draw_flat(int x0, int x1, int y, uint8_t color);
 
 static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, RvR_ray_pixel_info *pixel_info);
-static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, int16_t increment, RvR_ray_pixel_info *pixel_info);
 static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
 
 static void ray_sprite_stack_push(ray_sprite s);
@@ -487,30 +486,6 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    return limit;
 }
 
-static int16_t ray_draw_horizontal_column(RvR_fix22 y_current, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, int16_t increment, RvR_ray_pixel_info *pixel_info)
-{
-   int16_t limit = RvR_clamp(y_to,limit0,limit1);
-
-   if(increment==-1)
-   {
-      RvR_fix22 f_start = limit;
-      RvR_fix22 f_end = y_current+increment;
-      if(f_end<f_start)
-         return limit;
-      ray_plane_add(pixel_info->hit.fheight,pixel_info->hit.floor_tex,pixel_info->position.x,f_start,f_end);
-   }
-   else if(increment==1)
-   {
-      RvR_fix22 c_start = y_current+increment;
-      RvR_fix22 c_end = limit;
-      if(c_end<c_start)
-         return limit;
-      ray_plane_add(pixel_info->hit.cheight,pixel_info->hit.ceil_tex,pixel_info->position.x,c_start,c_end);
-   }
-
-   return limit;
-}
-
 static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
 {
    //last written Y position, can never go backwards
@@ -585,10 +560,9 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
       p.is_horizon = drawing_horizon;
 
       //draw floor until wall
-      limit = ray_draw_horizontal_column(f_pos_y,f_z1_screen,c_pos_y+1,
-                                                 RVR_YRES,-1,
-                                                 //^ purposfully allow outside screen bounds
-                                                 &p);
+      limit = RvR_clamp(f_z1_screen,c_pos_y+1,RVR_YRES);
+      if(f_pos_y-1>=limit)
+         ray_plane_add(p.hit.fheight,p.hit.floor_tex,p.position.x,limit,f_pos_y-1);
 
       limit_f = limit;
 
@@ -596,9 +570,9 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
          f_pos_y = limit;
 
       //draw ceiling until wall
-      limit = ray_draw_horizontal_column(c_pos_y,c_z1_screen,
-                                                -1,f_pos_y-1,1,&p);
-                                                //^ purposfully allow outside screen bounds here
+      limit = RvR_clamp(c_z1_screen,-1,f_pos_y-1);
+      if(limit>=c_pos_y+1)
+         ray_plane_add(p.hit.cheight,p.hit.ceil_tex,p.position.x,c_pos_y+1,limit);
 
       limit_c = limit;
 
