@@ -423,65 +423,60 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    RvR_fix22 height_scaled = height*65536;
    RvR_fix22 coord_step_scaled = (height_scaled/wall_length);
    RvR_fix22 texture_coord_scaled = 0;
+   int start = 0;
+   int end = 0;
 
    if(increment==-1)
    {
-      texture_coord_scaled = height_scaled-(wall_position*coord_step_scaled);
-      coord_step_scaled*=-1;
+      start = limit;
+      end = y_current+increment;
+      texture_coord_scaled = (height_scaled-wall_position*coord_step_scaled)-(end-start)*coord_step_scaled;
       texture = RvR_texture_get(pixel_info->hit.wall_ftex);
    }
    else if(increment==1)
    {
-      texture_coord_scaled = RvR_zero_clamp(wall_position*coord_step_scaled);
+      start = y_current+increment;
+      end = limit;
+      texture_coord_scaled = -(y_to-start)*coord_step_scaled;
       texture = RvR_texture_get(pixel_info->hit.wall_ctex);
    }
 
-   uint8_t * restrict pix = &RvR_core_framebuffer()[(y_current+increment)*RVR_XRES+pixel_info->position.x];
+   if(start>end)
+      return limit;
+
+   uint8_t * restrict pix = &RvR_core_framebuffer()[start*RVR_XRES+pixel_info->position.x];
    const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(pixel_info->hit.direction&1)*10+(pixel_info->depth>>8)));
    const uint8_t * restrict tex = &texture->data[(pixel_info->tex_coords.x>>4)*texture->height];
+   RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
 
-   if(increment==-1)
+#if RVR_UNROLL
+
+   int count = end-start+1;
+   int n = (count+7)/8;
+   switch(count%8)
    {
-      if(texture->height==TEX_HIGH_MUL)
-      {
-         for(RvR_fix22 i = y_current+increment;i>=limit;i--)
-         {
-            *pix = col[tex[(texture_coord_scaled>>20)&TEX_HIGH_AND]];
-            texture_coord_scaled+=coord_step_scaled;
-            pix-=RVR_XRES;
-         }
-      }
-      else
-      {
-         for(RvR_fix22 i = y_current+increment;i>=limit;i--)
-         {
-            *pix = col[tex[(texture_coord_scaled>>20)&TEX_AND]];
-            texture_coord_scaled+=coord_step_scaled;
-            pix-=RVR_XRES;
-         }
-      }
+   case 0: do {
+           *pix = col[tex[(texture_coord_scaled>>20)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 7: *pix = col[tex[(texture_coord_scaled>>20)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 6: *pix = col[tex[(texture_coord_scaled>>20)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 5: *pix = col[tex[(texture_coord_scaled>>20)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 4: *pix = col[tex[(texture_coord_scaled>>20)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 3: *pix = col[tex[(texture_coord_scaled>>20)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 2: *pix = col[tex[(texture_coord_scaled>>20)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 1: *pix = col[tex[(texture_coord_scaled>>20)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+           }while(--n>0);
    }
-   else if(increment==1)
+
+#else
+
+   for(int i = start;i<=end;i++)
    {
-      if(texture->height==TEX_HIGH_MUL)
-      {
-         for(RvR_fix22 i = y_current+increment;i<=limit;i++)
-         {
-            *pix = col[tex[(texture_coord_scaled>>20)&TEX_HIGH_AND]];
-            texture_coord_scaled+=coord_step_scaled;
-            pix+=RVR_XRES;
-         }
-      }
-      else
-      {
-         for(RvR_fix22 i = y_current+increment;i<=limit;i++)
-         {
-            *pix = col[tex[(texture_coord_scaled>>20)&TEX_AND]];
-            texture_coord_scaled+=coord_step_scaled;
-            pix+=RVR_XRES;
-         }
-      }
+      *pix = col[tex[(texture_coord_scaled>>20)&y_and]];
+      texture_coord_scaled+=coord_step_scaled;
+      pix+=RVR_XRES;
    }
+
+#endif
 
    return limit;
 }
@@ -561,17 +556,17 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
 
       //draw floor until wall
       limit = RvR_clamp(f_z1_screen,c_pos_y+1,RVR_YRES);
-      if(f_pos_y-1>=limit)
+      if(f_pos_y>limit)
+      {
          ray_plane_add(p.hit.fheight,p.hit.floor_tex,p.position.x,limit,f_pos_y-1);
+         f_pos_y = limit;
+      }
 
       limit_f = limit;
 
-      if(f_pos_y>limit)
-         f_pos_y = limit;
-
       //draw ceiling until wall
       limit = RvR_clamp(c_z1_screen,-1,f_pos_y-1);
-      if(limit>=c_pos_y+1)
+      if(limit>c_pos_y)
          ray_plane_add(p.hit.cheight,p.hit.ceil_tex,p.position.x,c_pos_y+1,limit);
 
       limit_c = limit;
@@ -593,7 +588,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
                limit = ray_draw_wall(f_pos_y,f_z1_screen,f_z2_screen,c_pos_y+1,
                                              RVR_YRES,
                                              //^ purposfully allow outside screen bounds here
-                                             f_z2_world-f_z1_world
+                                             f_z1_world-f_z2_world
                                              ,-1,&p);
                if(f_pos_y>limit)
                   f_pos_y = limit;
@@ -752,14 +747,14 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
    RvR_fix22 step_y = (depth*(ray_cam_dir1.y-ray_cam_dir0.y))/(RVR_XRES);
    RvR_fix22 tx = ((RvR_ray_get_position().x)&1023)*1024+(depth*ray_cam_dir0.x)+x0*step_x;
    RvR_fix22 ty = ((RvR_ray_get_position().y)&1023)*1024+(depth*ray_cam_dir0.y)+x0*step_y;
-   RvR_fix22 x_and = (1<<RvR_log2(texture->width))-1;
-   RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
-   RvR_fix22 y_log2 = RvR_log2(texture->height);
 
    //const and restrict don't seem to influence the generated assembly in this case
    uint8_t * restrict pix = &RvR_core_framebuffer()[y*RVR_XRES+x0];
    const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(depth>>8)));
    const uint8_t * restrict tex = texture->data;
+   RvR_fix22 x_and = (1<<RvR_log2(texture->width))-1;
+   RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
+   RvR_fix22 y_log2 = RvR_log2(texture->height);
 
 #if RVR_UNROLL
 
