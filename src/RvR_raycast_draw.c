@@ -418,10 +418,9 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
 
    RvR_texture *texture = NULL;
    height = RvR_abs(height);
-   RvR_fix22 wall_length = RvR_non_zero(RvR_abs(y_to-y_from-1));
    RvR_fix22 wall_position = RvR_abs(y_from-y_current)-increment;
    RvR_fix22 height_scaled = height*65536;
-   RvR_fix22 coord_step_scaled = (height_scaled/wall_length);
+   RvR_fix22 coord_step_scaled = (64*ray_fov_factor*pixel_info->depth)/RVR_YRES;
    RvR_fix22 texture_coord_scaled = 0;
    int start = 0;
    int end = 0;
@@ -430,7 +429,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    {
       start = limit;
       end = y_current+increment;
-      texture_coord_scaled = (height_scaled-wall_position*coord_step_scaled)-(end-start)*coord_step_scaled;
+      texture_coord_scaled = height_scaled-(wall_position+end-start)*coord_step_scaled;
       texture = RvR_texture_get(pixel_info->hit.wall_ftex);
    }
    else if(increment==1)
@@ -555,24 +554,20 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
       p.is_horizon = drawing_horizon;
 
       //draw floor until wall
-      limit = RvR_clamp(f_z1_screen,c_pos_y+1,RVR_YRES);
+      limit_f = limit = RvR_clamp(f_z1_screen,c_pos_y+1,RVR_YRES);
       if(f_pos_y>limit)
       {
          ray_plane_add(p.hit.fheight,p.hit.floor_tex,p.position.x,limit,f_pos_y-1);
          f_pos_y = limit;
       }
 
-      limit_f = limit;
-
       //draw ceiling until wall
-      limit = RvR_clamp(c_z1_screen,-1,f_pos_y-1);
+      limit_c = limit = RvR_clamp(c_z1_screen,-1,f_pos_y-1);
       if(limit>c_pos_y)
+      {
          ray_plane_add(p.hit.cheight,p.hit.ceil_tex,p.position.x,c_pos_y+1,limit);
-
-      limit_c = limit;
-
-      if(c_pos_y<limit)
          c_pos_y = limit;
+      }
 
       if(!drawing_horizon) //don't draw walls for horizon plane
       {
