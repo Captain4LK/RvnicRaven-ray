@@ -54,20 +54,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Basically render distance
 #define RVR_RAY_MAX_STEPS 32
 
-//Field of view, 360deg is 1024
-#define RVR_RAY_HORIZONTAL_FOV 256
-#define RVR_RAY_VERTICAL_FOV 256
-
-//Texture resolution for walls/ceilings/floors, calculated as 1<<RVR_RAY_TEXTURE
+//Texture base resolution for walls/ceilings/floors, calculated as 1<<RVR_RAY_TEXTURE
 #define RVR_RAY_TEXTURE 6
-
-//Alternative texture resolution for textures higher than 1 block (8 units), calculated as 1<<RVR_RAY_TEXTURE_HIGH
-#define RVR_RAY_TEXTURE_HIGH 7
 
 //Width of sky texture, calculated as 1<<RVR_RAY_TEXTURE_SKY_W
 #define RVR_RAY_TEXTURE_SKY_W 8
 
-//HEIGHT of sky texture, calculated as 1<<RVR_RAY_TEXTURE_SKY_H
+//Height of sky texture, calculated as 1<<RVR_RAY_TEXTURE_SKY_H
 #define RVR_RAY_TEXTURE_SKY_H 7
 
 //Debug features
@@ -527,9 +520,6 @@ typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t x, R
 
 void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16_t *hit_results_len);
 void RvR_rays_cast_multi_hit(RvR_ray_column_function column);
-RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 distance);
-RvR_fix22 RvR_ray_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix22 sc_size);
-RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 distance);
 
 void      RvR_ray_set_angle(RvR_fix22 angle);
 RvR_fix22 RvR_ray_get_angle();
@@ -578,8 +568,10 @@ RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y);
 RvR_ray_depth_buffer *RvR_ray_draw_depth_buffer();
 RvR_ray_pixel_info RvR_ray_map_to_screen(RvR_vec3 world_position);
 
+void RvR_ray_draw_begin();
+void RvR_ray_draw_end();
+void RvR_ray_draw_map();
 void RvR_ray_draw_sprite(RvR_vec3 pos, int32_t tex);
-void RvR_ray_draw();
 void RvR_ray_draw_debug(uint8_t index);
 
 //RvnicRaven raycast functions end

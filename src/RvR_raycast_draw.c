@@ -20,10 +20,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
-#define TEX_AND ((1<<RVR_RAY_TEXTURE)-1)
-#define TEX_MUL (1<<RVR_RAY_TEXTURE)
-#define TEX_HIGH_AND ((1<<RVR_RAY_TEXTURE_HIGH)-1)
-#define TEX_HIGH_MUL (1<<RVR_RAY_TEXTURE_HIGH)
 #define TEX_SKYW_AND ((1<<RVR_RAY_TEXTURE_SKY_W)-1)
 #define TEX_SKYH_AND ((1<<RVR_RAY_TEXTURE_SKY_H)-1)
 #define TEX_SKYW_MUL (1<<RVR_RAY_TEXTURE_SKY_W)
@@ -75,7 +71,8 @@ struct
    uint32_t data_size;
 }ray_sprite_stack = {0};
 
-static RvR_fix22 ray_fov_factor;
+static RvR_fix22 ray_fov_factor_x;
+static RvR_fix22 ray_fov_factor_y;
 //-------------------------------------
 
 //Function prototypes
@@ -95,6 +92,147 @@ static void ray_depth_buffer_entry_free(RvR_ray_depth_buffer_entry *ent);
 //-------------------------------------
 
 //Function implementations
+
+void RvR_ray_draw_begin()
+{
+   //Clear depth buffer
+   for(int i = 0;i<RVR_XRES;i++)
+   {
+      ray_depth_buffer_entry_free(ray_depth_buffer.floor[i]);
+      ray_depth_buffer_entry_free(ray_depth_buffer.ceiling[i]);
+
+      ray_depth_buffer.floor[i] = NULL;
+      ray_depth_buffer.ceiling[i] = NULL;
+   }
+
+   //Clear planes
+   ray_planes_used = 0;
+
+   //Initialize needed vars
+   ray_fov_factor_x = RvR_fix22_tan(RvR_ray_get_fov()/2);
+   ray_fov_factor_y = (RVR_YRES*ray_fov_factor_x*2)/RVR_XRES;
+   ray_middle_row = (RVR_YRES/2)+RvR_ray_get_shear();
+   ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
+   ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
+   ray_cam_dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(RvR_ray_get_fov()/2));
+   ray_cam_dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(RvR_ray_get_fov()/2));
+   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RvR_ray_get_fov()/2));
+   ray_cam_dir0.x = (ray_cam_dir0.x*1024)/cos;
+   ray_cam_dir0.y = (ray_cam_dir0.y*1024)/cos;
+   ray_cam_dir1.x = (ray_cam_dir1.x*1024)/cos;
+   ray_cam_dir1.y = (ray_cam_dir1.y*1024)/cos;
+}
+
+void RvR_ray_draw_end()
+{
+   //Sort sprites
+   qsort(ray_sprite_stack.data,ray_sprite_stack.data_used,sizeof(*ray_sprite_stack.data),ray_sort);
+   //TODO: radix sort?
+
+   //ray_sprite rendering
+   for(unsigned i = 0;i<ray_sprite_stack.data_used;i++)
+   {
+      ray_sprite sp = ray_sprite_stack.data[i];
+      RvR_fix22 depth = sp.s_depth;
+      RvR_texture *texture = RvR_texture_get(sp.tex);
+
+      RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
+      RvR_fix22 scale_horizontal = (RVR_XRES/2)*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
+      int size_vertical = scale_vertical/RvR_non_zero((ray_fov_factor_y*depth)/1024);
+      int size_horizontal = scale_horizontal/RvR_non_zero((ray_fov_factor_x*depth)/1024);
+      int sx = 0;
+      int sy = 0;
+      int ex = size_horizontal;
+      int ey = size_vertical;
+      int x = sp.s_pos.x-size_horizontal/2;
+      int y = sp.s_pos.y-size_vertical;
+      RvR_fix22 u_step = (texture->width*1024-1)/RvR_non_zero(size_horizontal);
+      RvR_fix22 u = 0;
+      RvR_fix22 v_step = (texture->height*1024-1)/RvR_non_zero(size_vertical);
+      RvR_fix22 v_start = 0;
+
+      //Floor and ceiling clip
+      RvR_vec3 floor_wpos;
+      floor_wpos.x = sp.w_pos.x;
+      floor_wpos.y = sp.w_pos.y;
+      floor_wpos.z = RvR_ray_map_floor_height_at(sp.w_pos.x/1024,sp.w_pos.y/1024);
+      int clip_bottom = RvR_ray_map_to_screen(floor_wpos).position.y;
+      floor_wpos.z = RvR_ray_map_ceiling_height_at(sp.w_pos.x/1024,sp.w_pos.y/1024);
+      int clip_top = RvR_ray_map_to_screen(floor_wpos).position.y;
+
+      clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
+      clip_top = clip_top<0?0:clip_top;
+
+      //Clip coordinates to screen/clip_top and clip_bottom
+      if(x<0)
+         sx = -x;
+      if(y<clip_top)
+         sy = clip_top-y;
+      if(x+ex>RVR_XRES)
+         ex = size_horizontal+(RVR_XRES-x-ex);
+      if(y+ey>clip_bottom)
+         ey = size_vertical+(clip_bottom-y-ey);
+      x = x<0?0:x;
+      y = y<clip_top?clip_top:y;
+
+      if(sp.flags&1)
+         u = (-sx+size_horizontal)*u_step;
+      else
+         u = sx*u_step;
+      v_start = sy*v_step;
+
+      //Draw
+      const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>8));
+      uint8_t * restrict dst = NULL;
+      const uint8_t * restrict tex = NULL;
+
+      for(int x1 = sx;x1<ex;x1++,x++)
+      {
+         if(sp.flags&1)
+            u-=u_step;
+         else
+            u+=u_step;
+
+         //Clip against walls
+         int ey1 = ey;
+         int ys = y;
+
+         //Clip floor
+         RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
+         while(clip!=NULL)
+         {
+            if(depth>clip->depth&&y+(ey1-sy)>clip->limit)
+               ey1 = clip->limit-y+sy;
+            clip = clip->next;
+         }
+
+         //Clip ceiling
+         clip = ray_depth_buffer.ceiling[x];
+         while(clip!=NULL)
+         {
+            if(depth>clip->depth&&ys<clip->limit)
+            {
+               int diff = ys-clip->limit;
+               ys = clip->limit;
+               ey1+=diff;
+            }
+            clip = clip->next;
+         }
+
+         tex = &texture->data[texture->height*(u>>10)];
+         dst = &RvR_core_framebuffer()[ys*RVR_XRES+x];
+         RvR_fix22 v = v_start+(ys-y)*v_step;
+         for(int y1 = sy;y1<ey1;y1++,dst+=RVR_XRES)
+         {
+            uint8_t index = tex[v>>10];
+            *dst = index?col[index]:*dst;
+            v+=v_step;
+         }
+      }
+   }
+
+   ray_sprite_stack.data_used = 0;
+}
 
 RvR_ray_depth_buffer *RvR_ray_draw_depth_buffer()
 {
@@ -142,41 +280,13 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, int32_t tex)
    ray_sprite_stack_push(s);
 }
 
-void RvR_ray_draw()
+void RvR_ray_draw_map()
 {
-   //Clear depth buffer
-   for(int i = 0;i<RVR_XRES;i++)
-   {
-      ray_depth_buffer_entry_free(ray_depth_buffer.floor[i]);
-      ray_depth_buffer_entry_free(ray_depth_buffer.ceiling[i]);
-
-      ray_depth_buffer.floor[i] = NULL;
-      ray_depth_buffer.ceiling[i] = NULL;
-   }
-
-   //Clear planes
-   ray_planes_used = 0;
-
-   //Initialize needed vars
-   ray_fov_factor = RvR_fix22_tan(RvR_ray_get_fov()/2);
-
    //Render walls and fill plane data
-   ray_middle_row = (RVR_YRES/2)+RvR_ray_get_shear();
-   ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
-   ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
-
    RvR_rays_cast_multi_hit(ray_draw_column);
    //-------------------------------------
    
    //Render floor planes
-   ray_cam_dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(RVR_RAY_HORIZONTAL_FOV/2));
-   ray_cam_dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(RVR_RAY_HORIZONTAL_FOV/2));
-   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RVR_RAY_HORIZONTAL_FOV/2));
-   ray_cam_dir0.x = (ray_cam_dir0.x*1024)/cos;
-   ray_cam_dir0.y = (ray_cam_dir0.y*1024)/cos;
-   ray_cam_dir1.x = (ray_cam_dir1.x*1024)/cos;
-   ray_cam_dir1.y = (ray_cam_dir1.y*1024)/cos;
-
    for(int i = 0;i<ray_planes_used;i++)
    {
       ray_plane *pl = &ray_planes[i];
@@ -273,114 +383,6 @@ void RvR_ray_draw()
       }
    }
    //-------------------------------------
-
-   //Sort sprites
-   qsort(ray_sprite_stack.data,ray_sprite_stack.data_used,sizeof(*ray_sprite_stack.data),ray_sort);
-   //TODO: radix sort?
-
-   //ray_sprite rendering
-   for(unsigned i = 0;i<ray_sprite_stack.data_used;i++)
-   {
-      ray_sprite sp = ray_sprite_stack.data[i];
-      RvR_fix22 depth = sp.s_depth;
-      RvR_texture *texture = RvR_texture_get(sp.tex);
-
-      RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
-      RvR_fix22 scale_horizontal = RVR_YRES*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
-      int size_vertical = RvR_ray_perspective_scale_vertical((scale_vertical)/1024,depth);
-      int size_horizontal = RvR_ray_perspective_scale_vertical((scale_horizontal)/1024,depth);
-      int sx = 0;
-      int sy = 0;
-      int ex = size_horizontal;
-      int ey = size_vertical;
-      int x = sp.s_pos.x-size_horizontal/2;
-      int y = sp.s_pos.y-size_vertical;
-      RvR_fix22 u_step = (texture->width*1024-1)/RvR_non_zero(size_horizontal);
-      RvR_fix22 u = 0;
-      RvR_fix22 v_step = (texture->height*1024-1)/RvR_non_zero(size_vertical);
-      RvR_fix22 v_start = 0;
-
-      //Floor and ceiling clip
-      RvR_vec3 floor_wpos;
-      floor_wpos.x = sp.w_pos.x;
-      floor_wpos.y = sp.w_pos.y;
-      floor_wpos.z = RvR_ray_map_floor_height_at(sp.w_pos.x/1024,sp.w_pos.y/1024);
-      int clip_bottom = RvR_ray_map_to_screen(floor_wpos).position.y;
-      floor_wpos.z = RvR_ray_map_ceiling_height_at(sp.w_pos.x/1024,sp.w_pos.y/1024);
-      int clip_top = RvR_ray_map_to_screen(floor_wpos).position.y;
-
-      clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
-      clip_top = clip_top<0?0:clip_top;
-
-      //Clip coordinates to screen/clip_top and clip_bottom
-      if(x<0)
-         sx = -x;
-      if(y<clip_top)
-         sy = clip_top-y;
-      if(x+ex>RVR_XRES)
-         ex = size_horizontal+(RVR_XRES-x-ex);
-      if(y+ey>clip_bottom)
-         ey = size_vertical+(clip_bottom-y-ey);
-      x = x<0?0:x;
-      y = y<clip_top?clip_top:y;
-
-      if(sp.flags&1)
-         u = (-sx+size_horizontal)*u_step;
-      else
-         u = sx*u_step;
-      v_start = sy*v_step;
-
-      //Draw
-      const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>8));
-      uint8_t * restrict dst = NULL;
-      const uint8_t * restrict tex = NULL;
-
-      for(int x1 = sx;x1<ex;x1++,x++)
-      {
-         if(sp.flags&1)
-            u-=u_step;
-         else
-            u+=u_step;
-
-         //Clip against walls
-         int ey1 = ey;
-         int ys = y;
-
-         //Clip floor
-         RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
-         while(clip!=NULL)
-         {
-            if(depth>clip->depth&&y+(ey1-sy)>clip->limit)
-               ey1 = clip->limit-y+sy;
-            clip = clip->next;
-         }
-
-         //Clip ceiling
-         clip = ray_depth_buffer.ceiling[x];
-         while(clip!=NULL)
-         {
-            if(depth>clip->depth&&ys<clip->limit)
-            {
-               int diff = ys-clip->limit;
-               ys = clip->limit;
-               ey1+=diff;
-            }
-            clip = clip->next;
-         }
-
-         tex = &texture->data[texture->height*(u>>10)];
-         dst = &RvR_core_framebuffer()[ys*RVR_XRES+x];
-         RvR_fix22 v = v_start+(ys-y)*v_step;
-         for(int y1 = sy;y1<ey1;y1++,dst+=RVR_XRES)
-         {
-            uint8_t index = tex[v>>10];
-            *dst = index?col[index]:*dst;
-            v+=v_step;
-         }
-      }
-   }
-
-   ray_sprite_stack.data_used = 0;
 }
 
 void RvR_ray_draw_debug(uint8_t index)
@@ -393,35 +395,6 @@ void RvR_ray_draw_debug(uint8_t index)
 static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, RvR_ray_pixel_info *pixel_info)
 {
    int16_t limit = RvR_clamp(y_to,limit0,limit1);
-
-   //Sky texture is handled differently and instead added as a plane
-   if(increment==-1&&pixel_info->hit.wall_ftex==RvR_ray_map_sky_tex())
-   {
-      RvR_fix22 f_start = limit;
-      RvR_fix22 f_end = y_current+increment;
-      if(f_end<f_start)
-         return limit;
-      ray_plane_add(pixel_info->hit.fheight,pixel_info->hit.wall_ftex,pixel_info->position.x,f_start,f_end);
-
-      return limit;
-   }
-   else if(increment==1&&pixel_info->hit.wall_ctex==RvR_ray_map_sky_tex())
-   {
-      RvR_fix22 c_start = y_current+increment;
-      RvR_fix22 c_end = limit;
-      if(c_end<c_start)
-         return limit;
-      ray_plane_add(pixel_info->hit.cheight,pixel_info->hit.wall_ctex,pixel_info->position.x,c_start,c_end);
-
-      return limit;
-   }
-
-   RvR_texture *texture = NULL;
-   height = RvR_abs(height);
-   RvR_fix22 wall_position = RvR_abs(y_from-y_current)-increment;
-   RvR_fix22 height_scaled = height*65536;
-   RvR_fix22 coord_step_scaled = (64*ray_fov_factor*pixel_info->depth)/RVR_YRES;
-   RvR_fix22 texture_coord_scaled = 0;
    int start = 0;
    int end = 0;
 
@@ -429,19 +402,47 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    {
       start = limit;
       end = y_current+increment;
-      texture_coord_scaled = height_scaled-(wall_position+end-start)*coord_step_scaled;
-      texture = RvR_texture_get(pixel_info->hit.wall_ftex);
    }
    else if(increment==1)
    {
       start = y_current+increment;
       end = limit;
+   }
+
+   if(end<start)
+      return limit;
+
+   //Sky texture is handled differently and instead added as a plane
+   if(increment==-1&&pixel_info->hit.wall_ftex==RvR_ray_map_sky_tex())
+   {
+      ray_plane_add(pixel_info->hit.fheight,pixel_info->hit.wall_ftex,pixel_info->position.x,start,end);
+      return limit;
+   }
+   else if(increment==1&&pixel_info->hit.wall_ctex==RvR_ray_map_sky_tex())
+   {
+      ray_plane_add(pixel_info->hit.cheight,pixel_info->hit.wall_ctex,pixel_info->position.x,start,end);
+      return limit;
+   }
+
+   RvR_texture *texture = NULL;
+   height = RvR_abs(height);
+   RvR_fix22 wall_length = RvR_non_zero(RvR_abs(y_to-y_from-1));
+   RvR_fix22 wall_position = RvR_abs(y_from-y_current)-increment;
+   RvR_fix22 height_scaled = height*65536;
+   RvR_fix22 coord_step_scaled = height_scaled/wall_length;
+   //RvR_fix22 coord_step_scaled = (64*ray_fov_factor_y*pixel_info->depth)/RVR_YRES;
+   RvR_fix22 texture_coord_scaled = 0;
+
+   if(increment==-1)
+   {
+      texture_coord_scaled = height_scaled-(wall_position+end-start)*coord_step_scaled;
+      texture = RvR_texture_get(pixel_info->hit.wall_ftex);
+   }
+   else if(increment==1)
+   {
       texture_coord_scaled = -(y_to-start)*coord_step_scaled;
       texture = RvR_texture_get(pixel_info->hit.wall_ctex);
    }
-
-   if(start>end)
-      return limit;
 
    uint8_t * restrict pix = &RvR_core_framebuffer()[start*RVR_XRES+pixel_info->position.x];
    const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(pixel_info->hit.direction&1)*10+(pixel_info->depth>>8)));
@@ -519,13 +520,13 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
 
          f_wall_height = RvR_ray_map_floor_height_at(hit.square.x,hit.square.y);
          f_z2_world = f_wall_height-RvR_ray_get_position().z;
-         f_z1_screen = ray_middle_row-((f_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor*distance)/1024));
-         f_z2_screen = ray_middle_row-((f_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor*distance)/1024));
+         f_z1_screen = ray_middle_row-((f_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
+         f_z2_screen = ray_middle_row-((f_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
 
          c_wall_height = RvR_ray_map_ceiling_height_at(hit.square.x,hit.square.y);
          c_z2_world = c_wall_height-RvR_ray_get_position().z;
-         c_z1_screen = ray_middle_row-((c_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor*distance)/1024));
-         c_z2_screen = ray_middle_row-((c_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor*distance)/1024));
+         c_z1_screen = ray_middle_row-((c_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
+         c_z2_screen = ray_middle_row-((c_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
       }
       else
       {
@@ -652,8 +653,8 @@ RvR_ray_pixel_info RvR_ray_map_to_screen(RvR_vec3 world_position)
 
    result.depth = to_point.x;
 
-   result.position.x = middle_column-(RvR_ray_perspective_scale_horizontal(to_point.y,result.depth)*middle_column)/1024;
-   result.position.y = (RvR_ray_perspective_scale_vertical(world_position.z-RvR_ray_get_position().z,result.depth)*RVR_YRES)/1024;
+   result.position.x = middle_column-(((to_point.y*1024)/RvR_non_zero((ray_fov_factor_x*result.depth)/1024))*middle_column)/1024;
+   result.position.y = ((((world_position.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*result.depth)/1024))*RVR_YRES)/1024;
    result.position.y = RVR_YRES/2-result.position.y+RvR_ray_get_shear();
 
    return result;
@@ -735,7 +736,7 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
 
    //Calculate the depth of the row to be rendered
    RvR_fix22 cam_height_screen_size = RvR_abs((RvR_ray_get_position().z-height)*RVR_YRES)/1024;
-   RvR_fix22 depth = RvR_ray_perspective_scale_vertical_inverse(cam_height_screen_size,RvR_abs(y-ray_middle_row));
+   RvR_fix22 depth = (cam_height_screen_size*1024)/RvR_non_zero((RvR_abs(y-ray_middle_row)*ray_fov_factor_y)/1024);
 
    //Calculate texture mapping step size and starting coordinates
    RvR_fix22 step_x = (depth*(ray_cam_dir1.x-ray_cam_dir0.x))/(RVR_XRES);
@@ -875,10 +876,6 @@ static void ray_depth_buffer_entry_free(RvR_ray_depth_buffer_entry *ent)
 }
 //-------------------------------------
 
-#undef TEX_AND
-#undef TEX_MUL
-#undef TEX_HIGH_MUL
-#undef TEX_HIGH_AND
 #undef TEX_SKYW_AND
 #undef TEX_SKYW_MUL
 #undef TEX_SKYH_MUL

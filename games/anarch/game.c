@@ -107,6 +107,8 @@ void game_update()
    if(player.entity->health>0)
       player_update();
 
+   RvR_ray_draw_begin();
+
    RvR_texture *player_sprite = 0;
    e = ai_ents();
    while(e!=NULL)
@@ -137,7 +139,9 @@ next:
    collision_post();
 
    //Graphics
-   RvR_ray_draw();
+
+   RvR_ray_draw_map();
+   RvR_ray_draw_end();
    RvR_draw_texture(player_sprite,(RVR_XRES-player_sprite->width)/2,RVR_YRES-player_sprite->height);
    //RvR_ray_draw_debug(8);
 

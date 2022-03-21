@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -293,7 +293,7 @@ void editor3d_draw()
          if(wlocation==3)
             RvR_ray_map_wall_ctex_set(wx,wy,UINT16_MAX-1);
       }
-      else if(texture_high->width==1<<RVR_RAY_TEXTURE&&texture_high->height==1<<RVR_RAY_TEXTURE_HIGH)
+      else if(texture_high->width==1<<RVR_RAY_TEXTURE&&texture_high->height==1<<RvR_log2(texture_high->height))
       {
          if(texture_highlight!=texture_highlight_old)
          {
@@ -328,6 +328,7 @@ void editor3d_draw()
       }
       //-------------------------------------
 
+      RvR_ray_draw_begin();
       Map_sprite *s = map_sprites;
       while(s!=NULL)
       {
@@ -335,7 +336,8 @@ void editor3d_draw()
          s = s->next;
       }
       
-      RvR_ray_draw();
+      RvR_ray_draw_map();
+      RvR_ray_draw_end();
 
       texture_highlight_old = texture_highlight;
       if(wlocation==0)
@@ -397,12 +399,12 @@ static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *locatio
    if(my<0||my>=RVR_YRES||mx<0||mx>=RVR_XRES)
       return;
 
-   RvR_vec2 dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(RVR_RAY_HORIZONTAL_FOV/2));
-   RvR_vec2 dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(RVR_RAY_HORIZONTAL_FOV/2));
+   RvR_vec2 dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(RvR_ray_get_fov()/2));
+   RvR_vec2 dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(RvR_ray_get_fov()/2));
    RvR_fix22 ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_div_round_down(RvR_ray_get_position().x,1024),RvR_div_round_down(RvR_ray_get_position().y,1024))-1*RvR_ray_get_position().z;
    RvR_fix22 ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_div_round_down(RvR_ray_get_position().x,1024),RvR_div_round_down(RvR_ray_get_position().y,1024))-1*RvR_ray_get_position().z;
    int32_t ray_middle_row = (RVR_YRES/2)+RvR_ray_get_shear();
-   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RVR_RAY_HORIZONTAL_FOV/2));
+   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RvR_ray_get_fov()/2));
    dir0.x = (dir0.x*1024)/cos;
    dir0.y = (dir0.y*1024)/cos;
    dir1.x = (dir1.x*1024)/cos;
@@ -439,6 +441,8 @@ static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *locatio
    int end = 0;
    const int direction_modx[4] = {0,1,0,-1};
    const int direction_mody[4] = {1,0,-1,0};
+   RvR_fix22 fov_factor_x = RvR_fix22_tan(RvR_ray_get_fov()/2);
+   RvR_fix22 fov_factor_y = (RVR_YRES*fov_factor_x)/(RVR_XRES/2);
 
    //we'll be simulatenously drawing the floor and the ceiling now  
    for(RvR_fix22 j = 0;j<RVR_RAY_MAX_STEPS;++j)
@@ -461,13 +465,13 @@ static void mouse_world_pos(int mx, int my, int16_t *x, int16_t *y, int *locatio
 
          f_wall_height = RvR_ray_map_floor_height_at(hit.square.x,hit.square.y);
          f_z2_world = f_wall_height-RvR_ray_get_position().z;
-         f_z1_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((f_z1_world*RVR_YRES)/1024,distance);
-         f_z2_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((f_z2_world*RVR_YRES)/1024,distance);
+         f_z1_screen = ray_middle_row-((f_z1_world*RVR_YRES)/RvR_non_zero((fov_factor_y*distance)/1024));
+         f_z2_screen = ray_middle_row-((f_z2_world*RVR_YRES)/RvR_non_zero((fov_factor_y*distance)/1024));
 
          c_wall_height = RvR_ray_map_ceiling_height_at(hit.square.x,hit.square.y);
          c_z2_world = c_wall_height-RvR_ray_get_position().z;
-         c_z1_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((c_z1_world*RVR_YRES)/1024,distance);
-         c_z2_screen = ray_middle_row-RvR_ray_perspective_scale_vertical((c_z2_world*RVR_YRES)/1024,distance);
+         c_z1_screen = ray_middle_row-((c_z1_world*RVR_YRES)/RvR_non_zero((fov_factor_y*distance)/1024));
+         c_z2_screen = ray_middle_row-((c_z2_world*RVR_YRES)/RvR_non_zero((fov_factor_y*distance)/1024));
       }
       else
       {
@@ -579,6 +583,8 @@ static Map_sprite *sprite_selected()
    RvR_fix22 depth_min = INT32_MAX;
    Map_sprite *sp = map_sprites;
    RvR_core_mouse_pos(&mx,&my);
+   RvR_fix22 fov_factor_x = RvR_fix22_tan(RvR_ray_get_fov()/2);
+   RvR_fix22 fov_factor_y = (RVR_YRES*fov_factor_x)/(RVR_XRES/2);
 
    while(sp!=NULL)
    {
@@ -589,9 +595,9 @@ static Map_sprite *sprite_selected()
 
       RvR_texture *texture = RvR_texture_get(sp->type);
       RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
-      RvR_fix22 scale_horizontal = RVR_YRES*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
-      int size_vertical = RvR_ray_perspective_scale_vertical((scale_vertical)/1024,px.depth);
-      int size_horizontal = RvR_ray_perspective_scale_vertical((scale_horizontal)/1024,px.depth);
+      RvR_fix22 scale_horizontal = (RVR_XRES/2)*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
+      int size_vertical = scale_vertical/((fov_factor_y*px.depth)/1024);
+      int size_horizontal = scale_horizontal/((fov_factor_x*px.depth)/1024);
 
       //Reject based on non-clipped bounding rect
       if(mx<px.position.x-size_horizontal/2||mx>px.position.x+size_horizontal/2)

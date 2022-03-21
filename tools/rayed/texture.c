@@ -115,9 +115,7 @@ int texture_valid(uint16_t tex)
    if(texture==NULL)
       return 0;
 
-   if(texture->width==1<<RVR_RAY_TEXTURE&&texture->height==1<<RVR_RAY_TEXTURE)
-      return 1;
-   if(texture->width==1<<RVR_RAY_TEXTURE&&texture->height==1<<RVR_RAY_TEXTURE_HIGH)
+   if(texture->width==1<<RVR_RAY_TEXTURE&&texture->height==1<<RvR_log2(texture->height))
       return 1;
 
    if(texture->width==1<<RVR_RAY_TEXTURE_SKY_W&&texture->height==1<<RVR_RAY_TEXTURE_SKY_H)

@@ -32,7 +32,6 @@ static RvR_fix22 ray_cam_fov = 256;
 //-------------------------------------
 
 //Function prototypes
-static RvR_fix22 ray_fov_correction_factor(RvR_fix22 fov);
 //-------------------------------------
 
 //Function implementations
@@ -201,9 +200,9 @@ void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16
 
 void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
 {
-   RvR_vec2 dir0 = RvR_vec2_rot(ray_cam_angle-(RVR_RAY_HORIZONTAL_FOV/2));
-   RvR_vec2 dir1 = RvR_vec2_rot(ray_cam_angle+(RVR_RAY_HORIZONTAL_FOV/2));
-   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RVR_RAY_HORIZONTAL_FOV/2));
+   RvR_vec2 dir0 = RvR_vec2_rot(ray_cam_angle-(ray_cam_fov/2));
+   RvR_vec2 dir1 = RvR_vec2_rot(ray_cam_angle+(ray_cam_fov/2));
+   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(ray_cam_fov/2));
    dir0.x = (dir0.x*1024)/cos;
    dir0.y = (dir0.y*1024)/cos;
    dir1.x = (dir1.x*1024)/cos;
@@ -234,39 +233,6 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
       current_dx+=dx;
       current_dy+=dy;
    }
-}
-
-RvR_fix22 RvR_ray_perspective_scale_vertical(RvR_fix22 org_size, RvR_fix22 distance)
-{
-   static RvR_fix22 correction_factor = 0;
-   if(correction_factor==0)
-      correction_factor = ray_fov_correction_factor(RVR_RAY_VERTICAL_FOV);
-
-   if(distance==0)
-      return 0;
-   return ((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024));
-}
-
-RvR_fix22 RvR_ray_perspective_scale_vertical_inverse(RvR_fix22 org_size, RvR_fix22 sc_size)
-{
-   static RvR_fix22 correction_factor = 0;
-   if(correction_factor==0)
-      correction_factor = ray_fov_correction_factor(RVR_RAY_VERTICAL_FOV);
-
-   if(sc_size==0)
-      return RvR_fix22_infinity;
-   return ((org_size*1024)/RvR_non_zero((correction_factor*sc_size)/1024));
-}
-
-RvR_fix22 RvR_ray_perspective_scale_horizontal(RvR_fix22 org_size, RvR_fix22 distance)
-{
-   static RvR_fix22 correction_factor = 0;
-   if(correction_factor==0)
-      correction_factor = ray_fov_correction_factor(RVR_RAY_HORIZONTAL_FOV);
-
-   if(distance==0)
-      return 0;
-   return ((org_size*1024)/RvR_non_zero((correction_factor*distance)/1024));
 }
 
 void RvR_ray_set_angle(RvR_fix22 angle)
@@ -307,10 +273,5 @@ void RvR_ray_set_fov(RvR_fix22 fov)
 RvR_fix22 RvR_ray_get_fov()
 {
    return ray_cam_fov;
-}
-
-static RvR_fix22 ray_fov_correction_factor(RvR_fix22 fov)
-{
-   return RvR_fix22_tan(fov/2);
 }
 //-------------------------------------
