@@ -596,8 +596,8 @@ static Map_sprite *sprite_selected()
       RvR_texture *texture = RvR_texture_get(sp->type);
       RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
       RvR_fix22 scale_horizontal = (RVR_XRES/2)*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
-      int size_vertical = scale_vertical/((fov_factor_y*px.depth)/1024);
-      int size_horizontal = scale_horizontal/((fov_factor_x*px.depth)/1024);
+      int size_vertical = scale_vertical/RvR_non_zero((fov_factor_y*px.depth)/1024);
+      int size_horizontal = scale_horizontal/RvR_non_zero((fov_factor_x*px.depth)/1024);
 
       //Reject based on non-clipped bounding rect
       if(mx<px.position.x-size_horizontal/2||mx>px.position.x+size_horizontal/2)
