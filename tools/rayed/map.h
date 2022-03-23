@@ -21,13 +21,13 @@ typedef struct
 
 typedef struct Map_sprite
 {
-   uint16_t type;
+   uint16_t texture;
    RvR_vec3 pos;
    RvR_fix22 direction;
+   uint32_t flags;
    int32_t extra0;
    int32_t extra1;
    int32_t extra2;
-   int32_t extra3;
 
    struct Map_sprite *next;
    struct Map_sprite **prev_next;

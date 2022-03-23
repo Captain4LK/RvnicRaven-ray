@@ -237,16 +237,6 @@ void editor2d_update()
             menu = 0;
          }
          break;
-      case 12:
-         if(RvR_core_key_pressed(RVR_KEY_ESCAPE))
-            menu = 0;
-         if(RvR_core_key_pressed(RVR_KEY_ENTER))
-         {
-            RvR_core_text_input_end();
-            sprite_sel->extra3 = atoi(menu_input);
-            menu = 0;
-         }
-         break;
       }
 
       return;
@@ -284,12 +274,6 @@ void editor2d_update()
       snprintf(menu_input,512,"%"PRIi32,sprite_sel->extra2);
       RvR_core_text_input_start(menu_input,512);
    }
-   else if(RvR_core_key_pressed(RVR_KEY_4)&&sprite_sel!=NULL)
-   {
-      menu = 12;
-      snprintf(menu_input,512,"%"PRIi32,sprite_sel->extra3);
-      RvR_core_text_input_start(menu_input,512);
-   }
 
    static Map_sprite *sprite_move = NULL;
    if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT)&&sprite_sel!=NULL)
@@ -320,12 +304,12 @@ void editor2d_update()
    {
       Map_sprite *ms = map_sprite_new();
 
-      ms->type = 0;
+      ms->texture = 0;
       ms->direction = 0;
       ms->extra0 = 0;
       ms->extra1 = 0;
       ms->extra2 = 0;
-      ms->extra3 = 0;
+      ms->flags = 0;
       ms->pos.x = ((mx+scroll_x)*1024)/grid_size;
       ms->pos.y = ((my+scroll_y)*1024)/grid_size;
       ms->pos.z = RvR_ray_map_floor_height_at(ms->pos.x/1024,ms->pos.y/1024);
@@ -484,10 +468,9 @@ void editor2d_draw()
    case 5: snprintf(tmp,1024,"Save as: %s",menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    case 6: RvR_draw_string(5,RVR_YRES-10,1,"Are you sure you want to quit? (Y/N)",color_white); break;
    case 7: RvR_draw_string(5,RVR_YRES-10,1,"Save changes? (Y/N)",color_white); break;
-   case 9: snprintf(tmp,1024,"Sprite (type %"PRIu16") extra0: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
-   case 10: snprintf(tmp,1024,"Sprite (type %"PRIu16") extra1: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
-   case 11: snprintf(tmp,1024,"Sprite (type %"PRIu16") extra2: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
-   case 12: snprintf(tmp,1024,"Sprite (type %"PRIu16") extra3: %s",sprite_sel->type,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 9: snprintf(tmp,1024,"Sprite (texture %"PRIu16") extra0: %s",sprite_sel->texture,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 10: snprintf(tmp,1024,"Sprite (texture %"PRIu16") extra1: %s",sprite_sel->texture,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
+   case 11: snprintf(tmp,1024,"Sprite (texture %"PRIu16") extra2: %s",sprite_sel->texture,menu_input); RvR_draw_string(5,RVR_YRES-10,1,tmp,color_white); break;
    }
 }
 //-------------------------------------

@@ -433,45 +433,29 @@ typedef struct
 
 typedef struct
 {
-   uint16_t type;
    RvR_vec3 pos;
    RvR_fix22 direction;
+   uint16_t texture;
+   uint32_t flags;
    int32_t extra0;
    int32_t extra1;
    int32_t extra2;
-   int32_t extra3;
 }RvR_ray_map_sprite;
 
 typedef struct
 {
-   uint16_t *wall_ftex;
-   uint16_t *wall_ctex;
-   uint16_t *floor_tex;
-   uint16_t *ceil_tex;
+   uint16_t sky_tex;
+   uint16_t width;
+   uint16_t height;
+   uint32_t sprite_count;
    RvR_fix22 *floor;
    RvR_fix22 *ceiling;
-   uint16_t width;
-   uint16_t height;
-   uint8_t floor_color;
-   uint16_t sky_tex;
-}RvR_ray_map;
-
-typedef struct
-{
-   uint16_t *wall_ftex;
-   uint16_t *wall_ctex;
    uint16_t *floor_tex;
    uint16_t *ceil_tex;
-   int8_t *floor;
-   int8_t *ceiling;
-   uint16_t width;
-   uint16_t height;
-   uint8_t floor_color;
-   uint16_t sky_tex;
-
+   uint16_t *wall_ftex;
+   uint16_t *wall_ctex;
    RvR_ray_map_sprite *sprites;
-   uint32_t sprite_count;
-}RvR_ray_map_cache;
+}RvR_ray_map;
 
 typedef struct
 {
@@ -531,17 +515,14 @@ void      RvR_ray_set_fov(RvR_fix22 fov);
 RvR_fix22 RvR_ray_get_fov();
 
 void RvR_ray_map_create(uint16_t width, uint16_t height);
-void RvR_ray_map_reset();
-void RvR_ray_map_reset_full();
 void RvR_ray_map_load_path(const char *path);
 void RvR_ray_map_load(uint16_t id);
 void RvR_ray_map_load_rw(RvR_rw *rw);
 void RvR_ray_map_save(const char *path);
 int RvR_ray_map_sprite_count();
 RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index);
-
 RvR_ray_map *RvR_ray_map_get();
-RvR_ray_map_cache *RvR_ray_map_cache_get();
+
 int       RvR_ray_map_inbounds(int16_t x, int16_t y);
 uint16_t  RvR_ray_map_sky_tex();
 uint16_t  RvR_ray_map_wall_ftex_at(int16_t x, int16_t y);

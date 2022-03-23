@@ -74,11 +74,11 @@ void map_load(const char *path)
       RvR_ray_map_sprite *s = RvR_ray_map_sprite_get(i);
       Map_sprite *ms = map_sprite_new();
 
-      ms->type = s->type;
+      ms->texture = s->texture;
       ms->extra0 = s->extra0;
       ms->extra1 = s->extra1;
       ms->extra2 = s->extra2;
-      ms->extra3 = s->extra3;
+      ms->flags = s->flags;
       ms->direction = s->direction;
       ms->pos = s->pos;
 
@@ -116,19 +116,6 @@ void map_new(uint16_t width, uint16_t height)
 
 void map_save()
 {
-   RvR_ray_map_cache *map_cache = RvR_ray_map_cache_get();
-   map_cache->floor_color = map->floor_color;
-   map_cache->sky_tex = map->sky_tex;
-   memcpy(map_cache->wall_ftex,map->wall_ftex,sizeof(*map->wall_ftex)*map->width*map->height);
-   memcpy(map_cache->wall_ctex,map->wall_ctex,sizeof(*map->wall_ctex)*map->width*map->height);
-   memcpy(map_cache->floor_tex,map->floor_tex,sizeof(*map->floor_tex)*map->width*map->height);
-   memcpy(map_cache->ceil_tex,map->ceil_tex,sizeof(*map->ceil_tex)*map->width*map->height);
-   for(int i = 0;i<map->width*map->height;i++)
-   {
-      map_cache->floor[i] = map->floor[i]/128;
-      map_cache->ceiling[i] = map->ceiling[i]/128;
-   }
-
    //Save sprites
    //count
    int sprite_count = 0;
@@ -138,18 +125,18 @@ void map_save()
       s = s->next;
       sprite_count++;
    }
-   map_cache->sprite_count = sprite_count;
-   map_cache->sprites = RvR_realloc(map_cache->sprites,sizeof(*map_cache->sprites)*map_cache->sprite_count);
+   map->sprite_count = sprite_count;
+   map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
    s = map_sprites;
    for(int i = 0;s!=NULL;i++)
    {
-      map_cache->sprites[i].type = s->type;
-      map_cache->sprites[i].pos = s->pos;
-      map_cache->sprites[i].direction = s->direction;
-      map_cache->sprites[i].extra0 = s->extra0;
-      map_cache->sprites[i].extra1 = s->extra1;
-      map_cache->sprites[i].extra2 = s->extra2;
-      map_cache->sprites[i].extra3 = s->extra3;
+      map->sprites[i].texture = s->texture;
+      map->sprites[i].pos = s->pos;
+      map->sprites[i].direction = s->direction;
+      map->sprites[i].extra0 = s->extra0;
+      map->sprites[i].extra1 = s->extra1;
+      map->sprites[i].extra2 = s->extra2;
+      map->sprites[i].flags = s->flags;
       s = s->next;
    }
 

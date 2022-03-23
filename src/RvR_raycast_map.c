@@ -26,87 +26,52 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 RvR_ray_map ray_map = {0};
-RvR_ray_map_cache ray_map_cache = {0};
 //-------------------------------------
 
 //Function prototypes
-static void ray_map_free_cache();
-static void ray_map_free_level();
+static void ray_map_free();
 //-------------------------------------
 
 //Function implementations
 
 void RvR_ray_map_create(uint16_t width, uint16_t height)
 {
-   if(width<=0)
+   if(width==0)
       width = 1;
-   if(height<=0)
+   if(height==0)
       height = 1;
 
-   ray_map_free_cache();
+   ray_map_free();
 
-   ray_map_cache.width = width;
-   ray_map_cache.height = height;
-   ray_map_cache.wall_ftex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_ftex));
-   ray_map_cache.wall_ctex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_ctex));
-   ray_map_cache.floor_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor_tex));
-   ray_map_cache.ceil_tex = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceil_tex));
-   ray_map_cache.floor = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor));
-   ray_map_cache.ceiling = RvR_malloc(ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceiling));
-   memset(ray_map_cache.wall_ftex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_ftex));
-   memset(ray_map_cache.wall_ctex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.wall_ctex));
-   memset(ray_map_cache.floor_tex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor_tex));
-   memset(ray_map_cache.ceil_tex,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceil_tex));
-   memset(ray_map_cache.floor,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.floor));
-   memset(ray_map_cache.ceiling,0,ray_map_cache.width*ray_map_cache.height*sizeof(*ray_map_cache.ceiling));
+   ray_map.width = width;
+   ray_map.height = height;
+   ray_map.wall_ftex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.wall_ftex));
+   ray_map.wall_ctex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.wall_ctex));
+   ray_map.floor_tex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.floor_tex));
+   ray_map.ceil_tex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.ceil_tex));
+   ray_map.floor = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.floor));
+   ray_map.ceiling = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.ceiling));
+   memset(ray_map.wall_ftex,0,ray_map.width*ray_map.height*sizeof(*ray_map.wall_ftex));
+   memset(ray_map.wall_ctex,0,ray_map.width*ray_map.height*sizeof(*ray_map.wall_ctex));
+   memset(ray_map.floor_tex,0,ray_map.width*ray_map.height*sizeof(*ray_map.floor_tex));
+   memset(ray_map.ceil_tex,0,ray_map.width*ray_map.height*sizeof(*ray_map.ceil_tex));
+   memset(ray_map.floor,0,ray_map.width*ray_map.height*sizeof(*ray_map.floor));
+   memset(ray_map.ceiling,0,ray_map.width*ray_map.height*sizeof(*ray_map.ceiling));
 
-   ray_map_cache.floor_color = 23;
-   ray_map_cache.sky_tex = 0;
-   ray_map_cache.sprite_count = 0;
+   ray_map.sky_tex = 0;
+   ray_map.sprite_count = 0;
 
-   for(int y = 0;y<ray_map_cache.height;y++)
+   for(int y = 0;y<ray_map.height;y++)
    {
-      for(int x = 0;x<ray_map_cache.width;x++)
+      for(int x = 0;x<ray_map.width;x++)
       {
-         ray_map_cache.floor[y*ray_map_cache.width+x] = 0;
-         ray_map_cache.ceiling[y*ray_map_cache.width+x] = 32;
+         ray_map.floor[y*ray_map.width+x] = 0;
+         ray_map.ceiling[y*ray_map.width+x] = 32*128;
       }
    }
-
-   //TODO: don't call this here, make user call this
-   //If I don't reset the map myself, it is possible to cache a map by loading it, but not reseting
-   RvR_ray_map_reset_full();
 }
 
-static void ray_map_free_cache()
-{
-   if(ray_map_cache.wall_ftex!=NULL)
-      RvR_free(ray_map_cache.wall_ftex);
-   if(ray_map_cache.wall_ctex!=NULL)
-      RvR_free(ray_map_cache.wall_ctex);
-   if(ray_map_cache.floor_tex!=NULL)
-      RvR_free(ray_map_cache.floor_tex);
-   if(ray_map_cache.ceil_tex!=NULL)
-      RvR_free(ray_map_cache.ceil_tex);
-   if(ray_map_cache.floor!=NULL)
-      RvR_free(ray_map_cache.floor);
-   if(ray_map_cache.ceiling!=NULL)
-      RvR_free(ray_map_cache.ceiling);
-   if(ray_map_cache.sprites!=NULL)
-      RvR_free(ray_map_cache.sprites);
-
-   ray_map_cache.wall_ftex = NULL;
-   ray_map_cache.wall_ctex = NULL;
-   ray_map_cache.floor_tex = NULL;
-   ray_map_cache.ceil_tex = NULL;
-   ray_map_cache.floor = NULL;
-   ray_map_cache.ceiling = NULL;
-   ray_map_cache.width = 0;
-   ray_map_cache.height = 0;
-   ray_map_cache.sprite_count= 0;
-}
-
-static void ray_map_free_level()
+static void ray_map_free()
 {
    if(ray_map.wall_ftex!=NULL)
       RvR_free(ray_map.wall_ftex);
@@ -131,60 +96,16 @@ static void ray_map_free_level()
    ray_map.height = 0;
 }
 
-void RvR_ray_map_reset()
-{
-   if(ray_map.width!=ray_map_cache.width||ray_map.height!=ray_map_cache.height|| //Wrong dimensions
-      ray_map.floor==NULL||ray_map.ceiling==NULL||ray_map.wall_ftex==NULL||ray_map.wall_ctex==NULL) //Not allocated yet)
-   {
-      ray_map_free_level();
-
-      ray_map.width = ray_map_cache.width;
-      ray_map.height = ray_map_cache.height;
-      ray_map.wall_ftex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.wall_ftex));
-      ray_map.wall_ctex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.wall_ctex));
-      ray_map.floor_tex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.floor_tex));
-      ray_map.ceil_tex = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.ceil_tex));
-      ray_map.floor = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.floor));
-      ray_map.ceiling = RvR_malloc(ray_map.width*ray_map.height*sizeof(*ray_map.ceiling));
-
-      memset(ray_map.wall_ftex,0,ray_map.width*ray_map.height*sizeof(*ray_map.wall_ftex));
-      memset(ray_map.wall_ctex,0,ray_map.width*ray_map.height*sizeof(*ray_map.wall_ctex));
-      memset(ray_map.floor_tex,0,ray_map.width*ray_map.height*sizeof(*ray_map.floor_tex));
-      memset(ray_map.ceil_tex,0,ray_map.width*ray_map.height*sizeof(*ray_map.ceil_tex));
-      memset(ray_map.floor,0,ray_map.width*ray_map.height*sizeof(*ray_map.floor));
-      memset(ray_map.ceiling,0,ray_map.width*ray_map.height*sizeof(*ray_map.ceiling));
-   }
-
-   //Misc
-   ray_map.floor_color = ray_map_cache.floor_color;
-   ray_map.sky_tex = ray_map_cache.sky_tex;
-
-   memcpy(ray_map.wall_ftex,ray_map_cache.wall_ftex,sizeof(*ray_map_cache.wall_ftex)*ray_map_cache.width*ray_map_cache.height);
-   memcpy(ray_map.wall_ctex,ray_map_cache.wall_ctex,sizeof(*ray_map_cache.wall_ctex)*ray_map_cache.width*ray_map_cache.height);
-   memcpy(ray_map.floor_tex,ray_map_cache.floor_tex,sizeof(*ray_map_cache.floor_tex)*ray_map_cache.width*ray_map_cache.height);
-   memcpy(ray_map.ceil_tex,ray_map_cache.ceil_tex,sizeof(*ray_map_cache.ceil_tex)*ray_map_cache.width*ray_map_cache.height);
-   for(int i = 0;i<ray_map.width*ray_map.height;i++)
-   {
-      ray_map.floor[i] = (int16_t)ray_map_cache.floor[i]*128;
-      ray_map.ceiling[i] = (int16_t)ray_map_cache.ceiling[i]*128;
-   }
-}
-
 int RvR_ray_map_sprite_count()
 {
-   return ray_map_cache.sprite_count;
+   return ray_map.sprite_count;
 }
 
 RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index)
 {
-   if(index>=ray_map_cache.sprite_count)
+   if(index>=ray_map.sprite_count)
       return NULL;
-   return &ray_map_cache.sprites[index];
-}
-
-void RvR_ray_map_reset_full()
-{
-   RvR_ray_map_reset();
+   return &ray_map.sprites[index];
 }
 
 void RvR_ray_map_load_path(const char *path)
@@ -227,107 +148,126 @@ void RvR_ray_map_load(uint16_t id)
 
 void RvR_ray_map_load_rw(RvR_rw *rw)
 {
-   //Read level width and height
-   ray_map_cache.width = RvR_rw_read_u16(rw);
-   ray_map_cache.height = RvR_rw_read_u16(rw);
-
-   //Read sprite count
-   ray_map_cache.sprite_count = RvR_rw_read_u32(rw);
-   ray_map_cache.sprites = RvR_malloc(sizeof(*ray_map_cache.sprites)*ray_map_cache.sprite_count);
-
-   //Read floor color
-   ray_map_cache.floor_color = RvR_rw_read_u8(rw);
-
-   //Read sky texture
-   ray_map_cache.sky_tex = RvR_rw_read_u16(rw);
-
-   //Read texture, floor and ceiling
-   int32_t tile_count = ray_map_cache.width*ray_map_cache.height;
-   ray_map_cache.wall_ftex = RvR_malloc(tile_count*sizeof(*ray_map_cache.wall_ftex));
-   ray_map_cache.wall_ctex = RvR_malloc(tile_count*sizeof(*ray_map_cache.wall_ctex));
-   ray_map_cache.floor_tex = RvR_malloc(tile_count*sizeof(*ray_map_cache.floor_tex));
-   ray_map_cache.ceil_tex = RvR_malloc(tile_count*sizeof(*ray_map_cache.ceil_tex));
-   ray_map_cache.floor = RvR_malloc(tile_count*sizeof(*ray_map_cache.floor));
-   ray_map_cache.ceiling = RvR_malloc(tile_count*sizeof(*ray_map_cache.ceiling));
-
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.wall_ftex[i] = RvR_rw_read_u16(rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.wall_ctex[i] = RvR_rw_read_u16(rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.floor_tex[i] = RvR_rw_read_u16(rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.ceil_tex[i] = RvR_rw_read_u16(rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.floor[i] = RvR_rw_read_i8(rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map_cache.ceiling[i] = RvR_rw_read_i8(rw);
-
-   //Read sprites
-   for(unsigned i = 0;i<ray_map_cache.sprite_count;i++)
+   //Read and check version
+   uint16_t version = RvR_rw_read_u16(rw);
+   if(version!=0)
    {
-      ray_map_cache.sprites[i].type = RvR_rw_read_u16(rw);
-      ray_map_cache.sprites[i].pos.x = RvR_rw_read_i32(rw);
-      ray_map_cache.sprites[i].pos.y = RvR_rw_read_i32(rw);
-      ray_map_cache.sprites[i].pos.z = RvR_rw_read_i32(rw);
-      ray_map_cache.sprites[i].direction = RvR_rw_read_i32(rw);
-      ray_map_cache.sprites[i].extra0 = RvR_rw_read_i32(rw);
-      ray_map_cache.sprites[i].extra1 = RvR_rw_read_i32(rw);
-      ray_map_cache.sprites[i].extra2 = RvR_rw_read_i32(rw);
-      ray_map_cache.sprites[i].extra3 = RvR_rw_read_i32(rw);
+      RvR_log_line("RvR_ray_map_load_rw","Invalid version '%d', expected version '0'\n",version);
+      return;
    }
 
-   //Update actual map
-   RvR_ray_map_reset_full();
+   //Read sky texture
+   ray_map.sky_tex = RvR_rw_read_u16(rw);
+
+   //Read level width and height
+   ray_map.width = RvR_rw_read_u16(rw);
+   ray_map.height = RvR_rw_read_u16(rw);
+
+   //Read sprite count
+   ray_map.sprite_count = RvR_rw_read_u32(rw);
+   ray_map.sprites = RvR_malloc(sizeof(*ray_map.sprites)*ray_map.sprite_count);
+
+   //Read texture, floor and ceiling
+   int32_t tile_count = ray_map.width*ray_map.height;
+   ray_map.wall_ftex = RvR_malloc(tile_count*sizeof(*ray_map.wall_ftex));
+   ray_map.wall_ctex = RvR_malloc(tile_count*sizeof(*ray_map.wall_ctex));
+   ray_map.floor_tex = RvR_malloc(tile_count*sizeof(*ray_map.floor_tex));
+   ray_map.ceil_tex = RvR_malloc(tile_count*sizeof(*ray_map.ceil_tex));
+   ray_map.floor = RvR_malloc(tile_count*sizeof(*ray_map.floor));
+   ray_map.ceiling = RvR_malloc(tile_count*sizeof(*ray_map.ceiling));
+
+   for(int32_t i = 0;i<tile_count;i++) ray_map.floor[i] = RvR_rw_read_i32(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map.ceiling[i] = RvR_rw_read_i32(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map.floor_tex[i] = RvR_rw_read_u16(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map.ceil_tex[i] = RvR_rw_read_u16(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map.wall_ftex[i] = RvR_rw_read_u16(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map.wall_ctex[i] = RvR_rw_read_u16(rw);
+
+   //Read sprites
+   for(unsigned i = 0;i<ray_map.sprite_count;i++)
+   {
+      ray_map.sprites[i].pos.x = RvR_rw_read_i32(rw);
+      ray_map.sprites[i].pos.y = RvR_rw_read_i32(rw);
+      ray_map.sprites[i].pos.z = RvR_rw_read_i32(rw);
+      ray_map.sprites[i].direction = RvR_rw_read_i32(rw);
+      ray_map.sprites[i].texture = RvR_rw_read_u16(rw);
+      ray_map.sprites[i].flags = RvR_rw_read_u32(rw);
+      ray_map.sprites[i].extra0 = RvR_rw_read_i32(rw);
+      ray_map.sprites[i].extra1 = RvR_rw_read_i32(rw);
+      ray_map.sprites[i].extra2 = RvR_rw_read_i32(rw);
+   }
 }
 
 void RvR_ray_map_save(const char *path)
 {
    //Calculate needed memory
    int size = 0;
+   size+=2; //version
+   size+=2; //ray_map.sky_tex
    size+=2; //ray_map.width
    size+=2; //ray_map.height
    size+=4; //ray_map.sprite_count
-   size+=1; //ray_map.floor_color
-   size+=2; //ray_map.sky_tex
-   size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.wall_ftex
-   size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.wall_ctex
-   size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.floor_tex
-   size+=ray_map_cache.width*ray_map_cache.height*2; //ray_map.ceil_tex
-   size+=ray_map_cache.width*ray_map_cache.height; //ray_map.floor
-   size+=ray_map_cache.width*ray_map_cache.height; //ray_map.ceiling
-   size+=ray_map_cache.sprite_count*sizeof(*ray_map_cache.sprites);
+   size+=ray_map.width*ray_map.height*4; //ray_map.floor
+   size+=ray_map.width*ray_map.height*4; //ray_map.ceiling
+   size+=ray_map.width*ray_map.height*2; //ray_map.floor_tex
+   size+=ray_map.width*ray_map.height*2; //ray_map.ceil_tex
+   size+=ray_map.width*ray_map.height*2; //ray_map.wall_ftex
+   size+=ray_map.width*ray_map.height*2; //ray_map.wall_ctex
+   size+=ray_map.sprite_count*sizeof(*ray_map.sprites);
 
    uint8_t *mem = RvR_malloc(size);
-   int pos = 0;
+   RvR_rw rw = {0};
+   RvR_rw_init_mem(&rw,mem,size);
 
-   //Write width and height
-   *(uint16_t *)(mem+pos) = ray_map_cache.width; pos+=2;
-   *(uint16_t *)(mem+pos) = ray_map_cache.height; pos+=2;
+   //version
+   RvR_rw_write_u16(&rw,0);
 
-   //Write sprite count
-   *(uint32_t *)(mem+pos) = ray_map_cache.sprite_count; pos+=4;
+   //sky texture
+   RvR_rw_write_u16(&rw,ray_map.sky_tex);
 
-   //Write floor color
-   *(uint8_t *)(mem+pos) = ray_map_cache.floor_color; pos+=1;
+   //width and height
+   RvR_rw_write_u16(&rw,ray_map.width);
+   RvR_rw_write_u16(&rw,ray_map.height);
 
-   //Write sky texture
-   *(uint16_t *)(mem+pos) = ray_map_cache.sky_tex; pos+=2;
+   //sprite count
+   RvR_rw_write_u32(&rw,ray_map.sprite_count);
 
-   //Write texture, floor and ceiling
-   memcpy(mem+pos,ray_map_cache.wall_ftex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
-   memcpy(mem+pos,ray_map_cache.wall_ctex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
-   memcpy(mem+pos,ray_map_cache.floor_tex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
-   memcpy(mem+pos,ray_map_cache.ceil_tex,ray_map_cache.width*ray_map_cache.height*2); pos+=ray_map_cache.width*ray_map_cache.height*2;
-   memcpy(mem+pos,ray_map_cache.floor,ray_map_cache.width*ray_map_cache.height); pos+=ray_map_cache.width*ray_map_cache.height;
-   memcpy(mem+pos,ray_map_cache.ceiling,ray_map_cache.width*ray_map_cache.height); pos+=ray_map_cache.width*ray_map_cache.height;
+   //floor height
+   for(int i = 0;i<ray_map.width*ray_map.height;i++)
+      RvR_rw_write_i32(&rw,ray_map.floor[i]);
 
-   //Write sprites
-   for(unsigned i = 0;i<ray_map_cache.sprite_count;i++)
+   //ceiling height
+   for(int i = 0;i<ray_map.width*ray_map.height;i++)
+      RvR_rw_write_i32(&rw,ray_map.ceiling[i]);
+
+   //floor texture
+   for(int i = 0;i<ray_map.width*ray_map.height;i++)
+      RvR_rw_write_u16(&rw,ray_map.floor_tex[i]);
+
+   //ceiling texture
+   for(int i = 0;i<ray_map.width*ray_map.height;i++)
+      RvR_rw_write_u16(&rw,ray_map.ceil_tex[i]);
+
+   //wall ftex
+   for(int i = 0;i<ray_map.width*ray_map.height;i++)
+      RvR_rw_write_u16(&rw,ray_map.wall_ftex[i]);
+
+   //wall ctex
+   for(int i = 0;i<ray_map.width*ray_map.height;i++)
+      RvR_rw_write_u16(&rw,ray_map.wall_ctex[i]);
+
+   //sprites
+   for(unsigned i = 0;i<ray_map.sprite_count;i++)
    {
-      *(uint16_t *)(mem+pos) = ray_map_cache.sprites[i].type; pos+=2;
-      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.x; pos+=4;
-      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.y; pos+=4;
-      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].pos.z; pos+=4;
-      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].direction; pos+=4;
-      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra0; pos+=4;
-      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra1; pos+=4;
-      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra2; pos+=4;
-      *(int32_t *)(mem+pos) = ray_map_cache.sprites[i].extra3; pos+=4;
+      RvR_rw_write_i32(&rw,ray_map.sprites[i].pos.x);
+      RvR_rw_write_i32(&rw,ray_map.sprites[i].pos.y);
+      RvR_rw_write_i32(&rw,ray_map.sprites[i].pos.z);
+      RvR_rw_write_i32(&rw,ray_map.sprites[i].direction);
+      RvR_rw_write_u16(&rw,ray_map.sprites[i].texture);
+      RvR_rw_write_u32(&rw,ray_map.sprites[i].flags);
+      RvR_rw_write_i32(&rw,ray_map.sprites[i].extra0);
+      RvR_rw_write_i32(&rw,ray_map.sprites[i].extra1);
+      RvR_rw_write_i32(&rw,ray_map.sprites[i].extra2);
    }
 
    //Compress and write to disk
@@ -336,6 +276,7 @@ void RvR_ray_map_save(const char *path)
    fclose(f);
 
    //Free temp buffer
+   RvR_rw_close(&rw);
    RvR_free(mem);
 }
 
@@ -468,10 +409,5 @@ RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y)
 RvR_ray_map *RvR_ray_map_get()
 {
    return &ray_map;
-}
-
-RvR_ray_map_cache *RvR_ray_map_cache_get()
-{
-   return &ray_map_cache;
 }
 //-------------------------------------

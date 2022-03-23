@@ -129,7 +129,7 @@ void editor3d_update()
       if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
       {
          if(wlocation==4&&sprite_selec!=NULL)
-            sprite_selec->type = texture_selected;
+            sprite_selec->texture = texture_selected;
          else
             brush = 1;
       }
@@ -332,7 +332,7 @@ void editor3d_draw()
       Map_sprite *s = map_sprites;
       while(s!=NULL)
       {
-         RvR_ray_draw_sprite(s->pos,s->type);
+         RvR_ray_draw_sprite(s->pos,s->texture);
          s = s->next;
       }
       
@@ -593,7 +593,7 @@ static Map_sprite *sprite_selected()
       if(px.depth<0||px.depth>24*1024||px.position.x<-2*RVR_XRES||px.position.x>4*RVR_XRES||px.depth>depth_min)
          goto next;
 
-      RvR_texture *texture = RvR_texture_get(sp->type);
+      RvR_texture *texture = RvR_texture_get(sp->texture);
       RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
       RvR_fix22 scale_horizontal = (RVR_XRES/2)*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
       int size_vertical = scale_vertical/RvR_non_zero((fov_factor_y*px.depth)/1024);
