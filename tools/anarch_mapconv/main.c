@@ -219,7 +219,7 @@ int main(int argc, char **argv)
    }
 
    RvR_ray_map_create(64,64);
-   RvR_ray_map_cache *map = RvR_ray_map_cache_get();
+   RvR_ray_map *map = RvR_ray_map_get();
    map->sky_tex = level.backgroundImage;
 
    //Read tiles
@@ -275,7 +275,7 @@ int main(int argc, char **argv)
          {
             int index = map->sprite_count++;
             map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
-            map->sprites[index].type = 2050;
+            map->sprites[index].texture = 2050;
             map->sprites[index].pos.x = x*1024+512;
             map->sprites[index].pos.y = y*1024+512;
             map->sprites[index].extra0 = map->floor[y*64+x]*128;
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
          {
             int index = map->sprite_count++;
             map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
-            map->sprites[index].type = 2051;
+            map->sprites[index].texture = 2051;
             map->sprites[index].pos.x = x*1024+512;
             map->sprites[index].pos.y = y*1024+512;
             map->sprites[index].extra0 = map->ceiling[y*64+x]*128;
@@ -299,7 +299,7 @@ int main(int argc, char **argv)
          {
             int index = map->sprite_count++;
             map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
-            map->sprites[index].type = 2049;
+            map->sprites[index].texture = 2049;
             map->sprites[index].pos.x = x*1024+512;
             map->sprites[index].pos.y = y*1024+512;
             map->sprites[index].extra0 = map->floor[y*64+x]*128-1024;
@@ -326,33 +326,33 @@ int main(int argc, char **argv)
 
          switch(level.elements[i].type)
          {
-         case SFG_LEVEL_ELEMENT_BARREL: map->sprites[index].type = 1028; break;
-         case SFG_LEVEL_ELEMENT_HEALTH: map->sprites[index].type = 1033; break;
-         case SFG_LEVEL_ELEMENT_BULLETS: map->sprites[index].type = 1029; break;
-         case SFG_LEVEL_ELEMENT_ROCKETS: map->sprites[index].type = 1036; break;
-         case SFG_LEVEL_ELEMENT_PLASMA: map->sprites[index].type = 1035; break;
-         case SFG_LEVEL_ELEMENT_TREE: map->sprites[index].type = 1040; break;
-         case SFG_LEVEL_ELEMENT_FINISH: map->sprites[index].type = 1032; break;
-         case SFG_LEVEL_ELEMENT_TELEPORTER: map->sprites[index].type = 1038; break;
-         case SFG_LEVEL_ELEMENT_TERMINAL: map->sprites[index].type = 1039; break;
-         case SFG_LEVEL_ELEMENT_COLUMN: map->sprites[index].type = 1031; break;
-         case SFG_LEVEL_ELEMENT_RUIN: map->sprites[index].type = 1037; break;
-         case SFG_LEVEL_ELEMENT_LAMP: map->sprites[index].type = 1034; break;
-         case SFG_LEVEL_ELEMENT_CARD0: map->sprites[index].type = 1030; map->sprites[index].extra0 = 1; break;
-         case SFG_LEVEL_ELEMENT_CARD1: map->sprites[index].type = 1030; map->sprites[index].extra0 = 2; break;
-         case SFG_LEVEL_ELEMENT_CARD2: map->sprites[index].type = 1030; map->sprites[index].extra0 = 4; break;
-         case SFG_LEVEL_ELEMENT_LOCK0: map->sprites[index].type = 2049; map->sprites[index].extra2 = 1; break;
-         case SFG_LEVEL_ELEMENT_LOCK1: map->sprites[index].type = 2049; map->sprites[index].extra2 = 2; break;
-         case SFG_LEVEL_ELEMENT_LOCK2: map->sprites[index].type = 2049; map->sprites[index].extra2 = 4; break;
-         case SFG_LEVEL_ELEMENT_BLOCKER: map->sprites[index].type = 2052; break;
-         case SFG_LEVEL_ELEMENT_MONSTER_SPIDER: map->sprites[index].type = 1053; break;
-         case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER: map->sprites[index].type = 1043; break;
-         case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR: map->sprites[index].type = 1059; break;
-         case SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT: map->sprites[index].type = 1051; break;
-         case SFG_LEVEL_ELEMENT_MONSTER_ENDER: map->sprites[index].type = 1047; break;
-         case SFG_LEVEL_ELEMENT_MONSTER_TURRET: map->sprites[index].type = 1056; break;
-         case SFG_LEVEL_ELEMENT_MONSTER_EXPLODER: map->sprites[index].type = 1050; break;
-         default: map->sprites[index].type = 0; break;
+         case SFG_LEVEL_ELEMENT_BARREL: map->sprites[index].texture = 1028; break;
+         case SFG_LEVEL_ELEMENT_HEALTH: map->sprites[index].texture= 1033; break;
+         case SFG_LEVEL_ELEMENT_BULLETS: map->sprites[index].texture = 1029; break;
+         case SFG_LEVEL_ELEMENT_ROCKETS: map->sprites[index].texture = 1036; break;
+         case SFG_LEVEL_ELEMENT_PLASMA: map->sprites[index].texture = 1035; break;
+         case SFG_LEVEL_ELEMENT_TREE: map->sprites[index].texture = 1040; break;
+         case SFG_LEVEL_ELEMENT_FINISH: map->sprites[index].texture = 1032; break;
+         case SFG_LEVEL_ELEMENT_TELEPORTER: map->sprites[index].texture = 1038; break;
+         case SFG_LEVEL_ELEMENT_TERMINAL: map->sprites[index].texture = 1039; break;
+         case SFG_LEVEL_ELEMENT_COLUMN: map->sprites[index].texture = 1031; break;
+         case SFG_LEVEL_ELEMENT_RUIN: map->sprites[index].texture = 1037; break;
+         case SFG_LEVEL_ELEMENT_LAMP: map->sprites[index].texture = 1034; break;
+         case SFG_LEVEL_ELEMENT_CARD0: map->sprites[index].texture = 1030; map->sprites[index].extra0 = 1; break;
+         case SFG_LEVEL_ELEMENT_CARD1: map->sprites[index].texture = 1030; map->sprites[index].extra0 = 2; break;
+         case SFG_LEVEL_ELEMENT_CARD2: map->sprites[index].texture = 1030; map->sprites[index].extra0 = 4; break;
+         case SFG_LEVEL_ELEMENT_LOCK0: map->sprites[index].texture = 2049; map->sprites[index].extra2 = 1; break;
+         case SFG_LEVEL_ELEMENT_LOCK1: map->sprites[index].texture = 2049; map->sprites[index].extra2 = 2; break;
+         case SFG_LEVEL_ELEMENT_LOCK2: map->sprites[index].texture = 2049; map->sprites[index].extra2 = 4; break;
+         case SFG_LEVEL_ELEMENT_BLOCKER: map->sprites[index].texture = 2052; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_SPIDER: map->sprites[index].texture = 1053; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_DESTROYER: map->sprites[index].texture = 1043; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_WARRIOR: map->sprites[index].texture = 1059; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_PLASMABOT: map->sprites[index].texture = 1051; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_ENDER: map->sprites[index].texture = 1047; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_TURRET: map->sprites[index].texture = 1056; break;
+         case SFG_LEVEL_ELEMENT_MONSTER_EXPLODER: map->sprites[index].texture = 1050; break;
+         default: map->sprites[index].texture = 0; break;
          }
       }
    }
@@ -360,7 +360,7 @@ int main(int argc, char **argv)
    //Add player
    int index = map->sprite_count++;
    map->sprites = RvR_realloc(map->sprites,sizeof(*map->sprites)*map->sprite_count);
-   map->sprites[index].type = 2048;
+   map->sprites[index].texture = 2048;
    map->sprites[index].pos.x = level.playerStart[0]*1024+512;
    map->sprites[index].pos.y = level.playerStart[1]*1024+512;
    map->sprites[index].pos.z = map->floor[level.playerStart[1]*64+level.playerStart[0]]*128;
