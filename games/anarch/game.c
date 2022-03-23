@@ -69,10 +69,9 @@ void game_map_load(uint16_t id)
       e->extra0 = s->extra0;
       e->extra1 = s->extra1;
       e->extra2 = s->extra2;
-      e->extra3 = s->extra3;
-      ai_init(e,ai_type_from_tex(s->type));
+      ai_init(e,ai_type_from_tex(s->texture));
 
-      if(ai_type_from_tex(s->type)==AI_TYPE_PLAYER)
+      if(ai_type_from_tex(s->texture)==AI_TYPE_PLAYER)
       {
          player.entity = e;
          player.entity->health = player_health;
