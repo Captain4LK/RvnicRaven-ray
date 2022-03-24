@@ -39,11 +39,14 @@ typedef struct
 
 typedef struct
 {
-   RvR_vec2 s_pos;
-   RvR_vec2 w_pos;
-   uint16_t s_depth; //Depth can be at max 1024*8, so we don't need to use the full 32bits, making faster sorting possible (radix)
-   uint16_t tex;
-   uint8_t flags;
+   RvR_vec3 p;
+   RvR_vec2 p0;
+   RvR_vec2 p1;
+   RvR_vec3 sp;
+   RvR_vec3 sp0;
+   RvR_vec3 sp1;
+   uint16_t texture;
+   uint32_t flags;
 }ray_sprite;
 //-------------------------------------
 
@@ -61,6 +64,7 @@ static ray_plane ray_planes[256];
 static RvR_fix22 ray_span_start[RVR_YRES];
 static RvR_vec2 ray_cam_dir0;
 static RvR_vec2 ray_cam_dir1;
+static RvR_vec2 ray_cam_dir;
 
 struct
 {
@@ -86,6 +90,9 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
 
 static void ray_sprite_stack_push(ray_sprite s);
 static int ray_sort(const void *a, const void *b);
+
+static int ray_sprite_order(int a, int b);
+static void ray_sprite_draw(ray_sprite *sp);
 
 static RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_new();
 static void ray_depth_buffer_entry_free(RvR_ray_depth_buffer_entry *ent);
@@ -114,6 +121,7 @@ void RvR_ray_draw_begin()
    ray_middle_row = (RVR_YRES/2)+RvR_ray_get_shear();
    ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
    ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
+   ray_cam_dir = RvR_vec2_rot(RvR_ray_get_angle());
    ray_cam_dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(RvR_ray_get_fov()/2));
    ray_cam_dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(RvR_ray_get_fov()/2));
    RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RvR_ray_get_fov()/2));
@@ -125,7 +133,44 @@ void RvR_ray_draw_begin()
 
 void RvR_ray_draw_end()
 {
-   //Sort sprites
+   while(ray_sprite_stack.data_used>0)
+   {
+      uint8_t certain[ray_sprite_stack.data_used];
+      memset(certain,0,sizeof(*certain)*ray_sprite_stack.data_used);
+      int16_t far = 0;
+      certain[far] = 1;
+      int done = 0;
+
+      do
+      {
+         done = 1;
+         for(int i = 0;i<ray_sprite_stack.data_used;i++)
+         {
+            if(certain[i])
+               continue;
+
+            int order = ray_sprite_order(i,far);
+            if(order<0)
+               continue;
+
+            certain[i] = 1;
+            if(!order)
+            {
+               done = 0;
+               far = i;
+               certain[far] = 1;
+            }
+         }
+      }while(!done);
+
+      ray_sprite_draw(&ray_sprite_stack.data[far]);
+
+      //TODO: proxy through integer array
+      ray_sprite_stack.data_used--;
+      ray_sprite_stack.data[far] = ray_sprite_stack.data[ray_sprite_stack.data_used];
+   }
+
+   /*//Sort sprites
    qsort(ray_sprite_stack.data,ray_sprite_stack.data_used,sizeof(*ray_sprite_stack.data),ray_sort);
    //TODO: radix sort?
 
@@ -229,7 +274,7 @@ void RvR_ray_draw_end()
             v+=v_step;
          }
       }
-   }
+   }*/
 
    ray_sprite_stack.data_used = 0;
 }
@@ -248,7 +293,45 @@ RvR_ray_depth_buffer *RvR_ray_draw_depth_buffer()
 
 void RvR_ray_draw_sprite(RvR_vec3 pos, int32_t tex)
 {
-   ray_sprite s = {0};
+   ray_sprite sprite_new = {0};
+
+   //Translate sprite to world space coordinates
+   RvR_fix22 half_width = (RvR_texture_get(tex)->width*1024/64)/2;
+   sprite_new.p0.x = (-ray_cam_dir.x*half_width)/1024+pos.x;
+   sprite_new.p0.y = (ray_cam_dir.y*half_width)/1024+pos.y;
+   sprite_new.p1.x = (ray_cam_dir.x*half_width)/1024+pos.x;
+   sprite_new.p1.y = (-ray_cam_dir.y*half_width)/1024+pos.y;
+   sprite_new.p = pos;
+
+   //Project to screen
+   RvR_ray_pixel_info p = RvR_ray_map_to_screen(sprite_new.p);
+   sprite_new.sp.x = p.position.x;
+   sprite_new.sp.y = p.position.y;
+   sprite_new.sp.z = p.depth;
+   p = RvR_ray_map_to_screen((RvR_vec3){sprite_new.p0.x,sprite_new.p0.y,sprite_new.p.z});
+   sprite_new.sp0.x = p.position.x;
+   sprite_new.sp0.y = p.position.y;
+   sprite_new.sp0.z = p.depth;
+   p = RvR_ray_map_to_screen((RvR_vec3){sprite_new.p1.x,sprite_new.p1.y,sprite_new.p.z});
+   sprite_new.sp1.x = p.position.x;
+   sprite_new.sp1.y = p.position.y;
+   sprite_new.sp1.z = p.depth;
+   sprite_new.texture = tex;
+
+   //Clipping
+   //Behind camera
+   if(sprite_new.sp0.z<0||sprite_new.sp1.z<0)
+      return;
+   //To the left of screen
+   if(sprite_new.sp1.x<0)
+      return;
+   //To the right of screen
+   if(sprite_new.sp0.x>RVR_XRES)
+      return;
+
+   ray_sprite_stack_push(sprite_new);
+
+   /*ray_sprite s = {0};
    RvR_ray_pixel_info p = RvR_ray_map_to_screen(pos);
 
    //Clip sprite
@@ -277,7 +360,7 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, int32_t tex)
    s.w_pos.x = pos.x;
    s.w_pos.y = pos.y;
 
-   ray_sprite_stack_push(s);
+   ray_sprite_stack_push(s);*/
 }
 
 void RvR_ray_draw_map()
@@ -839,7 +922,189 @@ static void ray_sprite_stack_push(ray_sprite s)
 
 static int ray_sort(const void *a, const void *b)
 {
-   return ((ray_sprite *)b)->s_depth-((ray_sprite *)a)->s_depth;
+   return 0;
+   //return ((ray_sprite *)b)->s_depth-((ray_sprite *)a)->s_depth;
+}
+
+//Returns:
+//-1 sprites don't obstruct each other
+//0 sprite a is obstructed by sprite b --> sprite a first
+//1 sprite b is obstructed by sprite a --> sprite b first
+static int ray_sprite_order(int a, int b)
+{
+   ray_sprite *sa = &ray_sprite_stack.data[a];
+   ray_sprite *sb = &ray_sprite_stack.data[a];
+
+   if(sa->sp0.x>=sb->sp1.x||sb->sp0.x>=sa->sp1.x)
+      return 0;
+
+   RvR_fix22 x00 = sa->p0.x;
+   RvR_fix22 y00 = sa->p0.y;
+   RvR_fix22 x01 = sa->p1.x;
+   RvR_fix22 y01 = sa->p1.y;
+   RvR_fix22 x10 = sb->p0.x;
+   RvR_fix22 y10 = sb->p0.y;
+   RvR_fix22 x11 = sb->p1.x;
+   RvR_fix22 y11 = sb->p1.y;
+
+   //(x00/y00) is origin, all calculations centered arround it
+   //t0 is relation of (b,p0) to sprite a
+   //t1 is relation of (b,p1) to sprite a
+   RvR_fix22 x = x01-x00;
+   RvR_fix22 y = y01-y00;
+   RvR_fix22 t0 = ((x10-x00)*y-(y10-y00)*x)/1024;
+   RvR_fix22 t1 = ((x11-x00)*y-(y11-y00)*x)/1024;
+
+   //walls on the same line (identicall or adjacent)
+   if(t0==0&&t1==0)
+      return -1;
+
+   //(b,p0) on extension of wall a (shared corner, etc)
+   //Set t0 = t1 to trigger RvR_sign_equal check (and for the return !RvR_sign_equal to be correct)
+   if(t0==0)
+      t0 = t1;
+
+   //(b,p1) on extension of wall a
+   //Set t0 = t1 to trigger RvR_sign_equal check
+   if(t1==0)
+      t1 = t0;
+
+   //Wall either completely to the left or to the right of other wall
+   if(RvR_sign_equal(t0,t1))
+   {
+      //Compare with player position relative to wall a
+      //if wall b and the player share the same relation, wall a needs to be drawn first
+      t1 = ((RvR_ray_get_position().x-x00)*y-(RvR_ray_get_position().y-y00)*x)/1024;
+      return !RvR_sign_equal(t0,t1);
+   }
+
+   //Extension of wall a intersects with wall b
+   //--> check wall b instead
+   //(x10/y10) is origin, all calculations centered arround it
+   x = x11-x10;
+   y = y11-y10;
+   t0 = ((x00-x10)*y-(y00-y10)*x)/1024;
+   t1 = ((x01-x10)*y-(y01-y10)*x)/1024;
+
+   //(a,p0) on extension of wall b
+   if(t0==0)
+      t0 = t1;
+
+   //(a,p1) on extension of wall b
+   if(t1==0)
+      t1 = t0;
+
+   //Wall either completely to the left or to the right of other wall
+   if(RvR_sign_equal(t0,t1))
+   {
+      //Compare with player position relative to wall b
+      //if wall a and the player share the same relation, wall b needs to be drawn first
+      t1 = ((RvR_ray_get_position().x-x10)*y-(RvR_ray_get_position().y-y10)*x)/1024;
+      return RvR_sign_equal(t0,t1);
+   }
+
+   //Invalid case: sprites are intersecting
+   return -1;
+}
+
+static void ray_sprite_draw(ray_sprite *sp)
+{
+   RvR_fix22 depth = sp->p.z;
+   RvR_texture *texture = RvR_texture_get(sp->texture);
+
+   RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
+   RvR_fix22 scale_horizontal = (RVR_XRES/2)*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
+   int size_vertical = scale_vertical/RvR_non_zero((ray_fov_factor_y*depth)/1024);
+   int size_horizontal = scale_horizontal/RvR_non_zero((ray_fov_factor_x*depth)/1024);
+   int sx = 0;
+   int sy = 0;
+   int ex = size_horizontal;
+   int ey = size_vertical;
+   int x = sp->sp.x-size_horizontal/2;
+   int y = sp->sp.y-size_vertical;
+   RvR_fix22 u_step = (texture->width*1024-1)/RvR_non_zero(size_horizontal);
+   RvR_fix22 u = 0;
+   RvR_fix22 v_step = (texture->height*1024-1)/RvR_non_zero(size_vertical);
+   RvR_fix22 v_start = 0;
+
+   //Floor and ceiling clip
+   RvR_vec3 floor_wpos;
+   floor_wpos.x = sp->p.x;
+   floor_wpos.y = sp->p.y;
+   floor_wpos.z = RvR_ray_map_floor_height_at(sp->p.x/1024,sp->p.y/1024);
+   int clip_bottom = RvR_ray_map_to_screen(floor_wpos).position.y;
+   floor_wpos.z = RvR_ray_map_ceiling_height_at(sp->p.x/1024,sp->p.y/1024);
+   int clip_top = RvR_ray_map_to_screen(floor_wpos).position.y;
+
+   clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
+   clip_top = clip_top<0?0:clip_top;
+
+   //Clip coordinates to screen/clip_top and clip_bottom
+   if(x<0)
+      sx = -x;
+   if(y<clip_top)
+      sy = clip_top-y;
+   if(x+ex>RVR_XRES)
+      ex = size_horizontal+(RVR_XRES-x-ex);
+   if(y+ey>clip_bottom)
+      ey = size_vertical+(clip_bottom-y-ey);
+   x = x<0?0:x;
+   y = y<clip_top?clip_top:y;
+
+   if(sp->flags&1)
+      u = (-sx+size_horizontal)*u_step;
+   else
+      u = sx*u_step;
+   v_start = sy*v_step;
+
+   //Draw
+   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>8));
+   uint8_t * restrict dst = NULL;
+   const uint8_t * restrict tex = NULL;
+
+   for(int x1 = sx;x1<ex;x1++,x++)
+   {
+      if(sp->flags&1)
+         u-=u_step;
+      else
+         u+=u_step;
+
+      //Clip against walls
+      int ey1 = ey;
+      int ys = y;
+
+      //Clip floor
+      RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
+      while(clip!=NULL)
+      {
+         if(depth>clip->depth&&y+(ey1-sy)>clip->limit)
+            ey1 = clip->limit-y+sy;
+         clip = clip->next;
+      }
+
+      //Clip ceiling
+      clip = ray_depth_buffer.ceiling[x];
+      while(clip!=NULL)
+      {
+         if(depth>clip->depth&&ys<clip->limit)
+         {
+            int diff = ys-clip->limit;
+            ys = clip->limit;
+            ey1+=diff;
+         }
+         clip = clip->next;
+      }
+
+      tex = &texture->data[texture->height*(u>>10)];
+      dst = &RvR_core_framebuffer()[ys*RVR_XRES+x];
+      RvR_fix22 v = v_start+(ys-y)*v_step;
+      for(int y1 = sy;y1<ey1;y1++,dst+=RVR_XRES)
+      {
+         uint8_t index = tex[v>>10];
+         *dst = index?col[index]:*dst;
+         v+=v_step;
+      }
+   }
 }
 
 static RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_new()
