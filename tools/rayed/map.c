@@ -69,6 +69,7 @@ void map_load(const char *path)
    printf("Map dimensions: %ux%u\n",map->width,map->height);
 
    //Load sprites
+   printf("%d Sprites\n",RvR_ray_map_sprite_count());
    for(int i = 0;i<RvR_ray_map_sprite_count();i++)
    {
       RvR_ray_map_sprite *s = RvR_ray_map_sprite_get(i);

@@ -332,7 +332,7 @@ void editor3d_draw()
       Map_sprite *s = map_sprites;
       while(s!=NULL)
       {
-         RvR_ray_draw_sprite(s->pos,s->texture);
+         RvR_ray_draw_sprite(s->pos,s->texture,0);
          s = s->next;
       }
       

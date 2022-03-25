@@ -552,7 +552,7 @@ RvR_ray_pixel_info RvR_ray_map_to_screen(RvR_vec3 world_position);
 void RvR_ray_draw_begin();
 void RvR_ray_draw_end();
 void RvR_ray_draw_map();
-void RvR_ray_draw_sprite(RvR_vec3 pos, int32_t tex);
+void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex, uint32_t flags);
 void RvR_ray_draw_debug(uint8_t index);
 
 //RvnicRaven raycast functions end

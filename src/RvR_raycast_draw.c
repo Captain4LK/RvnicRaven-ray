@@ -291,16 +291,22 @@ RvR_ray_depth_buffer *RvR_ray_draw_depth_buffer()
 //low performance computers, such as Arduino. Only uses integer math and stdint
 //standard library.
 
-void RvR_ray_draw_sprite(RvR_vec3 pos, int32_t tex)
+void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex, uint32_t flags)
 {
+   //Sprite tagged as invisible --> don't draw
+   if(flags&1)
+      return;
+
    ray_sprite sprite_new = {0};
+
+   //TODO: inline RvR_ray_map_to_screen calls and simplify from there
 
    //Translate sprite to world space coordinates
    RvR_fix22 half_width = (RvR_texture_get(tex)->width*1024/64)/2;
-   sprite_new.p0.x = (-ray_cam_dir.x*half_width)/1024+pos.x;
-   sprite_new.p0.y = (ray_cam_dir.y*half_width)/1024+pos.y;
-   sprite_new.p1.x = (ray_cam_dir.x*half_width)/1024+pos.x;
-   sprite_new.p1.y = (-ray_cam_dir.y*half_width)/1024+pos.y;
+   sprite_new.p0.x = (ray_cam_dir.y*half_width)/1024+pos.x;
+   sprite_new.p0.y = (-ray_cam_dir.x*half_width)/1024+pos.y;
+   sprite_new.p1.x = (-ray_cam_dir.y*half_width)/1024+pos.x;
+   sprite_new.p1.y = (ray_cam_dir.x*half_width)/1024+pos.y;
    sprite_new.p = pos;
 
    //Project to screen
@@ -317,10 +323,14 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, int32_t tex)
    sprite_new.sp1.y = p.position.y;
    sprite_new.sp1.z = p.depth;
    sprite_new.texture = tex;
+   sprite_new.flags = flags;
 
    //Clipping
    //Behind camera
-   if(sprite_new.sp0.z<0||sprite_new.sp1.z<0)
+   if(sprite_new.sp0.z<=0&&sprite_new.sp1.z<=0)
+      return;
+   //Too far away
+   if(sprite_new.sp0.z>24*1024&&sprite_new.sp1.z>24*1024)
       return;
    //To the left of screen
    if(sprite_new.sp1.x<0)
@@ -330,37 +340,6 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, int32_t tex)
       return;
 
    ray_sprite_stack_push(sprite_new);
-
-   /*ray_sprite s = {0};
-   RvR_ray_pixel_info p = RvR_ray_map_to_screen(pos);
-
-   //Clip sprite
-   //The more clipping we do here, the faster the sprite sorting will be
-   if(p.depth<256||p.depth>24*1024)
-      return;
-   //TODO: find a better way to do this, which requires
-   //less tolerance (needed here to handle really close sprites)
-   if(p.position.x<-2*RVR_XRES||p.position.x>4*RVR_XRES)
-      return;
-
-   //Only store the absolute minimum of information needed
-   //to keep struct small and make sorting faster (alternative: sort array of pointers instead of structs)
-   s.s_pos = p.position;
-   s.s_depth = p.depth;
-   s.flags = 0;
-   if(tex<0)
-   {
-      s.tex = -tex;
-      s.flags|=1;
-   }
-   else
-   {
-      s.tex = tex;
-   }
-   s.w_pos.x = pos.x;
-   s.w_pos.y = pos.y;
-
-   ray_sprite_stack_push(s);*/
 }
 
 void RvR_ray_draw_map()
@@ -933,10 +912,10 @@ static int ray_sort(const void *a, const void *b)
 static int ray_sprite_order(int a, int b)
 {
    ray_sprite *sa = &ray_sprite_stack.data[a];
-   ray_sprite *sb = &ray_sprite_stack.data[a];
+   ray_sprite *sb = &ray_sprite_stack.data[b];
 
    if(sa->sp0.x>=sb->sp1.x||sb->sp0.x>=sa->sp1.x)
-      return 0;
+      return -1;
 
    RvR_fix22 x00 = sa->p0.x;
    RvR_fix22 y00 = sa->p0.y;
@@ -986,6 +965,10 @@ static int ray_sprite_order(int a, int b)
    t0 = ((x00-x10)*y-(y00-y10)*x)/1024;
    t1 = ((x01-x10)*y-(y01-y10)*x)/1024;
 
+   //walls on the same line (identicall or adjacent)
+   if(t0==0&&t1==0)
+      return -1;
+
    //(a,p0) on extension of wall b
    if(t0==0)
       t0 = t1;
@@ -1009,7 +992,7 @@ static int ray_sprite_order(int a, int b)
 
 static void ray_sprite_draw(ray_sprite *sp)
 {
-   RvR_fix22 depth = sp->p.z;
+   RvR_fix22 depth = sp->sp.z;
    RvR_texture *texture = RvR_texture_get(sp->texture);
 
    RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
