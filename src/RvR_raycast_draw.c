@@ -298,6 +298,24 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex, uint32_t flags)
       return;
 
    ray_sprite sprite_new = {0};
+   sprite_new.texture = tex;
+   sprite_new.flags = flags;
+
+   //Wall alligned sprite
+   if(flags&8)
+   {
+      ray_sprite_stack_push(sprite_new);
+
+      return;
+   }
+
+   //Floor alligned sprite
+   if(flags&16)
+   {
+      //TODO: do we actually want this?
+
+      return;
+   }
 
    //TODO: inline RvR_ray_map_to_screen calls and simplify from there
 
@@ -322,8 +340,6 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex, uint32_t flags)
    sprite_new.sp1.x = p.position.x;
    sprite_new.sp1.y = p.position.y;
    sprite_new.sp1.z = p.depth;
-   sprite_new.texture = tex;
-   sprite_new.flags = flags;
 
    //Clipping
    //Behind camera
