@@ -86,6 +86,12 @@ void editor3d_update()
       else if(RvR_core_key_down(RVR_KEY_4))
          wlocation = 3;
 
+      if(RvR_core_key_pressed(RVR_KEY_R))
+      {
+         if(wlocation==4&&sprite_selec!=NULL)
+            sprite_selec->flags^=8;
+      }
+
       if(RvR_core_key_pressed(RVR_KEY_PGUP))
       {
          if(wlocation==0||wlocation==2)
@@ -332,7 +338,7 @@ void editor3d_draw()
       Map_sprite *s = map_sprites;
       while(s!=NULL)
       {
-         RvR_ray_draw_sprite(s->pos,s->texture,0);
+         RvR_ray_draw_sprite(s->pos,s->direction,s->texture,s->flags);
          s = s->next;
       }
       

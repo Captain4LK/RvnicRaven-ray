@@ -92,7 +92,9 @@ static void ray_sprite_stack_push(ray_sprite s);
 static int ray_sort(const void *a, const void *b);
 
 static int ray_sprite_order(int a, int b);
-static void ray_sprite_draw(ray_sprite *sp);
+static void ray_sprite_draw_wall(ray_sprite *sp);
+static void ray_sprite_draw_floor(ray_sprite *sp);
+static void ray_sprite_draw_billboard(ray_sprite *sp);
 
 static RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_new();
 static void ray_depth_buffer_entry_free(RvR_ray_depth_buffer_entry *ent);
@@ -163,7 +165,12 @@ void RvR_ray_draw_end()
          }
       }while(!done);
 
-      ray_sprite_draw(&ray_sprite_stack.data[far]);
+      if(ray_sprite_stack.data[far].flags&8)
+         ray_sprite_draw_wall(&ray_sprite_stack.data[far]);
+      else if(ray_sprite_stack.data[far].flags&16)
+         ray_sprite_draw_floor(&ray_sprite_stack.data[far]);
+      else
+         ray_sprite_draw_billboard(&ray_sprite_stack.data[far]);
 
       //TODO: proxy through integer array
       ray_sprite_stack.data_used--;
@@ -291,7 +298,7 @@ RvR_ray_depth_buffer *RvR_ray_draw_depth_buffer()
 //low performance computers, such as Arduino. Only uses integer math and stdint
 //standard library.
 
-void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex, uint32_t flags)
+void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t flags)
 {
    //Sprite tagged as invisible --> don't draw
    if(flags&1)
@@ -304,6 +311,52 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, uint16_t tex, uint32_t flags)
    //Wall alligned sprite
    if(flags&8)
    {
+      //Translate sprite to world space coordinates
+      RvR_vec2 dir = RvR_vec2_rot(angle);
+      RvR_fix22 half_width = (RvR_texture_get(tex)->width*1024/64)/2;
+      sprite_new.p0.x = (dir.y*half_width)/1024+pos.x;
+      sprite_new.p0.y = (-dir.x*half_width)/1024+pos.y;
+      sprite_new.p1.x = (-dir.y*half_width)/1024+pos.x;
+      sprite_new.p1.y = (dir.x*half_width)/1024+pos.y;
+      sprite_new.p = pos;
+
+      //Project to screen
+      RvR_ray_pixel_info p = RvR_ray_map_to_screen(sprite_new.p);
+      sprite_new.sp.x = p.position.x;
+      sprite_new.sp.y = p.position.y;
+      sprite_new.sp.z = p.depth;
+      p = RvR_ray_map_to_screen((RvR_vec3){sprite_new.p0.x,sprite_new.p0.y,sprite_new.p.z});
+      sprite_new.sp0.x = p.position.x;
+      sprite_new.sp0.y = p.position.y;
+      sprite_new.sp0.z = p.depth;
+      p = RvR_ray_map_to_screen((RvR_vec3){sprite_new.p1.x,sprite_new.p1.y,sprite_new.p.z});
+      sprite_new.sp1.x = p.position.x;
+      sprite_new.sp1.y = p.position.y;
+      sprite_new.sp1.z = p.depth;
+
+      //Swap and render mirrored
+      if(sprite_new.sp1.x<sprite_new.sp0.x)
+      {
+         RvR_vec3 tmp = sprite_new.sp0;
+         sprite_new.sp0 = sprite_new.sp1;
+         sprite_new.sp1 = tmp;
+         //TODO: toggle y-axis swap flag
+      }
+
+      //Clipping
+      //Behind camera
+      if(sprite_new.sp0.z<=0&&sprite_new.sp1.z<=0)
+         return;
+      //Too far away
+      if(sprite_new.sp0.z>24*1024&&sprite_new.sp1.z>24*1024)
+         return;
+      //To the left of screen
+      if(sprite_new.sp1.x<0)
+         return;
+      //To the right of screen
+      if(sprite_new.sp0.x>RVR_XRES)
+         return;
+
       ray_sprite_stack_push(sprite_new);
 
       return;
@@ -1006,7 +1059,48 @@ static int ray_sprite_order(int a, int b)
    return -1;
 }
 
-static void ray_sprite_draw(ray_sprite *sp)
+static void ray_sprite_draw_wall(ray_sprite *sp)
+{
+   int xf = sp->sp0.x;
+   int xl = sp->sp1.x;
+
+   if(xl<0||xf>xl||xf>=RVR_XRES)
+      return;
+
+   RvR_texture *texture = RvR_texture_get(sp->texture);
+   RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
+   int size_vertical0 = scale_vertical/RvR_non_zero((ray_fov_factor_y*sp->sp0.z)/1024);
+   int size_vertical1 = scale_vertical/RvR_non_zero((ray_fov_factor_y*sp->sp1.z)/1024);
+   RvR_fix22 step_size = ((size_vertical1-size_vertical0)*1024)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
+   RvR_fix22 size = size_vertical0*1024;
+   int y0 = sp->sp0.y;
+   int y1 = sp->sp1.y;
+   RvR_fix22 step_y = ((y1-y0)*1024)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
+   RvR_fix22 y = y0*1024;
+
+   if(xf<0)
+   {
+      size+=(-xf)*step_size;
+      y+=(-xf)*step_y;
+      xf = 0;
+   }
+
+   if(xl>=RVR_XRES)
+      xl = RVR_XRES-1;
+
+   for(int i = xf;i<xl;i++)
+   {
+      RvR_draw_vertical_line(i,(y-size)/1024,y/1024,8);
+      size+=step_size;
+      y+=step_y;
+   }
+}
+
+static void ray_sprite_draw_floor(ray_sprite *sp)
+{
+}
+
+static void ray_sprite_draw_billboard(ray_sprite *sp)
 {
    RvR_fix22 depth = sp->sp.z;
    RvR_texture *texture = RvR_texture_get(sp->texture);
