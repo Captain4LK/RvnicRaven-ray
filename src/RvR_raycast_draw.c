@@ -311,7 +311,7 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
    //Wall alligned sprite
    if(flags&8)
    {
-      //Translate sprite to world space coordinates
+      //Translate sprite to world space
       RvR_vec2 dir = RvR_vec2_rot(angle);
       RvR_fix22 half_width = (RvR_texture_get(tex)->width*1024/64)/2;
       sprite_new.p0.x = (dir.y*half_width)/1024+pos.x;
@@ -320,42 +320,111 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
       sprite_new.p1.y = (dir.x*half_width)/1024+pos.y;
       sprite_new.p = pos;
 
-      //Project to screen
-      RvR_ray_pixel_info p = RvR_ray_map_to_screen(sprite_new.p);
-      sprite_new.sp.x = p.position.x;
-      sprite_new.sp.y = p.position.y;
-      sprite_new.sp.z = p.depth;
-      p = RvR_ray_map_to_screen((RvR_vec3){sprite_new.p0.x,sprite_new.p0.y,sprite_new.p.z});
-      sprite_new.sp0.x = p.position.x;
-      sprite_new.sp0.y = p.position.y;
-      sprite_new.sp0.z = p.depth;
-      p = RvR_ray_map_to_screen((RvR_vec3){sprite_new.p1.x,sprite_new.p1.y,sprite_new.p.z});
-      sprite_new.sp1.x = p.position.x;
-      sprite_new.sp1.y = p.position.y;
-      sprite_new.sp1.z = p.depth;
+      RvR_fix22 cos = RvR_fix22_cos(RvR_ray_get_angle());
+      RvR_fix22 sin = RvR_fix22_sin(RvR_ray_get_angle());
+      RvR_fix22 cos_fov = (cos*ray_fov_factor_x)/1024;
+      RvR_fix22 sin_fov = (sin*ray_fov_factor_y)/1024;
+      RvR_fix22 x0 = sprite_new.p0.x-RvR_ray_get_position().x;
+      RvR_fix22 y0 = sprite_new.p0.y-RvR_ray_get_position().y;
+      RvR_fix22 x1 = sprite_new.p1.x-RvR_ray_get_position().x;
+      RvR_fix22 y1 = sprite_new.p1.y-RvR_ray_get_position().y;
 
-      //Swap and render mirrored
-      if(sprite_new.sp1.x<sprite_new.sp0.x)
+      //Translate to camera space
+      RvR_vec2 to_point0;
+      RvR_vec2 to_point1;
+      to_point0.x = (-x0*sin+y0*cos)/1024; 
+      to_point0.y = (x0*cos_fov+y0*sin_fov)/1024; 
+      to_point1.x = (-x1*sin+y1*cos)/1024; 
+      to_point1.y = (x1*cos_fov+y1*sin_fov)/1024; 
+
+      //Behind camera
+      if(to_point0.y<-128&&to_point1.y<-128)
+         return;
+
+      //Sprite not facing camera
+      //--> swap p0 and p1 and toggle y-axis mirror flag
+      if((to_point0.x*to_point1.y-to_point1.x*to_point0.y)/65536>0)
       {
-         RvR_vec3 tmp = sprite_new.sp0;
-         sprite_new.sp0 = sprite_new.sp1;
-         sprite_new.sp1 = tmp;
-         //TODO: toggle y-axis swap flag
+         RvR_vec2 tmp = to_point0;
+         to_point0 = to_point1;
+         to_point1 = tmp;
       }
 
-      //Clipping
-      //Behind camera
-      if(sprite_new.sp0.z<=0&&sprite_new.sp1.z<=0)
+      //Here we can treat everything as if we have a 90 degree
+      //fov, since the rotation to camera space transforms it to
+      //that
+      //Check if in fov
+      //Left point in fov
+      if(to_point0.x>=-to_point0.y)
+      {
+         //Sprite completely out of sight
+         if(to_point0.x>to_point0.y)
+            return;
+
+         sprite_new.sp0.x = RvR_min(RVR_XRES/2+(to_point0.x*(RVR_XRES/2))/to_point0.y,RVR_XRES-1);
+         sprite_new.sp0.z = to_point0.y;
+      }
+      //Left point to the left of fov
+      else
+      {
+         //Sprite completely out of sight
+         if(to_point1.x<-to_point1.y)
+            return;
+
+         sprite_new.sp0.x = 0;
+
+         //Basically just this equation: (0,0)+n(-1,1) = (to_point0.x,to_point0.y)+m(to_point1.x-to_point0.x,to_point1.y-to_point0.y), reordered to n = ...
+         //This is here to circumvent a multiplication overflow while also minimizing the resulting error
+         //TODO: the first version might be universally better, making the if statement useless
+         RvR_fix22 dx0 = to_point1.x-to_point0.x;
+         RvR_fix22 dx1 = to_point0.y+to_point0.x;
+         if(RvR_abs(dx0)>RvR_abs(dx1))
+            sprite_new.sp0.z = (dx1*((dx0*1024)/RvR_non_zero(to_point1.y-to_point0.y+to_point1.x-to_point0.x)))/1024-to_point0.x;
+         else
+            sprite_new.sp0.z = (dx0*((dx1*1024)/RvR_non_zero(to_point1.y-to_point0.y+to_point1.x-to_point0.x)))/1024-to_point0.x;
+      }
+
+      //Right point in fov
+      if(to_point1.x<=to_point1.y)
+      {
+         //sprite completely out of sight
+         if(to_point1.x<-to_point1.y)
+            return;
+
+         sprite_new.sp1.x = RvR_min(RVR_XRES/2+(to_point1.x*(RVR_XRES/2))/to_point1.y-1,RVR_XRES-1);
+         sprite_new.sp1.z = to_point1.y;
+      }
+      //Right point to the right of fov
+      else
+      {
+         //sprite completely out of sight
+         if(to_point0.x>to_point0.y)
+            return;
+
+         sprite_new.sp1.x = RVR_XRES-1;
+
+         //Basically just this equation: (0,0)+n(1,1) = (to_point0.x,to_point0.y)+m(to_point1.x-to_point0.x,to_point1.y-to_point0.y), reordered to n = ...
+         //This is here to circumvent a multiplication overflow while also minimizing the resulting error
+         //TODO: the first version might be universally better, making the if statement useless
+         RvR_fix22 dx0 = to_point1.x-to_point0.x;
+         RvR_fix22 dx1 = to_point0.y-to_point0.x;
+         if(RvR_abs(dx0)>RvR_abs(dx1))
+            sprite_new.sp1.z = to_point0.x-(dx1*((dx0*1024)/RvR_non_zero(to_point1.y-to_point0.y-to_point1.x+to_point0.x)))/1024;
+         else
+            sprite_new.sp1.z = to_point0.x-(dx0*((dx1*1024)/RvR_non_zero(to_point1.y-to_point0.y-to_point1.x+to_point0.x)))/1024;
+      }
+
+      //Near clip sprite 
+      if(sprite_new.sp0.z<16||sprite_new.sp1.z<16)
          return;
-      //Too far away
-      if(sprite_new.sp0.z>24*1024&&sprite_new.sp1.z>24*1024)
+
+      if(sprite_new.sp0.x>sprite_new.sp1.x)
          return;
-      //To the left of screen
-      if(sprite_new.sp1.x<0)
-         return;
-      //To the right of screen
-      if(sprite_new.sp0.x>RVR_XRES)
-         return;
+
+      sprite_new.sp0.y = ((((sprite_new.p.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*sprite_new.sp0.z)/1024))*RVR_YRES)/1024;
+      sprite_new.sp0.y = RVR_YRES/2-sprite_new.sp0.y+RvR_ray_get_shear();
+      sprite_new.sp1.y = ((((sprite_new.p.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*sprite_new.sp1.z)/1024))*RVR_YRES)/1024;
+      sprite_new.sp1.y = RVR_YRES/2-sprite_new.sp1.y+RvR_ray_get_shear();
 
       ray_sprite_stack_push(sprite_new);
 
@@ -784,7 +853,7 @@ RvR_ray_pixel_info RvR_ray_map_to_screen(RvR_vec3 world_position)
 
    result.depth = to_point.x;
 
-   result.position.x = middle_column-(((to_point.y*1024)/RvR_non_zero((ray_fov_factor_x*result.depth)/1024))*middle_column)/1024;
+   result.position.x = middle_column-(((to_point.y*1024)/RvR_non_zero((ray_fov_factor_x*RvR_abs(result.depth))/1024))*middle_column)/1024;
    result.position.y = ((((world_position.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*result.depth)/1024))*RVR_YRES)/1024;
    result.position.y = RVR_YRES/2-result.position.y+RvR_ray_get_shear();
 
@@ -1003,54 +1072,54 @@ static int ray_sprite_order(int a, int b)
    RvR_fix22 t0 = ((x10-x00)*y-(y10-y00)*x)/1024;
    RvR_fix22 t1 = ((x11-x00)*y-(y11-y00)*x)/1024;
 
-   //walls on the same line (identicall or adjacent)
+   //sprite on the same line (identicall or adjacent)
    if(t0==0&&t1==0)
       return -1;
 
-   //(b,p0) on extension of wall a (shared corner, etc)
+   //(b,p0) on extension of sprite a (shared corner, etc)
    //Set t0 = t1 to trigger RvR_sign_equal check (and for the return !RvR_sign_equal to be correct)
    if(t0==0)
       t0 = t1;
 
-   //(b,p1) on extension of wall a
+   //(b,p1) on extension of sprite a
    //Set t0 = t1 to trigger RvR_sign_equal check
    if(t1==0)
       t1 = t0;
 
-   //Wall either completely to the left or to the right of other wall
+   //Sprite either completely to the left or to the right of other wall
    if(RvR_sign_equal(t0,t1))
    {
-      //Compare with player position relative to wall a
-      //if wall b and the player share the same relation, wall a needs to be drawn first
+      //Compare with player position relative to sprite a
+      //if sprite b and the player share the same relation, sprite a needs to be drawn first
       t1 = ((RvR_ray_get_position().x-x00)*y-(RvR_ray_get_position().y-y00)*x)/1024;
       return !RvR_sign_equal(t0,t1);
    }
 
-   //Extension of wall a intersects with wall b
-   //--> check wall b instead
+   //Extension of sprite a intersects with sprite b
+   //--> check sprite b instead
    //(x10/y10) is origin, all calculations centered arround it
    x = x11-x10;
    y = y11-y10;
    t0 = ((x00-x10)*y-(y00-y10)*x)/1024;
    t1 = ((x01-x10)*y-(y01-y10)*x)/1024;
 
-   //walls on the same line (identicall or adjacent)
+   //sprite on the same line (identicall or adjacent)
    if(t0==0&&t1==0)
       return -1;
 
-   //(a,p0) on extension of wall b
+   //(a,p0) on extension of sprite b
    if(t0==0)
       t0 = t1;
 
-   //(a,p1) on extension of wall b
+   //(a,p1) on extension of sprite b
    if(t1==0)
       t1 = t0;
 
-   //Wall either completely to the left or to the right of other wall
+   //sprite either completely to the left or to the right of other sprite
    if(RvR_sign_equal(t0,t1))
    {
-      //Compare with player position relative to wall b
-      //if wall a and the player share the same relation, wall b needs to be drawn first
+      //Compare with player position relative to sprite b
+      //if sprite a and the player share the same relation, sprite b needs to be drawn first
       t1 = ((RvR_ray_get_position().x-x10)*y-(RvR_ray_get_position().y-y10)*x)/1024;
       return RvR_sign_equal(t0,t1);
    }
