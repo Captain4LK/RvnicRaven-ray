@@ -44,7 +44,9 @@ typedef struct
    RvR_vec2 p1;
    RvR_vec3 sp;
    RvR_vec3 sp0;
+   RvR_fix22 st0;
    RvR_vec3 sp1;
+   RvR_fix22 st1;
    uint16_t texture;
    uint32_t flags;
 }ray_sprite;
@@ -177,112 +179,6 @@ void RvR_ray_draw_end()
       ray_sprite_stack.data[far] = ray_sprite_stack.data[ray_sprite_stack.data_used];
    }
 
-   /*//Sort sprites
-   qsort(ray_sprite_stack.data,ray_sprite_stack.data_used,sizeof(*ray_sprite_stack.data),ray_sort);
-   //TODO: radix sort?
-
-   //ray_sprite rendering
-   for(unsigned i = 0;i<ray_sprite_stack.data_used;i++)
-   {
-      ray_sprite sp = ray_sprite_stack.data[i];
-      RvR_fix22 depth = sp.s_depth;
-      RvR_texture *texture = RvR_texture_get(sp.tex);
-
-      RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
-      RvR_fix22 scale_horizontal = (RVR_XRES/2)*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
-      int size_vertical = scale_vertical/RvR_non_zero((ray_fov_factor_y*depth)/1024);
-      int size_horizontal = scale_horizontal/RvR_non_zero((ray_fov_factor_x*depth)/1024);
-      int sx = 0;
-      int sy = 0;
-      int ex = size_horizontal;
-      int ey = size_vertical;
-      int x = sp.s_pos.x-size_horizontal/2;
-      int y = sp.s_pos.y-size_vertical;
-      RvR_fix22 u_step = (texture->width*1024-1)/RvR_non_zero(size_horizontal);
-      RvR_fix22 u = 0;
-      RvR_fix22 v_step = (texture->height*1024-1)/RvR_non_zero(size_vertical);
-      RvR_fix22 v_start = 0;
-
-      //Floor and ceiling clip
-      RvR_vec3 floor_wpos;
-      floor_wpos.x = sp.w_pos.x;
-      floor_wpos.y = sp.w_pos.y;
-      floor_wpos.z = RvR_ray_map_floor_height_at(sp.w_pos.x/1024,sp.w_pos.y/1024);
-      int clip_bottom = RvR_ray_map_to_screen(floor_wpos).position.y;
-      floor_wpos.z = RvR_ray_map_ceiling_height_at(sp.w_pos.x/1024,sp.w_pos.y/1024);
-      int clip_top = RvR_ray_map_to_screen(floor_wpos).position.y;
-
-      clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
-      clip_top = clip_top<0?0:clip_top;
-
-      //Clip coordinates to screen/clip_top and clip_bottom
-      if(x<0)
-         sx = -x;
-      if(y<clip_top)
-         sy = clip_top-y;
-      if(x+ex>RVR_XRES)
-         ex = size_horizontal+(RVR_XRES-x-ex);
-      if(y+ey>clip_bottom)
-         ey = size_vertical+(clip_bottom-y-ey);
-      x = x<0?0:x;
-      y = y<clip_top?clip_top:y;
-
-      if(sp.flags&1)
-         u = (-sx+size_horizontal)*u_step;
-      else
-         u = sx*u_step;
-      v_start = sy*v_step;
-
-      //Draw
-      const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>8));
-      uint8_t * restrict dst = NULL;
-      const uint8_t * restrict tex = NULL;
-
-      for(int x1 = sx;x1<ex;x1++,x++)
-      {
-         if(sp.flags&1)
-            u-=u_step;
-         else
-            u+=u_step;
-
-         //Clip against walls
-         int ey1 = ey;
-         int ys = y;
-
-         //Clip floor
-         RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[x];
-         while(clip!=NULL)
-         {
-            if(depth>clip->depth&&y+(ey1-sy)>clip->limit)
-               ey1 = clip->limit-y+sy;
-            clip = clip->next;
-         }
-
-         //Clip ceiling
-         clip = ray_depth_buffer.ceiling[x];
-         while(clip!=NULL)
-         {
-            if(depth>clip->depth&&ys<clip->limit)
-            {
-               int diff = ys-clip->limit;
-               ys = clip->limit;
-               ey1+=diff;
-            }
-            clip = clip->next;
-         }
-
-         tex = &texture->data[texture->height*(u>>10)];
-         dst = &RvR_core_framebuffer()[ys*RVR_XRES+x];
-         RvR_fix22 v = v_start+(ys-y)*v_step;
-         for(int y1 = sy;y1<ey1;y1++,dst+=RVR_XRES)
-         {
-            uint8_t index = tex[v>>10];
-            *dst = index?col[index]:*dst;
-            v+=v_step;
-         }
-      }
-   }*/
-
    ray_sprite_stack.data_used = 0;
 }
 
@@ -323,7 +219,7 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
       RvR_fix22 cos = RvR_fix22_cos(RvR_ray_get_angle());
       RvR_fix22 sin = RvR_fix22_sin(RvR_ray_get_angle());
       RvR_fix22 cos_fov = (cos*ray_fov_factor_x)/1024;
-      RvR_fix22 sin_fov = (sin*ray_fov_factor_y)/1024;
+      RvR_fix22 sin_fov = (sin*ray_fov_factor_x)/1024;
       RvR_fix22 x0 = sprite_new.p0.x-RvR_ray_get_position().x;
       RvR_fix22 y0 = sprite_new.p0.y-RvR_ray_get_position().y;
       RvR_fix22 x1 = sprite_new.p1.x-RvR_ray_get_position().x;
@@ -1138,14 +1034,21 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
 
    RvR_texture *texture = RvR_texture_get(sp->texture);
    RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
-   int size_vertical0 = scale_vertical/RvR_non_zero((ray_fov_factor_y*sp->sp0.z)/1024);
-   int size_vertical1 = scale_vertical/RvR_non_zero((ray_fov_factor_y*sp->sp1.z)/1024);
-   RvR_fix22 step_size = ((size_vertical1-size_vertical0)*1024)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
-   RvR_fix22 size = size_vertical0*1024;
+
+   int size0 = scale_vertical/RvR_non_zero((ray_fov_factor_y*sp->sp0.z)/1024);
+   int size1 = scale_vertical/RvR_non_zero((ray_fov_factor_y*sp->sp1.z)/1024);
+   RvR_fix22 step_size = ((size1-size0)*1024)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
+   RvR_fix22 size = size0*1024;
+
    int y0 = sp->sp0.y;
    int y1 = sp->sp1.y;
    RvR_fix22 step_y = ((y1-y0)*1024)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
    RvR_fix22 y = y0*1024;
+
+   RvR_fix22 depth0 = INT32_MAX/sp->sp0.z;
+   RvR_fix22 depth1 = INT32_MAX/sp->sp1.z;
+   RvR_fix22 step_depth = (depth1-depth0)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
+   RvR_fix22 depth_i = depth0;
 
    if(xf<0)
    {
@@ -1157,11 +1060,92 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
    if(xl>=RVR_XRES)
       xl = RVR_XRES-1;
 
+   //Floor and ceiling clip
+   int clip_bottom = RVR_YRES;
+   int clip_top = 0;
+   /*RvR_vec3 floor_wpos;
+   floor_wpos.x = sp->p.x;
+   floor_wpos.y = sp->p.y;
+   floor_wpos.z = RvR_ray_map_floor_height_at(sp->p.x/1024,sp->p.y/1024);
+   int clip_bottom = RvR_ray_map_to_screen(floor_wpos).position.y;
+   floor_wpos.z = RvR_ray_map_ceiling_height_at(sp->p.x/1024,sp->p.y/1024);
+   int clip_top = RvR_ray_map_to_screen(floor_wpos).position.y;
+   clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
+   clip_top = clip_top<0?0:clip_top;*/
+
+   const uint8_t * restrict col = NULL;
+   uint8_t * restrict dst = NULL;
+   const uint8_t * restrict tex = NULL;
+
    for(int i = xf;i<xl;i++)
    {
-      RvR_draw_vertical_line(i,(y-size)/1024,y/1024,8);
+      RvR_fix22 depth = INT32_MAX/depth_i;
+
+      int sy = 0;
+      int ey = size/1024;
+      int ys = (y-size)/1024;
+      if(ys<clip_top)
+         sy = clip_top-ys;
+      if(ys+ey>clip_bottom)
+         ey = size/1024+(clip_bottom-ys-ey);
+
+      ys = ys<clip_top?clip_top:ys;
+      int ye = ey;
+
+      //Clip floor
+      RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[i];
+      while(clip!=NULL)
+      {
+         if(depth>clip->depth&&y+(ye-sy)>clip->limit)
+            ye = clip->limit-ys+sy;
+         clip = clip->next;
+      }
+
+      //Clip ceiling
+      clip = ray_depth_buffer.ceiling[i];
+      while(clip!=NULL)
+      {
+         if(depth>clip->depth&&ys<clip->limit)
+         {
+            int diff = ys-clip->limit;
+            ys = clip->limit;
+            ye+=diff;
+         }
+         clip = clip->next;
+      }
+
+      RvR_draw_vertical_line(i,ys+sy,ys+ye,8);
+
+      /*//Clip against walls
+      int ey1 = y/1024;
+      int ys = (y-size)/1024;
+
+      //Clip floor
+      RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[i];
+      while(clip!=NULL)
+      {
+         if(depth>clip->depth&&y+(ey1-sy)>clip->limit)
+            ey1 = clip->limit-y+sy;
+         clip = clip->next;
+      }
+
+      //Clip ceiling
+      clip = ray_depth_buffer.ceiling[x];
+      while(clip!=NULL)
+      {
+         if(depth>clip->depth&&ys<clip->limit)
+         {
+            int diff = ys-clip->limit;
+            ys = clip->limit;
+            ey1+=diff;
+         }
+         clip = clip->next;
+      }*/
+
+      //RvR_draw_vertical_line(i,(y-size)/1024,y/1024,8);
       size+=step_size;
       y+=step_y;
+      depth_i+=step_depth;
    }
 }
 
