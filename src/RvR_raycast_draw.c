@@ -1045,8 +1045,8 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
    RvR_fix22 step_y = ((y1-y0)*1024)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
    RvR_fix22 y = y0*1024;
 
-   RvR_fix22 depth0 = INT32_MAX/sp->sp0.z;
-   RvR_fix22 depth1 = INT32_MAX/sp->sp1.z;
+   RvR_fix22 depth0 = INT32_MAX/RvR_non_zero(sp->sp0.z);
+   RvR_fix22 depth1 = INT32_MAX/RvR_non_zero(sp->sp1.z);
    RvR_fix22 step_depth = (depth1-depth0)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
    RvR_fix22 depth_i = depth0;
 
@@ -1079,7 +1079,7 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
 
    for(int i = xf;i<xl;i++)
    {
-      RvR_fix22 depth = INT32_MAX/depth_i;
+      RvR_fix22 depth = INT32_MAX/RvR_non_zero(depth_i);
 
       int sy = 0;
       int ey = size/1024;
@@ -1087,7 +1087,7 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
       if(ys<clip_top)
          sy = clip_top-ys;
       if(ys+ey>clip_bottom)
-         ey = size/1024+(clip_bottom-ys-ey);
+         ey = (clip_bottom-ys);
 
       ys = ys<clip_top?clip_top:ys;
       int ye = ey;
@@ -1096,7 +1096,7 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
       RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[i];
       while(clip!=NULL)
       {
-         if(depth>clip->depth&&y+(ye-sy)>clip->limit)
+         if(depth>clip->depth&&ys+(ye-sy)>clip->limit)
             ye = clip->limit-ys+sy;
          clip = clip->next;
       }
@@ -1114,35 +1114,11 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
          clip = clip->next;
       }
 
-      RvR_draw_vertical_line(i,ys+sy,ys+ye,8);
+      dst = &RvR_core_framebuffer()[ys*RVR_XRES+i];
+      for(int y1 = sy;y1<ye;y1++,dst+=RVR_XRES)
+         *dst = 8;
+      //RvR_draw_vertical_line(i,ys,ys+(ye-sy),8);
 
-      /*//Clip against walls
-      int ey1 = y/1024;
-      int ys = (y-size)/1024;
-
-      //Clip floor
-      RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[i];
-      while(clip!=NULL)
-      {
-         if(depth>clip->depth&&y+(ey1-sy)>clip->limit)
-            ey1 = clip->limit-y+sy;
-         clip = clip->next;
-      }
-
-      //Clip ceiling
-      clip = ray_depth_buffer.ceiling[x];
-      while(clip!=NULL)
-      {
-         if(depth>clip->depth&&ys<clip->limit)
-         {
-            int diff = ys-clip->limit;
-            ys = clip->limit;
-            ey1+=diff;
-         }
-         clip = clip->next;
-      }*/
-
-      //RvR_draw_vertical_line(i,(y-size)/1024,y/1024,8);
       size+=step_size;
       y+=step_y;
       depth_i+=step_depth;
