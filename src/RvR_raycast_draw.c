@@ -322,6 +322,14 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
       sprite_new.sp1.y = ((((sprite_new.p.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*sprite_new.sp1.z)/1024))*RVR_YRES)/1024;
       sprite_new.sp1.y = RVR_YRES/2-sprite_new.sp1.y+RvR_ray_get_shear();
 
+      //Calculate texture coordinates
+      sprite_new.st0 = ((to_point0.x+to_point0.y)*1024)/RvR_non_zero(-to_point1.y+to_point0.y-to_point1.x+to_point0.x);
+      sprite_new.st1 = ((to_point0.y-to_point0.x)*1024)/RvR_non_zero(-to_point1.y+to_point0.y+to_point1.x-to_point0.x);
+      if(sprite_new.st0<0||sprite_new.st0>1024)
+         sprite_new.st0 = 0;
+      if(sprite_new.st1<0||sprite_new.st1>1024)
+         sprite_new.st1 = 1024;
+
       ray_sprite_stack_push(sprite_new);
 
       return;
@@ -1033,6 +1041,7 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
       return;
 
    RvR_texture *texture = RvR_texture_get(sp->texture);
+   int shift = 20-RvR_log2(texture->width);
    RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
 
    int size0 = scale_vertical/RvR_non_zero((ray_fov_factor_y*sp->sp0.z)/1024);
@@ -1043,7 +1052,7 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
    int y0 = sp->sp0.y;
    int y1 = sp->sp1.y;
    RvR_fix22 step_y = ((y1-y0)*1024)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
-   RvR_fix22 y = y0*1024;
+   RvR_fix22 y_i = y0*1024;
 
    RvR_fix22 depth0 = INT32_MAX/RvR_non_zero(sp->sp0.z);
    RvR_fix22 depth1 = INT32_MAX/RvR_non_zero(sp->sp1.z);
@@ -1053,7 +1062,7 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
    if(xf<0)
    {
       size+=(-xf)*step_size;
-      y+=(-xf)*step_y;
+      y_i+=(-xf)*step_y;
       xf = 0;
    }
 
@@ -1073,6 +1082,11 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
    clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
    clip_top = clip_top<0?0:clip_top;*/
 
+   sp->st0 = (sp->st0*1024*1024)/RvR_non_zero(sp->sp0.z);
+   sp->st1 = (sp->st1*1024*1024)/RvR_non_zero(sp->sp1.z);
+   RvR_fix22 step_u = (sp->st1-sp->st0)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
+   RvR_fix22 u_i = sp->st0;
+
    const uint8_t * restrict col = NULL;
    uint8_t * restrict dst = NULL;
    const uint8_t * restrict tex = NULL;
@@ -1080,24 +1094,27 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
    for(int i = xf;i<xl;i++)
    {
       RvR_fix22 depth = INT32_MAX/RvR_non_zero(depth_i);
+      RvR_fix22 u = (u_i/1024)*depth;
+      RvR_fix22 v_step = (texture->height*1024-1)/RvR_non_zero(size/1024);
+      RvR_fix22 y = (y_i-size)/1024;
 
       int sy = 0;
       int ey = size/1024;
-      int ys = (y-size)/1024;
-      if(ys<clip_top)
-         sy = clip_top-ys;
-      if(ys+ey>clip_bottom)
-         ey = (clip_bottom-ys);
+      if(y<clip_top)
+         sy = clip_top-y;
+      if(y+ey>clip_bottom)
+         ey = (clip_bottom-y);
+      y = y<clip_top?clip_top:y;
 
-      ys = ys<clip_top?clip_top:ys;
+      int ys = y;
       int ye = ey;
 
       //Clip floor
       RvR_ray_depth_buffer_entry *clip = ray_depth_buffer.floor[i];
       while(clip!=NULL)
       {
-         if(depth>clip->depth&&ys+(ye-sy)>clip->limit)
-            ye = clip->limit-ys+sy;
+         if(depth>clip->depth&&y+(ye-sy)>clip->limit)
+            ye = clip->limit-y+sy;
          clip = clip->next;
       }
 
@@ -1114,14 +1131,22 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
          clip = clip->next;
       }
 
+      RvR_fix22 v = (sy+ys-y)*v_step;
+
+      tex = &texture->data[texture->height*(u>>shift)];
       dst = &RvR_core_framebuffer()[ys*RVR_XRES+i];
+      col = RvR_shade_table(RvR_min(63,depth>>8));
       for(int y1 = sy;y1<ye;y1++,dst+=RVR_XRES)
-         *dst = 8;
-      //RvR_draw_vertical_line(i,ys,ys+(ye-sy),8);
+      {
+         uint8_t index = tex[v>>10];
+         *dst = index?col[index]:*dst;
+         v+=v_step;
+      }
 
       size+=step_size;
-      y+=step_y;
+      y_i+=step_y;
       depth_i+=step_depth;
+      u_i+=step_u;
    }
 }
 
