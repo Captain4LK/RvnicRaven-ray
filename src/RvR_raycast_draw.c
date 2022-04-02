@@ -215,6 +215,8 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
       sprite_new.p1.x = (-dir.y*half_width)/1024+pos.x;
       sprite_new.p1.y = (dir.x*half_width)/1024+pos.y;
       sprite_new.p = pos;
+      sprite_new.st0 = 0;
+      sprite_new.st1 = 1024;
 
       //Translate to camera space
       RvR_fix22 cos = RvR_fix22_cos(RvR_ray_get_angle());
@@ -278,6 +280,8 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
             sprite_new.sp0.z = (dx1*((dx0*1024)/RvR_non_zero(to_point1.y-to_point0.y+to_point1.x-to_point0.x)))/1024-to_point0.x;
          else
             sprite_new.sp0.z = (dx0*((dx1*1024)/RvR_non_zero(to_point1.y-to_point0.y+to_point1.x-to_point0.x)))/1024-to_point0.x;
+
+         sprite_new.st0 = ((to_point0.x+to_point0.y)*1024)/RvR_non_zero(-to_point1.y+to_point0.y-to_point1.x+to_point0.x);
       }
 
       //Right point in fov
@@ -308,6 +312,8 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
             sprite_new.sp1.z = to_point0.x-(dx1*((dx0*1024)/RvR_non_zero(to_point1.y-to_point0.y-to_point1.x+to_point0.x)))/1024;
          else
             sprite_new.sp1.z = to_point0.x-(dx0*((dx1*1024)/RvR_non_zero(to_point1.y-to_point0.y-to_point1.x+to_point0.x)))/1024;
+
+         sprite_new.st1 = ((to_point0.y-to_point0.x)*1024)/RvR_non_zero(-to_point1.y+to_point0.y+to_point1.x-to_point0.x);
       }
 
       //Near clip sprite 
@@ -322,20 +328,11 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
       sprite_new.sp1.y = ((((sprite_new.p.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*sprite_new.sp1.z)/1024))*RVR_YRES)/1024;
       sprite_new.sp1.y = RVR_YRES/2-sprite_new.sp1.y+RvR_ray_get_shear();
 
-      //Calculate texture coordinates
-      sprite_new.st0 = ((to_point0.x+to_point0.y)*1024)/RvR_non_zero(-to_point1.y+to_point0.y-to_point1.x+to_point0.x);
-      sprite_new.st1 = ((to_point0.y-to_point0.x)*1024)/RvR_non_zero(-to_point1.y+to_point0.y+to_point1.x-to_point0.x);
-      if(sprite_new.st0<0||sprite_new.st0>1024)
-         sprite_new.st0 = 0;
-      if(sprite_new.st1<0||sprite_new.st1>1024)
-         sprite_new.st1 = 1024;
       if(sprite_new.flags&2)
       {
          sprite_new.st0 = 1024-sprite_new.st0;
          sprite_new.st1 = 1024-sprite_new.st1;
       }
-
-      printf("%d %d\n",sprite_new.st0,sprite_new.st1);
 
       ray_sprite_stack_push(sprite_new);
 
@@ -1088,25 +1085,49 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
    clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
    clip_top = clip_top<0?0:clip_top;*/
 
-   sp->st0 = (sp->st0*1024*1024)/RvR_non_zero(sp->sp0.z);
-   sp->st1 = (sp->st1*1024*1024)/RvR_non_zero(sp->sp1.z);
-   RvR_fix22 step_u = (sp->st1-sp->st0)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
-   RvR_fix22 u_i = sp->st0;
+   RvR_fix22 st0 = (sp->st0*1024*1024)/RvR_non_zero(sp->sp0.z);
+   RvR_fix22 st1 = (sp->st1*1024*1024)/RvR_non_zero(sp->sp1.z);
+   RvR_fix22 step_u = (st1-st0)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
+   RvR_fix22 u_i = st0;
+
+   RvR_fix22 t0 = y0*1024-size0*1024;
+   RvR_fix22 t1 = y1*1024-size1*1024;
+   RvR_fix22 step_t = (t1-t0)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
+   RvR_fix22 top = t0;
+
+   RvR_fix22 b0 = y0*1024;
+   RvR_fix22 b1 = y1*1024;
+   RvR_fix22 step_b = (b1-b0)/RvR_non_zero(sp->sp1.x-sp->sp0.x);
+   RvR_fix22 bot = b0;
+
+   //RvR_fix22 sv0 = (texture->height*65536)/RvR_non_zero(size0
 
    const uint8_t * restrict col = NULL;
    uint8_t * restrict dst = NULL;
    const uint8_t * restrict tex = NULL;
 
+   RvR_fix22 u_clamp = sp->st0*1024;
+   int dir = sp->st0<sp->st1;
    for(int i = xf;i<xl;i++)
    {
       RvR_fix22 depth = INT32_MAX/RvR_non_zero(depth_i);
       RvR_fix22 u = (u_i/1024)*depth;
+
+      //Most ugly fix ever
+      //Stops the texture coordinate from skipping back and forth due to
+      //fixed point inaccuracies by putting clamping it to the last value
+      if(dir)
+         u = RvR_max(u_clamp,u);
+      else
+         u = RvR_min(u_clamp,u);
+      u_clamp = u;
       u*=texture->width;
-      RvR_fix22 step_v = ((texture->height*65536-1))/RvR_non_zero(size/1024);
-      RvR_fix22 y = (y_i-size)/1024;
+
+      RvR_fix22 step_v = ((texture->height*1024))/RvR_non_zero(bot/1024-top/1024);
+      RvR_fix22 y = top/1024;
 
       int sy = 0;
-      int ey = size/1024;
+      int ey = bot/1024-top/1024;
       if(y<clip_top)
          sy = clip_top-y;
       if(y+ey>clip_bottom)
@@ -1138,14 +1159,15 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
          clip = clip->next;
       }
 
-      RvR_fix22 v = (sp->p.z-RvR_ray_get_position().z)*4096+texture->height*65536+(ys-ray_middle_row)*step_v;
+      RvR_fix22 v = (sp->p.z-RvR_ray_get_position().z)*64+texture->height*1024+(ys-ray_middle_row+1)*step_v;
+      //printf("%d %d\n",v,step_v);
 
       tex = &texture->data[texture->height*(u>>20)];
       dst = &RvR_core_framebuffer()[ys*RVR_XRES+i];
       col = RvR_shade_table(RvR_min(63,depth>>8));
       for(int y1 = sy;y1<ye;y1++,dst+=RVR_XRES)
       {
-         uint8_t index = tex[v>>16];
+         uint8_t index = tex[v>>10];
          *dst = index?col[index]:*dst;
          v+=step_v;
       }
@@ -1154,6 +1176,9 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
       y_i+=step_y;
       depth_i+=step_depth;
       u_i+=step_u;
+
+      top+=step_t;
+      bot+=step_b;
    }
 }
 
