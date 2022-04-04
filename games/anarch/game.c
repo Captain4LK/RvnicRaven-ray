@@ -127,7 +127,7 @@ void game_update()
             RvR_fix22 rot = (RvR_fix22_atan2(player.entity->pos.x-pos.x,player.entity->pos.y-pos.y));
             rot = (rot+64-e->direction)&1023;
 
-            RvR_ray_draw_sprite(pos,sprite_rot(e->ai.state->sprite,rot/128),0);
+            RvR_ray_draw_sprite(pos,e->direction,sprite_rot(e->ai.state->sprite,rot/128),0);
          }
       }
 
