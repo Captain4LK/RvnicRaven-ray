@@ -583,8 +583,8 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    }
 
    RvR_texture *texture = NULL;
-   RvR_fix22 coord_step_scaled = (ray_fov_factor_y*pixel_info->depth)/RVR_YRES;
-   RvR_fix22 texture_coord_scaled = height*1024+(start-ray_middle_row+1)*coord_step_scaled;
+   RvR_fix22 coord_step_scaled = (4*ray_fov_factor_y*pixel_info->depth)/RVR_YRES;
+   RvR_fix22 texture_coord_scaled = height*4096+(start-ray_middle_row+1)*coord_step_scaled;
 
    if(increment==-1)
       texture = RvR_texture_get(pixel_info->hit.wall_ftex);
@@ -603,14 +603,14 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    switch(count%8)
    {
    case 0: do {
-           *pix = col[tex[(texture_coord_scaled>>14)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
-   case 7: *pix = col[tex[(texture_coord_scaled>>14)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
-   case 6: *pix = col[tex[(texture_coord_scaled>>14)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
-   case 5: *pix = col[tex[(texture_coord_scaled>>14)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
-   case 4: *pix = col[tex[(texture_coord_scaled>>14)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
-   case 3: *pix = col[tex[(texture_coord_scaled>>14)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
-   case 2: *pix = col[tex[(texture_coord_scaled>>14)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
-   case 1: *pix = col[tex[(texture_coord_scaled>>14)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+           *pix = col[tex[(texture_coord_scaled>>16)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 7: *pix = col[tex[(texture_coord_scaled>>16)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 6: *pix = col[tex[(texture_coord_scaled>>16)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 5: *pix = col[tex[(texture_coord_scaled>>16)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 4: *pix = col[tex[(texture_coord_scaled>>16)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 3: *pix = col[tex[(texture_coord_scaled>>16)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 2: *pix = col[tex[(texture_coord_scaled>>16)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
+   case 1: *pix = col[tex[(texture_coord_scaled>>16)&y_and]]; texture_coord_scaled+=coord_step_scaled; pix+=RVR_XRES; //fallthrough
            }while(--n>0);
    }
 
@@ -618,7 +618,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
 
    for(int i = start;i<=end;i++)
    {
-      *pix = col[tex[(texture_coord_scaled>>20)&y_and]];
+      *pix = col[tex[(texture_coord_scaled>>16)&y_and]];
       texture_coord_scaled+=coord_step_scaled;
       pix+=RVR_XRES;
    }
@@ -879,8 +879,8 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
       return;
 
    //Calculate the depth of the row to be rendered
-   RvR_fix22 cam_height_screen_size = RvR_abs((RvR_ray_get_position().z-height)*RVR_YRES)/1024;
-   RvR_fix22 depth = (cam_height_screen_size*1024)/RvR_non_zero((RvR_abs(y-ray_middle_row)*ray_fov_factor_y)/1024);
+   RvR_fix22 cam_height_screen_size = RvR_abs((RvR_ray_get_position().z-height)*RVR_YRES);
+   RvR_fix22 depth = (cam_height_screen_size)/RvR_non_zero((RvR_abs(y-ray_middle_row+1)*ray_fov_factor_y)/1024);
 
    //Calculate texture mapping step size and starting coordinates
    RvR_fix22 step_x = (depth*(ray_cam_dir1.x-ray_cam_dir0.x))/(RVR_XRES);
@@ -1141,7 +1141,7 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
       u_clamp = u;
       u*=texture->width;
 
-      RvR_fix22 step_v = ((64*ray_fov_factor_y*depth)/RVR_YRES)/1024;
+      RvR_fix22 step_v = (4*ray_fov_factor_y*depth)/RVR_YRES;
       RvR_fix22 y = top/1024;
 
       int sy = 0;
@@ -1177,14 +1177,14 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
          clip = clip->next;
       }
 
-      RvR_fix22 v = (sp->p.z-RvR_ray_get_position().z)*64+(ys-ray_middle_row+1)*step_v;
+      RvR_fix22 v = (sp->p.z-RvR_ray_get_position().z)*4096+(ys-ray_middle_row+1)*step_v;
 
       tex = &texture->data[texture->height*(u>>20)];
       dst = &RvR_core_framebuffer()[ys*RVR_XRES+i];
       col = RvR_shade_table(RvR_min(63,depth>>8));
-      for(int y1 = sy;y1<ye;y1++,dst+=RVR_XRES)
+      for(int yi = sy;yi<ye;yi++,dst+=RVR_XRES)
       {
-         uint8_t index = tex[(v>>10)&mask];
+         uint8_t index = tex[(v>>16)&mask];
          *dst = index?col[index]:*dst;
          v+=step_v;
       }

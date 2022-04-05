@@ -421,6 +421,17 @@ void editor2d_draw()
          RvR_draw_circle(x,y,grid_size/4,color_white);
          RvR_vec2 direction = RvR_vec2_rot(sp->direction);
          RvR_draw_line(x,y,x+(direction.x*(grid_size/2))/1024,y+(direction.y*(grid_size/2))/1024,color_white);
+
+         if(sp->flags&8)
+         {
+            int half_width = (RvR_texture_get(sp->texture)->width*8*grid_size)/1024;
+            RvR_vec2 p0,p1;
+            p0.x = (direction.y*half_width)/1024+x;
+            p0.y = (-direction.x*half_width)/1024+y;
+            p1.x = (-direction.y*half_width)/1024+x;
+            p1.y = (direction.x*half_width)/1024+y;
+            RvR_draw_line(p0.x,p0.y,p1.x,p1.y,color_white);
+         }
       }
 
       sp = sp->next;
