@@ -472,6 +472,12 @@ typedef struct
    RvR_fix22 texture_coord;
 }RvR_ray_hit_result;
 
+typedef struct
+{
+   RvR_vec2 position;
+   RvR_fix22 depth;
+}RvR_ray_pixel_info;
+
 typedef struct RvR_ray_depth_buffer_entry
 {
    RvR_fix22 depth;
@@ -485,15 +491,6 @@ typedef struct
    RvR_ray_depth_buffer_entry *floor[RVR_XRES];
    RvR_ray_depth_buffer_entry *ceiling[RVR_XRES];
 }RvR_ray_depth_buffer;
-
-typedef struct
-{
-   RvR_vec2 position;
-   RvR_vec2 tex_coords;
-   RvR_fix22 depth;
-   int8_t is_horizon;
-   RvR_ray_hit_result hit;
-}RvR_ray_pixel_info;
 
 typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
 
@@ -546,14 +543,14 @@ uint16_t  RvR_ray_map_ceil_tex_at_us(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_floor_height_at_us(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y);
 
+void                  RvR_ray_draw_begin();
+void                  RvR_ray_draw_end();
+//Only valid between RvR_ray_draw_begin() and RvR_ray_draw_end():
+void                  RvR_ray_draw_map();
+void                  RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t flags);
+void                  RvR_ray_draw_debug(uint8_t index);
 RvR_ray_depth_buffer *RvR_ray_draw_depth_buffer();
-RvR_ray_pixel_info RvR_ray_map_to_screen(RvR_vec3 world_position);
-
-void RvR_ray_draw_begin();
-void RvR_ray_draw_end();
-void RvR_ray_draw_map();
-void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t flags);
-void RvR_ray_draw_debug(uint8_t index);
+RvR_ray_pixel_info    RvR_ray_map_to_screen(RvR_vec3 world_position);
 
 //RvnicRaven raycast functions end
 //-------------------------------------

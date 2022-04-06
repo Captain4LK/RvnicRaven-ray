@@ -91,7 +91,7 @@ static void ray_plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
 static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR_texture *texture);
 static void ray_span_draw_flat(int x0, int x1, int y, uint8_t color);
 
-static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, RvR_ray_pixel_info *pixel_info);
+static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, RvR_ray_pixel_info *pixel_info, RvR_ray_hit_result *hit);
 static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
 
 static void ray_sprite_stack_push(ray_sprite s);
@@ -222,7 +222,7 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
       sprite_new.p1.y = (dir.x*half_width)/1024+pos.y;
       sprite_new.p = pos;
       sprite_new.st0 = 0;
-      sprite_new.st1 = 1024;
+      sprite_new.st1 = 1023;
       sprite_new.angle = angle;
 
       //Translate to camera space
@@ -333,8 +333,8 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
 
       if(sprite_new.flags&2)
       {
-         sprite_new.st0 = 1024-sprite_new.st0;
-         sprite_new.st1 = 1024-sprite_new.st1;
+         sprite_new.st0 = 1023-sprite_new.st0;
+         sprite_new.st1 = 1023-sprite_new.st1;
       }
 
       ray_sprite_stack_push(sprite_new);
@@ -550,7 +550,7 @@ void RvR_ray_draw_debug(uint8_t index)
    RvR_draw_string(2,2,1,tmp,index);
 }
 
-static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, RvR_ray_pixel_info *pixel_info)
+static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, RvR_ray_pixel_info *pixel_info, RvR_ray_hit_result *hit)
 {
    int16_t limit = RvR_clamp(y_to,limit0,limit1);
    int start = 0;
@@ -571,14 +571,14 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
       return limit;
 
    //Sky texture is handled differently and instead added as a plane
-   if(increment==-1&&pixel_info->hit.wall_ftex==RvR_ray_map_sky_tex())
+   if(increment==-1&&hit->wall_ftex==RvR_ray_map_sky_tex())
    {
-      ray_plane_add(pixel_info->hit.fheight,pixel_info->hit.wall_ftex,pixel_info->position.x,start,end);
+      ray_plane_add(hit->fheight,hit->wall_ftex,pixel_info->position.x,start,end);
       return limit;
    }
-   else if(increment==1&&pixel_info->hit.wall_ctex==RvR_ray_map_sky_tex())
+   else if(increment==1&&hit->wall_ctex==RvR_ray_map_sky_tex())
    {
-      ray_plane_add(pixel_info->hit.cheight,pixel_info->hit.wall_ctex,pixel_info->position.x,start,end);
+      ray_plane_add(hit->cheight,hit->wall_ctex,pixel_info->position.x,start,end);
       return limit;
    }
 
@@ -587,13 +587,13 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    RvR_fix22 texture_coord_scaled = height*4096+(start-ray_middle_row+1)*coord_step_scaled;
 
    if(increment==-1)
-      texture = RvR_texture_get(pixel_info->hit.wall_ftex);
+      texture = RvR_texture_get(hit->wall_ftex);
    else if(increment==1)
-      texture = RvR_texture_get(pixel_info->hit.wall_ctex);
+      texture = RvR_texture_get(hit->wall_ctex);
 
    uint8_t * restrict pix = &RvR_core_framebuffer()[start*RVR_XRES+pixel_info->position.x];
-   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(pixel_info->hit.direction&1)*10+(pixel_info->depth>>8)));
-   const uint8_t * restrict tex = &texture->data[(pixel_info->tex_coords.x>>4)*texture->height];
+   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(hit->direction&1)*10+(pixel_info->depth>>8)));
+   const uint8_t * restrict tex = &texture->data[(hit->texture_coord>>4)*texture->height];
    RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
 
 #if RVR_UNROLL
@@ -639,9 +639,8 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
    RvR_fix22 c_z1_world = ray_start_ceil_height;
 
    RvR_ray_pixel_info p = {0};
+   RvR_ray_hit_result h = {0};
    p.position.x = x;
-   p.tex_coords.x = 0;
-   p.tex_coords.y = 0;
 
    int limit_c = 0;
    int limit_f = 0;
@@ -663,7 +662,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
       {
          hit = hits[j];
          distance = RvR_non_zero(hit.distance); 
-         p.hit = hit;
+         h = hit;
 
          f_wall_height = RvR_ray_map_floor_height_at(hit.square.x,hit.square.y);
          f_z2_world = f_wall_height-RvR_ray_get_position().z;
@@ -680,32 +679,30 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
          f_z1_screen = ray_middle_row;
          c_z1_screen = ray_middle_row+1;
 
-         p.hit = hits[j-1];
-         p.hit.distance = 1024*1024;
+         h = hits[j-1];
+         h.distance = 1024*1024;
          /* ^ horizon is at infinity, but we can't use too big infinity
               because it would overflow in the following mult. */
-         p.hit.position.x = (ray.direction.x*p.hit.distance)/1024;
-         p.hit.position.y = (ray.direction.y*p.hit.distance)/1024;
+         h.position.x = (ray.direction.x*h.distance)/1024;
+         h.position.y = (ray.direction.y*h.distance)/1024;
 
-         p.hit.direction = 0;
-         p.hit.texture_coord = 0;
-         p.hit.wall_ftex = RvR_ray_map_sky_tex();
-         p.hit.wall_ctex = RvR_ray_map_sky_tex();
-         p.hit.floor_tex = RvR_ray_map_sky_tex();
-         p.hit.ceil_tex = RvR_ray_map_sky_tex();
-         p.hit.fheight = RvR_fix22_infinity;
-         p.hit.cheight = RvR_fix22_infinity;
+         h.direction = 0;
+         h.texture_coord = 0;
+         h.wall_ftex = RvR_ray_map_sky_tex();
+         h.wall_ctex = RvR_ray_map_sky_tex();
+         h.floor_tex = RvR_ray_map_sky_tex();
+         h.ceil_tex = RvR_ray_map_sky_tex();
+         h.fheight = RvR_fix22_infinity;
+         h.cheight = RvR_fix22_infinity;
       }
 
       RvR_fix22 limit;
-
-      p.is_horizon = drawing_horizon;
 
       //draw floor until wall
       limit_f = limit = RvR_clamp(f_z1_screen,c_pos_y+1,RVR_YRES);
       if(f_pos_y>limit)
       {
-         ray_plane_add(p.hit.fheight,p.hit.floor_tex,p.position.x,limit,f_pos_y-1);
+         ray_plane_add(h.fheight,h.floor_tex,p.position.x,limit,f_pos_y-1);
          f_pos_y = limit;
       }
 
@@ -713,7 +710,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
       limit_c = limit = RvR_clamp(c_z1_screen,-1,f_pos_y-1);
       if(limit>c_pos_y)
       {
-         ray_plane_add(p.hit.cheight,p.hit.ceil_tex,p.position.x,c_pos_y+1,limit);
+         ray_plane_add(h.cheight,h.ceil_tex,p.position.x,c_pos_y+1,limit);
          c_pos_y = limit;
       }
 
@@ -721,7 +718,6 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
       {
          p.depth = distance;
          p.depth = RvR_max(0,RvR_min(p.depth,(RVR_RAY_MAX_STEPS)*1024));
-         p.tex_coords.x = hit.texture_coord;
 
          //draw floor wall
          if(f_z1_world!=f_z2_world)
@@ -732,7 +728,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
                                              RVR_YRES,
                                              //^ purposfully allow outside screen bounds here
                                              f_z2_world
-                                             ,-1,&p);
+                                             ,-1,&p,&h);
                if(f_pos_y>limit)
                   f_pos_y = limit;
 
@@ -757,7 +753,7 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
                                  -1,f_pos_y-1,
                                  //^ puposfully allow outside screen bounds here
                                  c_z2_world 
-                                 ,1,&p);
+                                 ,1,&p,&h);
 
                if(c_pos_y<limit)
                   c_pos_y = limit;
@@ -789,9 +785,7 @@ RvR_ray_pixel_info RvR_ray_map_to_screen(RvR_vec3 world_position)
    RvR_fix22 middle_column = RVR_XRES/2;
 
    //rotate the point to camera space (y left/right, x forw/backw)
-
    RvR_fix22 tmp = to_point.x;
-
    to_point.x = (to_point.x*ray_cos+to_point.y*ray_sin)/1024; 
    to_point.y = (tmp*ray_sin-to_point.y*ray_cos)/1024; 
 
@@ -883,8 +877,8 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
    RvR_fix22 depth = (cam_height_screen_size)/RvR_non_zero((RvR_abs(y-ray_middle_row+1)*ray_fov_factor_y)/1024);
 
    //Calculate texture mapping step size and starting coordinates
-   RvR_fix22 step_x = (depth*(ray_cam_dir1.x-ray_cam_dir0.x))/(RVR_XRES);
-   RvR_fix22 step_y = (depth*(ray_cam_dir1.y-ray_cam_dir0.y))/(RVR_XRES);
+   RvR_fix22 step_x = (depth*(ray_cam_dir1.x-ray_cam_dir0.x))/RVR_XRES;
+   RvR_fix22 step_y = (depth*(ray_cam_dir1.y-ray_cam_dir0.y))/RVR_XRES;
    RvR_fix22 tx = ((RvR_ray_get_position().x)&1023)*1024+(depth*ray_cam_dir0.x)+x0*step_x;
    RvR_fix22 ty = ((RvR_ray_get_position().y)&1023)*1024+(depth*ray_cam_dir0.y)+x0*step_y;
 
