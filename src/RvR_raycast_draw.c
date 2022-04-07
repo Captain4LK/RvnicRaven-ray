@@ -92,7 +92,7 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
 static void ray_span_draw_flat(int x0, int x1, int y, uint8_t color);
 
 static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, RvR_ray_pixel_info *pixel_info, RvR_ray_hit_result *hit);
-static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
+static void ray_draw_column(RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray);
 
 static void ray_sprite_stack_push(ray_sprite s);
 
@@ -441,7 +441,7 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
 void RvR_ray_draw_map()
 {
    //Render walls and fill plane data
-   RvR_rays_cast_multi_hit(ray_draw_column);
+   RvR_rays_cast_multi_hit_draw(ray_draw_column);
    //-------------------------------------
    
    //Render floor planes
@@ -592,7 +592,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
       texture = RvR_texture_get(hit->wall_ctex);
 
    uint8_t * restrict pix = &RvR_core_framebuffer()[start*RVR_XRES+pixel_info->position.x];
-   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(hit->direction&1)*10+(pixel_info->depth>>8)));
+   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(hit->direction&1)*10+(pixel_info->depth>>9)));
    const uint8_t * restrict tex = &texture->data[(hit->texture_coord>>4)*texture->height];
    RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
 
@@ -628,7 +628,7 @@ static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_
    return limit;
 }
 
-static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
+static void ray_draw_column(RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray)
 {
    //last written Y position, can never go backwards
    RvR_fix22 f_pos_y = RVR_YRES;
@@ -646,9 +646,9 @@ static void ray_draw_column(RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray)
    int limit_f = 0;
 
    //we'll be simulatenously drawing the floor and the ceiling now  
-   for(RvR_fix22 j = 0;j<RVR_RAY_MAX_STEPS;++j)
+   for(RvR_fix22 j = 0;j<=hits_len;++j)
    {                    //^ = add extra iteration for horizon plane
-      int8_t drawing_horizon = j==(RVR_RAY_MAX_STEPS-1);
+      int8_t drawing_horizon = j==(hits_len);
 
       RvR_ray_hit_result hit;
       RvR_fix22 distance = 1;
@@ -884,7 +884,7 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
 
    //const and restrict don't seem to influence the generated assembly in this case
    uint8_t * restrict pix = &RvR_core_framebuffer()[y*RVR_XRES+x0];
-   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(depth>>8)));
+   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(depth>>9)));
    const uint8_t * restrict tex = texture->data;
    RvR_fix22 x_and = (1<<RvR_log2(texture->width))-1;
    RvR_fix22 y_and = (1<<RvR_log2(texture->height))-1;
@@ -1175,7 +1175,7 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
 
       tex = &texture->data[texture->height*(u>>20)];
       dst = &RvR_core_framebuffer()[ys*RVR_XRES+i];
-      col = RvR_shade_table(RvR_min(63,depth>>8));
+      col = RvR_shade_table(RvR_min(63,depth>>9));
       for(int yi = sy;yi<ye;yi++,dst+=RVR_XRES)
       {
          uint8_t index = tex[(v>>16)&mask];
@@ -1246,7 +1246,7 @@ static void ray_sprite_draw_billboard(ray_sprite *sp)
    v_start = sy*v_step;
 
    //Draw
-   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>8));
+   const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>9));
    uint8_t * restrict dst = NULL;
    const uint8_t * restrict tex = NULL;
 

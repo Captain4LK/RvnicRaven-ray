@@ -52,7 +52,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //RvnicRaven raycasting
 
 //Basically render distance
-#define RVR_RAY_MAX_STEPS 32
+#define RVR_RAY_MAX_STEPS 64
 
 //Texture base resolution for walls/ceilings/floors, calculated as 1<<RVR_RAY_TEXTURE
 #define RVR_RAY_TEXTURE 6
@@ -492,7 +492,7 @@ typedef struct
    RvR_ray_depth_buffer_entry *ceiling[RVR_XRES];
 }RvR_ray_depth_buffer;
 
-typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, uint16_t x, RvR_ray ray);
+typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, int hits_len, uint16_t x, RvR_ray ray);
 
 //RvnicRaven raycast types end
 //-------------------------------------
@@ -543,6 +543,8 @@ uint16_t  RvR_ray_map_ceil_tex_at_us(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_floor_height_at_us(int16_t x, int16_t y);
 RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y);
 
+void                  RvR_ray_cast_multi_hit_draw(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16_t *hit_results_len);
+void                  RvR_rays_cast_multi_hit_draw(RvR_ray_column_function column);
 void                  RvR_ray_draw_begin();
 void                  RvR_ray_draw_end();
 //Only valid between RvR_ray_draw_begin() and RvR_ray_draw_end():
