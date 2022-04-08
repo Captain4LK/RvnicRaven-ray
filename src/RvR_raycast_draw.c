@@ -64,9 +64,8 @@ static RvR_fix22 ray_span_start[RVR_YRES];
 
 struct
 {
-   ray_sprite *data; //Pointer to data0 or data1
-   ray_sprite * restrict data0;
-   ray_sprite * restrict data1;
+   ray_sprite * restrict data;
+   uint_fast16_t * restrict data_proxy;
    uint32_t data_used;
    uint32_t data_size;
 }ray_sprite_stack = {0};
@@ -169,16 +168,16 @@ void RvR_ray_draw_end()
          }
       }while(!done);
 
-      if(ray_sprite_stack.data[far].flags&8)
-         ray_sprite_draw_wall(&ray_sprite_stack.data[far]);
-      else if(ray_sprite_stack.data[far].flags&16)
-         ray_sprite_draw_floor(&ray_sprite_stack.data[far]);
+      if(ray_sprite_stack.data[ray_sprite_stack.data_proxy[far]].flags&8)
+         ray_sprite_draw_wall(&ray_sprite_stack.data[ray_sprite_stack.data_proxy[far]]);
+      else if(ray_sprite_stack.data[ray_sprite_stack.data_proxy[far]].flags&16)
+         ray_sprite_draw_floor(&ray_sprite_stack.data[ray_sprite_stack.data_proxy[far]]);
       else
-         ray_sprite_draw_billboard(&ray_sprite_stack.data[far]);
+         ray_sprite_draw_billboard(&ray_sprite_stack.data[ray_sprite_stack.data_proxy[far]]);
 
       //TODO: proxy through integer array
       ray_sprite_stack.data_used--;
-      ray_sprite_stack.data[far] = ray_sprite_stack.data[ray_sprite_stack.data_used];
+      ray_sprite_stack.data_proxy[far] = ray_sprite_stack.data_proxy[ray_sprite_stack.data_used];
    }
 
    ray_sprite_stack.data_used = 0;
@@ -963,19 +962,18 @@ static void ray_sprite_stack_push(ray_sprite s)
    if(ray_sprite_stack.data==NULL)
    {
       ray_sprite_stack.data_size = 64;
-      ray_sprite_stack.data0 = RvR_malloc(sizeof(*ray_sprite_stack.data0)*ray_sprite_stack.data_size);
-      ray_sprite_stack.data1 = RvR_malloc(sizeof(*ray_sprite_stack.data1)*ray_sprite_stack.data_size);
-      ray_sprite_stack.data = ray_sprite_stack.data0;
+      ray_sprite_stack.data = RvR_malloc(sizeof(*ray_sprite_stack.data)*ray_sprite_stack.data_size);
+      ray_sprite_stack.data_proxy = RvR_malloc(sizeof(*ray_sprite_stack.data_proxy)*ray_sprite_stack.data_size);
    }
 
+   ray_sprite_stack.data_proxy[ray_sprite_stack.data_used] = ray_sprite_stack.data_used;
    ray_sprite_stack.data[ray_sprite_stack.data_used++] = s;
 
    if(ray_sprite_stack.data_used==ray_sprite_stack.data_size)
    {
       ray_sprite_stack.data_size+=64;
-      ray_sprite_stack.data0 = RvR_realloc(ray_sprite_stack.data0,sizeof(*ray_sprite_stack.data0)*ray_sprite_stack.data_size);
-      ray_sprite_stack.data1 = RvR_realloc(ray_sprite_stack.data1,sizeof(*ray_sprite_stack.data1)*ray_sprite_stack.data_size);
-      ray_sprite_stack.data = ray_sprite_stack.data0;
+      ray_sprite_stack.data = RvR_realloc(ray_sprite_stack.data,sizeof(*ray_sprite_stack.data)*ray_sprite_stack.data_size);
+      ray_sprite_stack.data_proxy = RvR_realloc(ray_sprite_stack.data_proxy,sizeof(*ray_sprite_stack.data_proxy)*ray_sprite_stack.data_size);
    }
 }
 
@@ -985,8 +983,8 @@ static void ray_sprite_stack_push(ray_sprite s)
 //1 sprite b is obstructed by sprite a --> sprite b first
 static int ray_sprite_order(int a, int b)
 {
-   ray_sprite *sa = &ray_sprite_stack.data[a];
-   ray_sprite *sb = &ray_sprite_stack.data[b];
+   ray_sprite *sa = &ray_sprite_stack.data[ray_sprite_stack.data_proxy[a]];
+   ray_sprite *sb = &ray_sprite_stack.data[ray_sprite_stack.data_proxy[b]];
 
    if(sa->sp0.x>=sb->sp1.x||sb->sp0.x>=sa->sp1.x)
       return -1;
