@@ -59,7 +59,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //0 -> no planes
 //1 -> DEBUG single colored planes (different color for each plane), WARNING FLICKERING COLORS!!
 //2 -> textured planes
-#define RVR_RAY_DRAW_PLANES 1
+#define RVR_RAY_DRAW_PLANES 2
 //-------------------------------------
 
 //Macro functions
