@@ -323,13 +323,17 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
       if(sprite_new.sp0.z<16||sprite_new.sp1.z<16)
          return;
 
+      //Far clip sprite
+      if(sprite_new.sp0.z>RVR_RAY_MAX_STEPS*1024&&sprite_new.sp1.z>RVR_RAY_MAX_STEPS*1024)
+         return;
+
       if(sprite_new.sp0.x>sprite_new.sp1.x)
          return;
 
-      sprite_new.sp0.y = ((sprite_new.p.z-RvR_ray_get_position().z)*RVR_YRES*1024)/RvR_non_zero((ray_fov_factor_y*sprite_new.sp0.z)/1024);
-      sprite_new.sp0.y = RVR_YRES*512-sprite_new.sp0.y+RvR_ray_get_shear()*1024;
-      sprite_new.sp1.y = ((sprite_new.p.z-RvR_ray_get_position().z)*RVR_YRES*1024)/RvR_non_zero((ray_fov_factor_y*sprite_new.sp1.z)/1024);
-      sprite_new.sp1.y = RVR_YRES*512-sprite_new.sp1.y+RvR_ray_get_shear()*1024;
+      sprite_new.sp0.y = ((sprite_new.p.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*sprite_new.sp0.z)/1024);
+      sprite_new.sp0.y = RVR_YRES*512-RVR_YRES*sprite_new.sp0.y+RvR_ray_get_shear()*1024;
+      sprite_new.sp1.y = ((sprite_new.p.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((ray_fov_factor_y*sprite_new.sp1.z)/1024);
+      sprite_new.sp1.y = RVR_YRES*512-RVR_YRES*sprite_new.sp1.y+RvR_ray_get_shear()*1024;
 
       if(sprite_new.flags&2)
       {
@@ -1075,9 +1079,9 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
 
    RvR_texture *texture = RvR_texture_get(sp->texture);
    int mask = (1<<RvR_log2(texture->height))-1;
-   RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
-   int size0 = (scale_vertical*1024)/RvR_non_zero((ray_fov_factor_y*sp->sp0.z)/1024);
-   int size1 = (scale_vertical*1024)/RvR_non_zero((ray_fov_factor_y*sp->sp1.z)/1024);
+   RvR_fix22 scale_vertical = texture->height*16;
+   int size0 = RVR_YRES*((scale_vertical*1024)/RvR_non_zero((ray_fov_factor_y*sp->sp0.z)/1024));
+   int size1 = RVR_YRES*((scale_vertical*1024)/RvR_non_zero((ray_fov_factor_y*sp->sp1.z)/1024));
    int y0 = sp->sp0.y;
    int y1 = sp->sp1.y;
 
