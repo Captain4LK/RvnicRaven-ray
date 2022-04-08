@@ -127,8 +127,8 @@ void editor_init()
    undo_buffer = RvR_malloc(sizeof(*undo_buffer)*UNDO_BUFFER_SIZE);
    memset(undo_buffer,0,sizeof(*undo_buffer)*UNDO_BUFFER_SIZE);
 
-   RvR_texture_create(UINT16_MAX-1,1<<RVR_RAY_TEXTURE,1<<RVR_RAY_TEXTURE);
-   RvR_texture_create(UINT16_MAX-2,1<<RVR_RAY_TEXTURE,1<<(RVR_RAY_TEXTURE+1)); //No support for texture higher than 128px currently
+   RvR_texture_create(UINT16_MAX-1,64,64);
+   RvR_texture_create(UINT16_MAX-2,64,128); //No support for texture higher than 128px currently
    //RvR_texture_lock(UINT16_MAX-1);
    //RvR_texture_lock(UINT16_MAX-2);
 }

@@ -266,7 +266,7 @@ void editor3d_draw()
          texture_highlight = RvR_ray_map_wall_ctex_at(wx,wy);
 
       RvR_texture *texture_high = RvR_texture_get(texture_highlight);
-      if(texture_high->width==1<<RVR_RAY_TEXTURE&&texture_high->height==1<<RVR_RAY_TEXTURE)
+      if(texture_high->width==64&&texture_high->height==64)
       {
          if(texture_highlight!=texture_highlight_old)
          {
@@ -299,7 +299,7 @@ void editor3d_draw()
          if(wlocation==3)
             RvR_ray_map_wall_ctex_set(wx,wy,UINT16_MAX-1);
       }
-      else if(texture_high->width==1<<RVR_RAY_TEXTURE&&texture_high->height==1<<RvR_log2(texture_high->height))
+      else if(texture_high->width==64&&texture_high->height==1<<RvR_log2(texture_high->height))
       {
          if(texture_highlight!=texture_highlight_old)
          {
@@ -600,8 +600,8 @@ static Map_sprite *sprite_selected()
          goto next;
 
       RvR_texture *texture = RvR_texture_get(sp->texture);
-      RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
-      RvR_fix22 scale_horizontal = (RVR_XRES/2)*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
+      RvR_fix22 scale_vertical = RVR_YRES*(texture->height*16);
+      RvR_fix22 scale_horizontal = (RVR_XRES/2)*(texture->width*16);
       int size_vertical = scale_vertical/RvR_non_zero((fov_factor_y*px.depth)/1024);
       int size_horizontal = scale_horizontal/RvR_non_zero((fov_factor_x*px.depth)/1024);
 

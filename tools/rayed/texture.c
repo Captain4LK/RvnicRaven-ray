@@ -46,6 +46,7 @@ void texture_list_create()
       texture_list.data = RvR_malloc(sizeof(*texture_list.data)*texture_list.data_size);
    }
    texture_list.data_used = 0;
+   texture_sky = 0;
 
    for(unsigned i = 0;i<UINT16_MAX;i++)
    {
@@ -60,7 +61,7 @@ void texture_list_create()
       RvR_texture *tex = RvR_texture_get(i);
       //printf("%d %d\n",tex->width,tex->height);
 
-      if(tex->width==1<<RVR_RAY_TEXTURE_SKY_W&&tex->height==1<<RVR_RAY_TEXTURE_SKY_H)
+      if(tex->width==1<<8&&tex->height==1<<7)
          texture_sky = i;
 
       texture_list.data[texture_list.data_used++] = i;
@@ -115,10 +116,7 @@ int texture_valid(uint16_t tex)
    if(texture==NULL)
       return 0;
 
-   if(texture->width==1<<RVR_RAY_TEXTURE&&texture->height==1<<RvR_log2(texture->height))
-      return 1;
-
-   if(texture->width==1<<RVR_RAY_TEXTURE_SKY_W&&texture->height==1<<RVR_RAY_TEXTURE_SKY_H)
+   if(texture->width==1<<RvR_log2(texture->width)&&texture->height==1<<RvR_log2(texture->height))
       return 1;
 
    return 0;

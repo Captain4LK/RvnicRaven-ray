@@ -615,7 +615,7 @@ static void port_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const Rv
 
    //Calculate the depth of the row to be rendered
    RvR_fix22 cam_height_screen_size = RvR_abs((RvR_port_get_position().z-height)*RVR_YRES)/1024;
-   RvR_fix22 depth = RvR_port_perspective_scale_vertical_inverse(cam_height_screen_size,RvR_abs(y-port_middle_row));
+   RvR_fix22 depth = RvR_port_perspective_scale_vertical_inverse(cam_height_screen_size,RvR_abs(y-port_middle_row+1));
 
    //Calculate texture mapping step size, starting coordinates and wrapping values
    RvR_fix22 step_x = (depth*(port_cam_dir1.x-port_cam_dir0.x))/RVR_XRES;

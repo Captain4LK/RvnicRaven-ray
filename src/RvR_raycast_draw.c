@@ -20,10 +20,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
-#define TEX_SKYW_AND ((1<<RVR_RAY_TEXTURE_SKY_W)-1)
-#define TEX_SKYH_AND ((1<<RVR_RAY_TEXTURE_SKY_H)-1)
-#define TEX_SKYW_MUL (1<<RVR_RAY_TEXTURE_SKY_W)
-#define TEX_SKYH_MUL (1<<RVR_RAY_TEXTURE_SKY_H)
 //-------------------------------------
 
 //Typedefs
@@ -436,7 +432,7 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
    if(sprite_new.sp.z<=0)
       return;
    //Too far away
-   if(sprite_new.sp.z>24*1024)
+   if(sprite_new.sp.z>RVR_RAY_MAX_STEPS*1024)
       return;
 
    ray_sprite_stack_push(sprite_new);
@@ -459,10 +455,14 @@ void RvR_ray_draw_map()
       //Sky texture is rendered differently (vertical collumns instead of horizontal ones)
       if(pl->tex==RvR_ray_map_sky_tex())
       {
-         RvR_fix22 angle_step = (TEX_SKYW_MUL*1024)/RVR_XRES;
-         RvR_fix22 tex_step = (1024*TEX_SKYH_MUL-1)/RVR_YRES;
-
          RvR_texture *texture = RvR_texture_get(RvR_ray_map_sky_tex());
+         int skyw = 1<<RvR_log2(texture->width);
+         int skyh = 1<<RvR_log2(texture->height);
+         int mask = skyh-1;
+
+         RvR_fix22 angle_step = (skyw*1024)/RVR_XRES;
+         RvR_fix22 tex_step = (1024*skyh-1)/RVR_YRES;
+
          RvR_fix22 angle = (RvR_ray_get_angle())*1024;
          angle+=(pl->min-1)*angle_step;
 
@@ -470,10 +470,10 @@ void RvR_ray_draw_map()
          {
             //Sky is rendered fullbright, no lut needed
             uint8_t * restrict pix = &RvR_core_framebuffer()[(pl->start[x])*RVR_XRES+x-1];
-            const uint8_t * restrict tex = &texture->data[((angle>>10)&TEX_SKYW_AND)*TEX_SKYH_MUL];
+            const uint8_t * restrict tex = &texture->data[((angle>>10)&(skyw-1))*skyh];
             const uint8_t * restrict col = RvR_shade_table(32);
 
-            //Slip in two parts: above and below horizon
+            //Split in two parts: above and below horizon
             int middle = RvR_max(0,RvR_min(RVR_YRES,ray_middle_row+RVR_YRES/32));
             int tex_start = pl->start[x];
             int tex_end = middle;
@@ -496,7 +496,7 @@ void RvR_ray_draw_map()
             texture_coord = RvR_min(tex_coord,tex_coord-tex_step*(tex_end-middle));
             for(int y = tex_end+1;y<solid_end+1;y++)
             {
-               *pix = col[tex[(texture_coord>>10)&TEX_SKYH_AND]];
+               *pix = col[tex[(texture_coord>>10)&mask]];
                texture_coord-=tex_step;
                pix+=RVR_XRES;
             }
@@ -1204,8 +1204,8 @@ static void ray_sprite_draw_billboard(ray_sprite *sp)
    RvR_fix22 depth = sp->sp.z;
    RvR_texture *texture = RvR_texture_get(sp->texture);
 
-   RvR_fix22 scale_vertical = RVR_YRES*(texture->height*1024)/(1<<RVR_RAY_TEXTURE);
-   RvR_fix22 scale_horizontal = (RVR_XRES/2)*(texture->width*1024)/(1<<RVR_RAY_TEXTURE);
+   RvR_fix22 scale_vertical = RVR_YRES*texture->height*16;
+   RvR_fix22 scale_horizontal = (RVR_XRES/2)*texture->width*16;
    int size_vertical = scale_vertical/RvR_non_zero((ray_fov_factor_y*depth)/1024);
    int size_horizontal = scale_horizontal/RvR_non_zero((ray_fov_factor_x*depth)/1024);
    int sx = 0;
@@ -1332,7 +1332,3 @@ static void ray_depth_buffer_entry_free(RvR_ray_depth_buffer_entry *ent)
    ray_depth_buffer_entry_pool = ent;
 }
 //-------------------------------------
-
-#undef TEX_SKYW_AND
-#undef TEX_SKYW_MUL
-#undef TEX_SKYH_MUL

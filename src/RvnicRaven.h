@@ -54,21 +54,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Basically render distance
 #define RVR_RAY_MAX_STEPS 64
 
-//Texture base resolution for walls/ceilings/floors, calculated as 1<<RVR_RAY_TEXTURE
-#define RVR_RAY_TEXTURE 6
-
-//Width of sky texture, calculated as 1<<RVR_RAY_TEXTURE_SKY_W
-#define RVR_RAY_TEXTURE_SKY_W 8
-
-//Height of sky texture, calculated as 1<<RVR_RAY_TEXTURE_SKY_H
-#define RVR_RAY_TEXTURE_SKY_H 7
-
 //Debug features
 
 //0 -> no planes
 //1 -> DEBUG single colored planes (different color for each plane), WARNING FLICKERING COLORS!!
 //2 -> textured planes
-#define RVR_RAY_DRAW_PLANES 2
+#define RVR_RAY_DRAW_PLANES 1
+//-------------------------------------
 
 //Macro functions
 //The beautiful abomination
