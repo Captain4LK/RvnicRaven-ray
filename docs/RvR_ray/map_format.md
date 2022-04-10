@@ -46,3 +46,5 @@ Meaning describes behaviour if bit is set to 1
 |2|flipped on x-axis|
 |3|wall-aligned sprite|
 |4|floor aligned sprite|
+|5|66% Transparent|
+|6|33% Transparent|

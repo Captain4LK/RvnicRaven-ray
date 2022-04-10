@@ -211,10 +211,10 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
       //Translate sprite to world space
       RvR_vec2 dir = RvR_vec2_rot(angle);
       RvR_fix22 half_width = RvR_texture_get(tex)->width*8;
-      sprite_new.p0.x = (dir.y*half_width)/1024+pos.x;
-      sprite_new.p0.y = (-dir.x*half_width)/1024+pos.y;
-      sprite_new.p1.x = (-dir.y*half_width)/1024+pos.x;
-      sprite_new.p1.y = (dir.x*half_width)/1024+pos.y;
+      sprite_new.p0.x = (-dir.y*half_width)/1024+pos.x;
+      sprite_new.p0.y = (dir.x*half_width)/1024+pos.y;
+      sprite_new.p1.x = (dir.y*half_width)/1024+pos.x;
+      sprite_new.p1.y = (-dir.x*half_width)/1024+pos.y;
       sprite_new.p = pos;
       sprite_new.st0 = 0;
       sprite_new.st1 = 1023;
@@ -353,10 +353,10 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
 
    //Translate sprite to world space coordinates
    RvR_fix22 half_width = (RvR_texture_get(tex)->width*1024/64)/2;
-   sprite_new.p0.x = (ray_sin*half_width)/1024+pos.x;
-   sprite_new.p0.y = (-ray_cos*half_width)/1024+pos.y;
-   sprite_new.p1.x = (-ray_sin*half_width)/1024+pos.x;
-   sprite_new.p1.y = (ray_cos*half_width)/1024+pos.y;
+   sprite_new.p0.x = (-ray_sin*half_width)/1024+pos.x;
+   sprite_new.p0.y = (ray_cos*half_width)/1024+pos.y;
+   sprite_new.p1.x = (ray_sin*half_width)/1024+pos.x;
+   sprite_new.p1.y = (-ray_cos*half_width)/1024+pos.y;
    sprite_new.p = pos;
 
    //Translate to camera space
@@ -1181,6 +1181,7 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
       for(int yi = sy;yi<ye;yi++,dst+=RVR_XRES)
       {
          uint8_t index = tex[(v>>16)&mask];
+         //*dst = RvR_blend(*dst,col[index]);
          *dst = index?col[index]:*dst;
          v+=step_v;
       }
