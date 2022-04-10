@@ -28,6 +28,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Variables
 static int core_running = 1;
 static uint32_t core_frame = 0;
+static int core_frametimes[32] = {0};
 //-------------------------------------
 
 //Function prototypes
@@ -68,6 +69,7 @@ int RvR_core_running()
 void RvR_core_update()
 {
    core_frame++;
+   core_frametimes[core_frame&31] = RvR_core_frametime();
 
    RvR_backend_update();
 }
@@ -165,5 +167,12 @@ uint32_t RvR_core_frame()
 int RvR_core_frametime()
 {
    return RvR_backend_frametime();
+}
+
+int RvR_core_frametime_average()
+{
+   uint64_t sum = 0;
+   for(int i = 0;i<32;i++) sum+=core_frametimes[i];
+   return sum/32;
 }
 //-------------------------------------
