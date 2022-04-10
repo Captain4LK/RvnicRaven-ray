@@ -281,6 +281,11 @@ void RvR_backend_init(const char *title, int scale)
    memset(framebuffer,0,RVR_XRES*RVR_YRES);
 }
 
+int RvR_backend_frametime()
+{
+   return frametime;
+}
+
 void RvR_backend_update()
 {
 #ifndef __EMSCRIPTEN__

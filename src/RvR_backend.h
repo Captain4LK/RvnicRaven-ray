@@ -19,6 +19,7 @@ void RvR_backend_key_repeat(int repeat);
 
 void RvR_backend_update();
 void RvR_backend_render_present();
+int RvR_backend_frametime();
 
 int RvR_backend_key_down(int key);
 int RvR_backend_key_pressed(int key);

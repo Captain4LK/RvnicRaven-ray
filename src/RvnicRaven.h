@@ -201,6 +201,7 @@ void RvR_core_key_repeat(int repeat);
 int RvR_core_running();
 void RvR_core_update();
 void RvR_core_render_present();
+int RvR_core_frametime();
 
 int  RvR_core_key_down(RvR_key key);
 int  RvR_core_key_pressed(RvR_key key);

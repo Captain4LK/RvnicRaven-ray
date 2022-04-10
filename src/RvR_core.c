@@ -161,4 +161,9 @@ uint32_t RvR_core_frame()
 {
    return core_frame;
 }
+
+int RvR_core_frametime()
+{
+   return RvR_backend_frametime();
+}
 //-------------------------------------

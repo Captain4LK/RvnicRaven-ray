@@ -549,7 +549,7 @@ void RvR_ray_draw_map()
 void RvR_ray_draw_debug(uint8_t index)
 {
    char tmp[128];
-   snprintf(tmp,128,"%03d Planes",ray_planes_used);
+   snprintf(tmp,128,"%03d ms\n%03d Planes",RvR_core_frametime(),ray_planes_used);
    RvR_draw_string(2,2,1,tmp,index);
 }
 
