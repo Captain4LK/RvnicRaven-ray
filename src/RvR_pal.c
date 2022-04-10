@@ -26,6 +26,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 static uint8_t shade_table[64][256] = {0};
+static uint8_t trans_table[256][256] = {0};
 static RvR_color *palette = NULL;
 //-------------------------------------
 
@@ -80,11 +81,43 @@ static void pal_calculate_colormap()
    {
       for(int y = 0;y<64;y++)
       {
+         if(x==0)
+         {
+            shade_table[y][x] = 0;
+            continue;
+         }
+
          int r = RvR_max(0,RvR_min(255,((int)palette[x].r*(63-y))/63));
          int g = RvR_max(0,RvR_min(255,((int)palette[x].g*(63-y))/63));
          int b = RvR_max(0,RvR_min(255,((int)palette[x].b*(63-y))/63));
 
          shade_table[y][x] = pal_find_closest(r,g,b);
+      }
+   }
+
+   //Transparancy
+   for(int i = 0;i<256;i++)
+   {
+      for(int j = 0;j<256;j++)
+      {
+         //Special case: entry 0 is transparent
+         if(i==0)
+         {
+            trans_table[i][j] = j;
+            continue;
+         }
+         else if(j==0)
+         {
+            trans_table[i][j] = i;
+            continue;
+         }
+
+         RvR_fix22 t = 2048/3;
+         uint8_t r = RvR_max(0,RvR_min(255,(t*palette[i].r+(1024-t)*palette[j].r)/1024));
+         uint8_t g = RvR_max(0,RvR_min(255,(t*palette[i].g+(1024-t)*palette[j].g)/1024));
+         uint8_t b = RvR_max(0,RvR_min(255,(t*palette[i].b+(1024-t)*palette[j].b)/1024));
+
+         trans_table[i][j] = pal_find_closest(r,g,b);
       }
    }
 }
@@ -119,5 +152,10 @@ const RvR_color *RvR_palette()
 uint8_t *RvR_shade_table(uint8_t light)
 {
    return shade_table[light];
+}
+
+uint8_t RvR_blend(uint8_t c0, uint8_t c1)
+{
+   return trans_table[c0][c1];
 }
 //-------------------------------------
