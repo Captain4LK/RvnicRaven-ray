@@ -45,10 +45,6 @@ static int view_x;
 static int view_y;
 static int view_width;
 static int view_height;
-static int fps;
-static int frametime;
-static int framedelay;
-static int framestart;
 static float delta;
 static uint8_t key_map[SDL_NUM_SCANCODES];
 static uint8_t mouse_map[6];
@@ -67,6 +63,11 @@ static int mouse_x;
 static int mouse_y;
 static int mouse_wheel;
 static int key_repeat = 0;
+
+//Timing
+static uint64_t frametime;
+static uint64_t framedelay;
+static uint64_t framestart;
 
 static uint8_t *framebuffer = NULL;
 //-------------------------------------
@@ -271,11 +272,8 @@ void RvR_backend_init(const char *title, int scale)
       memset(gamepads[i].old_button_state,0,sizeof(gamepads[i].old_button_state));
    }
 
-   if(RVR_FPS<1||RVR_FPS>1000)
-      fps = 1000;
-   else
-      fps = RVR_FPS;
-   framedelay = 1000/fps;
+   int fps = RvR_max(1,RvR_min(1000,RVR_FPS));
+   framedelay = SDL_GetPerformanceFrequency()/fps;
 
    framebuffer = RvR_malloc(RVR_XRES*RVR_YRES);
    memset(framebuffer,0,RVR_XRES*RVR_YRES);
@@ -283,19 +281,21 @@ void RvR_backend_init(const char *title, int scale)
 
 int RvR_backend_frametime()
 {
-   return frametime;
+   return (frametime*10000)/SDL_GetPerformanceFrequency();
 }
 
 void RvR_backend_update()
 {
 #ifndef __EMSCRIPTEN__
-   frametime = SDL_GetTicks()-framestart;
+   frametime = SDL_GetPerformanceCounter()-framestart;
 
    if(framedelay>frametime)
-      SDL_Delay(framedelay-frametime);
+   {
+      SDL_Delay(((framedelay-frametime)*1000)/SDL_GetPerformanceFrequency());
+   }
 
-   delta = (float)(SDL_GetTicks()-framestart)/1000.0f;
-   framestart = SDL_GetTicks();
+   delta = (float)(SDL_GetPerformanceCounter()-framestart)/(float)SDL_GetPerformanceFrequency();
+   framestart = SDL_GetPerformanceCounter();
 
 #endif
 
