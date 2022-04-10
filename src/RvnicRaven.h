@@ -310,9 +310,9 @@ void  RvR_malloc_report();
 
 //RvnicRaven stores its palette in a binary format, with the
 //colors just being dumped sequentially (768 bytes --> 256 colors --> 1 byte r,g,b each)
-void       RvR_palette_load(uint16_t id);
-RvR_color *RvR_palette();
-uint8_t   *RvR_shade_table(uint8_t light);
+void             RvR_palette_load(uint16_t id);
+const RvR_color *RvR_palette();
+uint8_t         *RvR_shade_table(uint8_t light);
 
 unsigned RvR_rand();
 int      RvR_rand_get_state();

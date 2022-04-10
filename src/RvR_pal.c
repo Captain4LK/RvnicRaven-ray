@@ -31,6 +31,8 @@ static RvR_color *palette = NULL;
 
 //Function prototypes
 static void pal_calculate_colormap();
+
+static uint8_t pal_find_closest(int r, int g, int b);
 //-------------------------------------
 
 //Function implementations
@@ -71,50 +73,45 @@ void RvR_palette_load(uint16_t id)
    return;
 }
 
-//Taken from: https://quakewiki.org/wiki/Quake_palette (public domain), original note:
-//The following C code will generate a colormap.lmp that is nearly (but not exactly) identical to the Quake colormap. Written by metlslime who placed it in the public domain.
 static void pal_calculate_colormap()
 {
+   //Distance fading
    for(int x = 0;x<256;x++)
    {
       for(int y = 0;y<64;y++)
       {
-         if(x<256)
-         {
-            //int r = RvR_min(255,((int)palette[x].r*(64-y))>>5);
-            //int g = RvR_min(255,((int)palette[x].g*(63-y))>>5);
-            //int b = RvR_min(255,((int)palette[x].b*(63-y))>>5);
-            int r = RvR_min(255,((int)palette[x].r*(63-y))/63);
-            int g = RvR_min(255,((int)palette[x].g*(63-y))/63);
-            int b = RvR_min(255,((int)palette[x].b*(63-y))/63);
-            int best_index = -1;
-            int best_dist = 0;
+         int r = RvR_max(0,RvR_min(255,((int)palette[x].r*(63-y))/63));
+         int g = RvR_max(0,RvR_min(255,((int)palette[x].g*(63-y))/63));
+         int b = RvR_max(0,RvR_min(255,((int)palette[x].b*(63-y))/63));
 
-            for(int i = 0;i<256;i++)
-            {
-               int dist = 0;
-               dist+=abs(r-palette[i].r)*abs(r-palette[i].r);
-               dist+=abs(g-palette[i].g)*abs(g-palette[i].g);
-               dist+=abs(b-palette[i].b)*abs(b-palette[i].b);
-
-               if(best_index==-1||dist<best_dist)
-               {
-                  best_index = i;
-                  best_dist = dist;
-               }
-            }
-
-            shade_table[y][x] = (uint8_t)best_index;
-         }
-         else
-         {
-            shade_table[y][x] = x;
-         }
+         shade_table[y][x] = pal_find_closest(r,g,b);
       }
    }
 }
 
-RvR_color *RvR_palette()
+static uint8_t pal_find_closest(int r, int g, int b)
+{
+   int32_t best_dist = INT32_MAX;
+   uint8_t best_index = 0;
+
+   for(int i = 0;i<256;i++)
+   {
+      int32_t dist = 0;
+      dist+=(r-palette[i].r)*(r-palette[i].r);
+      dist+=(g-palette[i].g)*(g-palette[i].g);
+      dist+=(b-palette[i].b)*(b-palette[i].b);
+      
+      if(dist<best_dist)
+      {
+         best_index = i;
+         best_dist = dist;
+      }
+   }
+
+   return best_index;
+}
+
+const RvR_color *RvR_palette()
 {
    return palette;
 }
