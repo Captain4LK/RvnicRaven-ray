@@ -124,6 +124,7 @@ typedef enum
    RVR_RW_STD_FILE_PATH = 1,
    RVR_RW_MEM = 2,
    RVR_RW_CONST_MEM = 3,
+   RVR_RW_DYN_MEM = 4,
 }RvR_rw_type;
 
 typedef enum
@@ -181,6 +182,13 @@ typedef struct
          long size;
          long pos;
       }cmem;
+      struct
+      {
+         void *mem;
+         long size;
+         long pos;
+         long min_grow;
+      }dmem;
    }as;
 }RvR_rw;
 
@@ -227,6 +235,8 @@ void RvR_rw_init_file(RvR_rw *rw, FILE *f);
 void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode);
 void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len);
 void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len);
+void RvR_rw_init_dyn_mem(RvR_rw *rw, size_t base_len, size_t min_grow);
+
 void RvR_rw_endian(RvR_rw *rw, uint8_t endian);
 void RvR_rw_close(RvR_rw *rw);
 void RvR_rw_flush(RvR_rw *rw);

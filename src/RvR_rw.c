@@ -90,6 +90,21 @@ RvR_err:
    return;
 }
 
+void RvR_rw_init_dyn_mem(RvR_rw *rw, size_t base_len, size_t min_grow)
+{
+   RvR_error_check(rw!=NULL,"RvR_rw_init_dyn_mem","argument 'rw' must be non-NULL\n");
+
+   rw->type = RVR_RW_DYN_MEM;
+   rw->endian = RVR_ENDIAN;
+   rw->as.dmem.mem = RvR_malloc(base_len);
+   rw->as.dmem.size = base_len;
+   rw->as.dmem.pos = 0;
+   rw->as.dmem.min_grow = min_grow;
+
+RvR_err:
+   return;
+}
+
 void RvR_rw_endian(RvR_rw *rw, uint8_t endian)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_endian","argument 'rw' must be non-NULL\n");
@@ -106,6 +121,8 @@ void RvR_rw_close(RvR_rw *rw)
 
    if(rw->type==RVR_RW_STD_FILE_PATH)
       RvR_error_check(fclose(rw->as.fp)!=EOF,"RvR_rw_close","fclose() failed\n");
+   else if(rw->type==RVR_RW_DYN_MEM)
+      RvR_free(rw->as.dmem.mem);
 
 RvR_err:
    return;
@@ -155,9 +172,26 @@ int RvR_rw_seek(RvR_rw *rw, long offset, int origin)
       else if(origin==SEEK_END)
          rw->as.cmem.pos = rw->as.cmem.size-offset;
 
-      if(rw->as.mem.pos<0)
+      if(rw->as.cmem.pos<0)
       {
-         rw->as.mem.pos = 0;
+         rw->as.cmem.pos = 0;
+         return 1;
+      }
+
+      return 0;
+   }
+   else if(rw->type==RVR_RW_DYN_MEM)
+   {
+      if(origin==SEEK_SET)
+         rw->as.dmem.pos = offset;
+      else if(origin==SEEK_CUR)
+         rw->as.dmem.pos+=offset;
+      else if(origin==SEEK_END)
+         rw->as.dmem.pos = rw->as.dmem.size-offset;
+
+      if(rw->as.dmem.pos<0)
+      {
+         rw->as.dmem.pos = 0;
          return 1;
       }
 
@@ -188,6 +222,10 @@ long RvR_rw_tell(RvR_rw *rw)
    {
       return rw->as.cmem.pos;
    }
+   else if(rw->type==RVR_RW_DYN_MEM)
+   {
+      return rw->as.dmem.pos;
+   }
 
    RvR_log_line("RvR_rw_tell", "invalid RvR_rw type, handle might be corrupt\n");
 
@@ -205,6 +243,8 @@ int RvR_rw_eof(RvR_rw *rw)
       return rw->as.mem.pos>=rw->as.mem.size;
    else if(rw->type==RVR_RW_CONST_MEM)
       return rw->as.cmem.pos>=rw->as.cmem.size;
+   else if(rw->type==RVR_RW_DYN_MEM)
+      return rw->as.dmem.pos>=rw->as.dmem.size;
 
    RvR_log_line("RvR_rw_eof", "invalid RvR_rw type, handle might be corrupt\n");
 
@@ -253,6 +293,22 @@ size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
 
       return count;
    }
+   else if(rw->type==RVR_RW_DYN_MEM)
+   {
+      uint8_t *buff_out = buffer;
+      const uint8_t *buff_in = rw->as.dmem.mem;
+
+      for(size_t i = 0;i<count;i++)
+      {
+         if(rw->as.dmem.pos+(long)size>rw->as.dmem.size)
+            return i;
+
+         memcpy(buff_out+(i*size),buff_in+rw->as.dmem.pos,size);
+         rw->as.dmem.pos+=size;
+      }
+
+      return count;
+   }
 
    RvR_log_line("RvR_rw_read", "invalid RvR_rw type, handle might be corrupt\n");
 
@@ -290,6 +346,25 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
       RvR_log_line("RvR_rw_write","writing to const RvR_rw stream is not supported\n");
 
       return 0;
+   }
+   else if(rw->type==RVR_RW_DYN_MEM)
+   {
+      uint8_t *buff_out = rw->as.dmem.mem;
+      const uint8_t *buff_in = buffer;
+
+      for(size_t i = 0;i<count;i++)
+      {
+         if(rw->as.dmem.pos+(long)size>rw->as.dmem.size)
+         {
+            rw->as.dmem.size+=RvR_max(rw->as.dmem.min_grow,rw->as.dmem.pos+(long)size-rw->as.dmem.size);
+            rw->as.dmem.mem = RvR_realloc(rw->as.dmem.mem,rw->as.dmem.size);
+         }
+
+         memcpy(buff_out+rw->as.dmem.pos,buff_in+(i*size),size);
+         rw->as.dmem.pos+=size;
+      }
+
+      return count;
    }
 
    RvR_log_line("RvR_rw_write","invalid RvR_rw type, handle might be corrupt\n");
