@@ -174,6 +174,7 @@ typedef struct
       {
          void *mem;
          long size;
+         long csize;
          long pos;
       }mem;
       struct
@@ -186,6 +187,7 @@ typedef struct
       {
          void *mem;
          long size;
+         long csize;
          long pos;
          long min_grow;
       }dmem;
@@ -233,7 +235,7 @@ uint32_t RvR_core_frame();
 
 void RvR_rw_init_file(RvR_rw *rw, FILE *f);
 void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode);
-void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len);
+void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len, size_t clen);
 void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len);
 void RvR_rw_init_dyn_mem(RvR_rw *rw, size_t base_len, size_t min_grow);
 

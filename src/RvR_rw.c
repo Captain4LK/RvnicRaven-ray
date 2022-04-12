@@ -60,7 +60,7 @@ RvR_err:
    return;
 }
 
-void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len)
+void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len, size_t clen)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_init_mem","argument 'rw' must be non-NULL\n");
    RvR_error_check(mem!=NULL,"RvR_rw_init_mem","argument 'mem' must be non-NULL\n");
@@ -70,6 +70,7 @@ void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len)
    rw->as.mem.mem = mem;
    rw->as.mem.size = len;
    rw->as.mem.pos = 0;
+   rw->as.mem.csize = clen;
 
 RvR_err:
    return;
@@ -98,6 +99,7 @@ void RvR_rw_init_dyn_mem(RvR_rw *rw, size_t base_len, size_t min_grow)
    rw->endian = RVR_ENDIAN;
    rw->as.dmem.mem = RvR_malloc(base_len);
    rw->as.dmem.size = base_len;
+   rw->as.dmem.csize = 0;
    rw->as.dmem.pos = 0;
    rw->as.dmem.min_grow = min_grow;
 
@@ -154,7 +156,7 @@ int RvR_rw_seek(RvR_rw *rw, long offset, int origin)
       else if(origin==SEEK_CUR)
          rw->as.mem.pos+=offset;
       else if(origin==SEEK_END)
-         rw->as.mem.pos = rw->as.mem.size-offset;
+         rw->as.mem.pos = rw->as.mem.csize+offset;
 
       if(rw->as.mem.pos<0)
       {
@@ -170,7 +172,7 @@ int RvR_rw_seek(RvR_rw *rw, long offset, int origin)
       else if(origin==SEEK_CUR)
          rw->as.cmem.pos+=offset;
       else if(origin==SEEK_END)
-         rw->as.cmem.pos = rw->as.cmem.size-offset;
+         rw->as.cmem.pos = rw->as.cmem.size+offset;
 
       if(rw->as.cmem.pos<0)
       {
@@ -187,7 +189,7 @@ int RvR_rw_seek(RvR_rw *rw, long offset, int origin)
       else if(origin==SEEK_CUR)
          rw->as.dmem.pos+=offset;
       else if(origin==SEEK_END)
-         rw->as.dmem.pos = rw->as.dmem.size-offset;
+         rw->as.dmem.pos = rw->as.dmem.csize+offset;
 
       if(rw->as.dmem.pos<0)
       {
@@ -268,7 +270,7 @@ size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
 
       for(size_t i = 0;i<count;i++)
       {
-         if(rw->as.mem.pos+(long)size>rw->as.mem.size)
+         if(rw->as.mem.pos+(long)size>rw->as.mem.csize)
             return i;
 
          memcpy(buff_out+(i*size),buff_in+rw->as.mem.pos,size);
@@ -300,7 +302,7 @@ size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
 
       for(size_t i = 0;i<count;i++)
       {
-         if(rw->as.dmem.pos+(long)size>rw->as.dmem.size)
+         if(rw->as.dmem.pos+(long)size>rw->as.dmem.csize)
             return i;
 
          memcpy(buff_out+(i*size),buff_in+rw->as.dmem.pos,size);
@@ -335,6 +337,7 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
          if(rw->as.mem.pos+(long)size>rw->as.mem.size)
             return i;
 
+         rw->as.mem.csize = RvR_max(rw->as.mem.csize,rw->as.mem.pos);
          memcpy(buff_out+rw->as.mem.pos,buff_in+(i*size),size);
          rw->as.mem.pos+=size;
       }
@@ -360,6 +363,7 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
             rw->as.dmem.mem = RvR_realloc(rw->as.dmem.mem,rw->as.dmem.size);
          }
 
+         rw->as.dmem.csize = RvR_max(rw->as.dmem.csize,rw->as.dmem.pos);
          memcpy(buff_out+rw->as.dmem.pos,buff_in+(i*size),size);
          rw->as.dmem.pos+=size;
       }

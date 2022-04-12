@@ -217,7 +217,7 @@ void RvR_ray_map_save(const char *path)
 
    uint8_t *mem = RvR_malloc(size);
    RvR_rw rw = {0};
-   RvR_rw_init_mem(&rw,mem,size);
+   RvR_rw_init_mem(&rw,mem,size,size);
 
    //version
    RvR_rw_write_u16(&rw,0);

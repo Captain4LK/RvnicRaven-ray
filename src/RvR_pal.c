@@ -55,7 +55,7 @@ void RvR_palette_load(uint16_t id)
 
    //Read palette from lump and create rw stream
    mem_pak = RvR_lump_get(tmp,&size_in);
-   RvR_rw_init_mem(&rw,mem_pak,size_in);
+   RvR_rw_init_mem(&rw,mem_pak,size_in,size_in);
 
    //Read palette and perform post processing
    for(unsigned i = 0;i<256;i++)
