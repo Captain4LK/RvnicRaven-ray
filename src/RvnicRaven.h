@@ -144,9 +144,7 @@ typedef struct
    uint8_t *data;
 }RvR_texture;
 
-typedef int32_t RvR_fix24;
 typedef int32_t RvR_fix22;
-typedef int32_t RvR_fix16;
 typedef char * RvR_config;
 
 typedef struct
@@ -334,14 +332,6 @@ RvR_fix22 RvR_fix22_ctg(RvR_fix22 a);
 RvR_fix22 RvR_fix22_sqrt(RvR_fix22 a);
 RvR_fix22 RvR_fix22_atan2(RvR_fix22 x, RvR_fix22 y);
 
-RvR_fix16 RvR_fix16_from_int(int a);
-int       RvR_fix16_to_int(RvR_fix16 a);
-RvR_fix16 RvR_fix16_mul(RvR_fix16 a, RvR_fix16 b);
-RvR_fix16 RvR_fix16_div(RvR_fix16 a, RvR_fix16 b);
-RvR_fix16 RvR_fix16_round(RvR_fix16 a);
-RvR_fix16 RvR_fix16_floor(RvR_fix16 a);
-RvR_fix16 RvR_fix16_ceil(RvR_fix16 a);
-
 RvR_fix22 RvR_fix22_from_int(int a);
 int       RvR_fix22_to_int(RvR_fix22 a);
 RvR_fix22 RvR_fix22_mul(RvR_fix22 a, RvR_fix22 b);
@@ -349,14 +339,6 @@ RvR_fix22 RvR_fix22_div(RvR_fix22 a, RvR_fix22 b);
 RvR_fix22 RvR_fix22_round(RvR_fix22 a);
 RvR_fix22 RvR_fix22_floor(RvR_fix22 a);
 RvR_fix22 RvR_fix22_ceil(RvR_fix22 a);
-
-RvR_fix24 RvR_fix24_from_int(int a);
-int       RvR_fix24_to_int(RvR_fix24 a);
-RvR_fix24 RvR_fix24_mul(RvR_fix24 a, RvR_fix24 b);
-RvR_fix24 RvR_fix24_div(RvR_fix24 a, RvR_fix24 b);
-RvR_fix24 RvR_fix24_round(RvR_fix24 a);
-RvR_fix24 RvR_fix24_floor(RvR_fix24 a);
-RvR_fix24 RvR_fix24_ceil(RvR_fix24 a);
 
 RvR_vec2  RvR_vec2_rot(RvR_fix22 angle);
 RvR_fix22 RvR_dist2(RvR_vec2 p0, RvR_vec2 p1);

@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -236,33 +236,19 @@ static const RvR_fix22 math_atan_table22[2048] =
 
 //Function implementations
 
-FROM_INT(16)
 FROM_INT(22)
-FROM_INT(24)
 
-TO_INT(16)
 TO_INT(22)
-TO_INT(24)
 
-MUL(16)
 MUL(22)
-MUL(24)
 
-DIV(16)
 DIV(22)
-DIV(24)
 
-ROUND(16)
 ROUND(22)
-ROUND(24)
 
-FLOOR(16)
 FLOOR(22)
-FLOOR(24)
 
-CEIL(16)
 CEIL(22)
-CEIL(24)
 
 RvR_fix22 RvR_fix22_cos(RvR_fix22 a)
 {
