@@ -1,9 +1,7 @@
-bin/RvnicRaven*
-bin/data
-bin/ldtk
-src/RvR_unroll.c
+bin/*
+!bin/data_anarch
 
-*.slk
-*.vim
+*.exe
+*.out
 *.o
-a.out
+*.vim
