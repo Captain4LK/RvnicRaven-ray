@@ -272,12 +272,6 @@ uint64_t RvR_endian_swap64(uint64_t n, uint8_t endian);
 
 void  RvR_compress(RvR_rw *in, RvR_rw *out, unsigned level);
 void *RvR_decompress(RvR_rw *in, int32_t *length, uint8_t *endian);
-/*void  RvR_compress(FILE *in, FILE *out);
-void  RvR_compress_path(const char *path_in, const char *path_out);
-void  RvR_mem_compress(void *mem, int32_t length, FILE *out);
-void *RvR_decompress(FILE *in, int32_t *length, uint8_t *endian);
-void *RvR_decompress_path(const char *path, int32_t *length, uint8_t *endian);
-void *RvR_mem_decompress(void *mem, int32_t length_in, int32_t *length_out, uint8_t *endian);*/
 
 void RvR_draw_clear(uint8_t index);
 void RvR_draw_texture(RvR_texture *t, int x, int y);
