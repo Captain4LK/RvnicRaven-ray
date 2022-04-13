@@ -123,7 +123,7 @@ void *RvR_decompress(RvR_rw *in, int32_t *length, uint8_t *endian)
    return buffer_out;
 }
 
-//crush_compress, crush_decompress, update_hash1, update_hash2, bits_init, get_penalty, bits_put, bits_get
+//comp_crush_compress, comp_crush_decompress, comp_update_hash1, comp_update_hash2, comp_bits_init, comp_get_penalty, comp_bits_put, comp_bits_get, comp_bits_flush
 //by r-lyeh(https://github.com/r-lyeh), stdpack.c (https://github.com/r-lyeh/stdpack.c/blob/master/src/crush.c)
 //Original license info:
 // crush.cpp
