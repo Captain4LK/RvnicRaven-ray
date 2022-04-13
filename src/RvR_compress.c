@@ -1,7 +1,7 @@
 /*
 RvnicRaven retro game engine
 
-Written in 2021 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+Written in 2021,2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
 
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 
@@ -22,205 +22,145 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-enum { W_BITS=21 }; // Window size (17..23)
-enum { W_SIZE=1<<W_BITS };
-enum { W_MASK=W_SIZE-1 };
-enum { SLOT_BITS=4 };
-enum { NUM_SLOTS=1<<SLOT_BITS };
 
-enum { A_BITS=2 }; // 1 xx
-enum { B_BITS=2 }; // 01 xx
-enum { C_BITS=2 }; // 001 xx
-enum { D_BITS=3 }; // 0001 xxx
-enum { E_BITS=5 }; // 00001 xxxxx
-enum { F_BITS=9 }; // 00000 xxxxxxxxx
-enum { A=1<<A_BITS };
-enum { B=(1<<B_BITS)+A };
-enum { C=(1<<C_BITS)+B };
-enum { D=(1<<D_BITS)+C };
-enum { E=(1<<E_BITS)+D };
-enum { F=(1<<F_BITS)+E };
-enum { MIN_MATCH=3 };
-enum { MAX_MATCH=(F-1)+MIN_MATCH };
-
-enum { TOO_FAR=1<<16 };
-
-enum { HASH1_LEN=MIN_MATCH };
-enum { HASH2_LEN=MIN_MATCH+1 };
-enum { HASH1_BITS=21 };
-enum { HASH2_BITS=24 };
-enum { HASH1_SIZE=1<<HASH1_BITS };
-enum { HASH2_SIZE=1<<HASH2_BITS };
-enum { HASH1_MASK=HASH1_SIZE-1 };
-enum { HASH2_MASK=HASH2_SIZE-1 };
-enum { HASH1_SHIFT=(HASH1_BITS+(HASH1_LEN-1))/HASH1_LEN };
-enum { HASH2_SHIFT=(HASH2_BITS+(HASH2_LEN-1))/HASH2_LEN };
-
-typedef struct Bits
+enum
 {
-   const uint8_t *g_inbuf;
-   uint8_t *g_outbuf;
-   int g_inbuf_pos;
-   int g_outbuf_pos;
-   int bit_buf;
-   int bit_count;
-}Bits;
+   COMP_W_BITS = 21, //Window size [17,23]
+   COMP_W_SIZE = 1<<COMP_W_BITS,
+   COMP_W_MASK = COMP_W_SIZE-1,
+   COMP_SLOT_BITS = 4,
+   COMP_NUM_SLOTS = 1<<COMP_SLOT_BITS,
+
+   COMP_A_BITS = 2, //1 xx
+   COMP_B_BITS = 2, //01 xx
+   COMP_C_BITS = 2, //001 xx
+   COMP_D_BITS = 3, //0001 xxx
+   COMP_E_BITS = 5, //00001 xxxxx
+   COMP_F_BITS = 9, //00000 xxxxxxxxx
+   COMP_A = 1<<COMP_A_BITS,
+   COMP_B = (1<<COMP_B_BITS)+COMP_A,
+   COMP_C = (1<<COMP_C_BITS)+COMP_B,
+   COMP_D = (1<<COMP_D_BITS)+COMP_C,
+   COMP_E = (1<<COMP_E_BITS)+COMP_D,
+   COMP_F = (1<<COMP_F_BITS)+COMP_E,
+   COMP_MIN_MATCH = 3,
+   COMP_MAX_MATCH = (COMP_F-1)+COMP_MIN_MATCH,
+
+   COMP_TOO_FAR = 1<<16,
+
+   COMP_HASH1_LEN = COMP_MIN_MATCH,
+   COMP_HASH2_LEN = COMP_MIN_MATCH+1,
+   COMP_HASH1_BITS = 21,
+   COMP_HASH2_BITS = 24,
+   COMP_HASH1_SIZE = 1<<COMP_HASH1_BITS,
+   COMP_HASH2_SIZE = 1<<COMP_HASH2_BITS,
+   COMP_HASH1_MASK = COMP_HASH1_SIZE-1,
+   COMP_HASH2_MASK = COMP_HASH2_SIZE-1,
+   COMP_HASH1_SHIFT = (COMP_HASH1_BITS+COMP_HASH1_LEN-1)/COMP_HASH1_LEN,
+   COMP_HASH2_SHIFT = (COMP_HASH2_BITS+COMP_HASH2_LEN-1)/COMP_HASH2_LEN,
+};
+
+typedef struct
+{
+   RvR_rw *inbuf;
+   RvR_rw *outbuf;
+   unsigned bit_buf;
+   unsigned bit_count;
+}comp_bits;
 //-------------------------------------
 
 //Variables
 //-------------------------------------
 
 //Function prototypes
-static size_t crush_compress(const uint8_t *buf, size_t size, uint8_t *outbuf, size_t outlen, size_t level);
-static size_t crush_decompress(const uint8_t *inbuf, size_t inlen, uint8_t *outbuf, size_t outsize);
-static int update_hash1(int h, int c);
-static int update_hash2(int h, int c);
-static void bits_init(Bits *b, const uint8_t *inbuf, uint8_t *outbuf);
-static int get_min(int a, int b);
-static int get_max(int a, int b);
-static int get_penalty(int a, int b);
-static void bits_put(Bits *b, int n, int x);
-static void bits_flush(Bits *b);
-static int bits_get(Bits *b, int n);
+static void     comp_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, size_t level);
+static void     comp_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen);
+static int      comp_update_hash1(int h, int c);
+static int      comp_update_hash2(int h, int c);
+static int      comp_get_penalty(int a, int b);
+static void     comp_bits_init(comp_bits *b, RvR_rw *inbuf, RvR_rw *outbuf);
+static void     comp_bits_put(comp_bits *b, unsigned n, unsigned x);
+static void     comp_bits_flush(comp_bits *b);
+static unsigned comp_bits_get(comp_bits *b, unsigned n);
 //-------------------------------------
 
 //Function implementations
 
-void RvR_compress(FILE *in, FILE *out)
+void RvR_compress(RvR_rw *in, RvR_rw *out, unsigned level)
 {
    uint8_t *buffer_in = NULL;
-   uint8_t *buffer_out = NULL;
    int32_t size = 0;
    uint8_t endian = RVR_ENDIAN;
 
-   fseek(in,0,SEEK_END);
-   size = ftell(in);
-   fseek(in,0,SEEK_SET);
+   RvR_rw_seek(in,0,SEEK_END);
+   size = RvR_rw_tell(in);
+   RvR_rw_seek(in,0,SEEK_SET);
 
    buffer_in = RvR_malloc(size+1);
-   buffer_out = RvR_malloc((size+1)*2);
-   memset(buffer_out,0,size+1);
 
-   fread(buffer_in,size,1,in);
+   RvR_rw_read(in,buffer_in,size,1);
    buffer_in[size] = 0;
 
-   fwrite(&size,4,1,out);
-   fwrite(&endian,1,1,out);
-   size = crush_compress(buffer_in,size,buffer_out,size,9);
-   fwrite(buffer_out,size,1,out);
+   RvR_rw_seek(out,0,SEEK_END);
+   RvR_rw_write_i32(out,size);
+   RvR_rw_write_u8(out,endian);
+   comp_crush_compress(buffer_in,size,out,level);
 
    RvR_free(buffer_in);
-   RvR_free(buffer_out);
 }
 
-void RvR_compress_path(const char *path_in, const char *path_out)
+void *RvR_decompress(RvR_rw *in, int32_t *length, uint8_t *endian)
 {
-   FILE *in = fopen(path_in,"rb");
-   FILE *out = fopen(path_out,"wb");
-   RvR_compress(in,out);
-   fclose(in);
-   fclose(out);
-}
-
-void RvR_mem_compress(void *mem, int32_t length, FILE *out)
-{
-   uint8_t *buffer_out = RvR_malloc((length+1)*2);
-   memset(buffer_out,0,length+1);
-   uint8_t endian = RVR_ENDIAN;
-
-   fwrite(&length,4,1,out);
-   fwrite(&endian,1,1,out);
-   int32_t size = crush_compress(mem,length,buffer_out,length,9);
-   fwrite(buffer_out,size,1,out);
-
-   RvR_free(buffer_out);
-}
-
-void *RvR_decompress(FILE *in, int32_t *length, uint8_t *endian)
-{
-   fread(length,4,1,in);
-   fread(endian,1,1,in);
+   RvR_rw_seek(in,0,SEEK_SET);
+   *length = RvR_rw_read_i32(in);
+   *endian = RvR_rw_read_u8(in);
    *length = RvR_endian_swap32(*length,*endian);
 
-   uint8_t *buffer_in = NULL;
-   int size = 0;
-   fseek(in,0,SEEK_END);
-   size = ftell(in)-5;
-   fseek(in,5,SEEK_SET);
-   buffer_in = RvR_malloc(size+1);
-   uint8_t *buffer_out = RvR_malloc(((*length)+1)*2);
-   fread(buffer_in,size,1,in);
-   buffer_in[size] = 0;
-
-   crush_decompress(buffer_in,size,buffer_out,*length);
+   uint8_t *buffer_out = RvR_malloc((*length)+1);
+   comp_crush_decompress(in,buffer_out,*length);
    buffer_out[*length] = 0;
-   RvR_free(buffer_in);
 
    return buffer_out;
 }
 
-void *RvR_decompress_path(const char *path, int32_t *length, uint8_t *endian)
-{
-   FILE *f = fopen(path,"rb");
-   void *data = RvR_decompress(f,length,endian);
-   fclose(f);
-
-   return data;
-}
-
-void *RvR_mem_decompress(void *mem, int32_t length_in, int32_t *length_out, uint8_t *endian)
-{
-   *length_out = *((int32_t *)mem);
-   *endian = *(((uint8_t *)mem)+4);
-   *length_out = RvR_endian_swap32(*length_out,*endian);
-
-   uint8_t *buffer_out  = RvR_malloc((*length_out)+1);
-   crush_decompress(((uint8_t *)mem)+5,length_in-5,buffer_out,*length_out);
-   
-   return buffer_out;
-}
-
-//crush_compress, crush_decompress, update_hash1, update_hash2, bits_init, get_min, get_max, get_penalty, bits_put, bits_get
+//crush_compress, crush_decompress, update_hash1, update_hash2, bits_init, get_penalty, bits_put, bits_get
 //by r-lyeh(https://github.com/r-lyeh), stdpack.c (https://github.com/r-lyeh/stdpack.c/blob/master/src/crush.c)
 //Original license info:
 // crush.cpp
 // Written and placed in the public domain by Ilya Muravyov
 // Additional code by @r-lyeh (public domain). @todo: honor unused args inlen/outlen
 
-static size_t crush_compress(const uint8_t *buf, size_t size, uint8_t *outbuf, size_t outlen, size_t level)
+static void comp_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf, size_t level)
 {
-   //TODO: actually use in compression
-   (void)sizeof(outlen);
-   static int head[HASH1_SIZE+HASH2_SIZE];
-   static int prev[W_SIZE];
+   static int head[COMP_HASH1_SIZE+COMP_HASH2_SIZE];
+   static int prev[COMP_W_SIZE];
 
-   //const int max_chain[]={4, 256, 1<<12}; // original [0fast..2uber]
-   const int max_chain[11] = { 0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 1<<12 }; //[0fastest..10uber]
+   const int max_chain[11] = { 0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 1<<12}; //[0fastest..10uber]
    const size_t max_level = sizeof(max_chain)/sizeof(max_chain[0]);
    level = level > max_level ? max_level : level;
 
-   Bits bits;
+   comp_bits bits;
 
-   for(int i = 0;i<HASH1_SIZE+HASH2_SIZE;++i)
+   for(int i = 0;i<COMP_HASH1_SIZE+COMP_HASH2_SIZE;++i)
       head[i]=-1;
 
    int h1 = 0;
    int h2 = 0;
-   for(int i = 0;i<HASH1_LEN;++i)
-      h1 = update_hash1(h1, buf[i]);
-   for(int i = 0;i<HASH2_LEN;++i)
-      h2 = update_hash2(h2,buf[i]);
+   for(int i = 0;i<COMP_HASH1_LEN;++i)
+      h1 = comp_update_hash1(h1, buf[i]);
+   for(int i = 0;i<COMP_HASH2_LEN;++i)
+      h2 = comp_update_hash2(h2,buf[i]);
 
-   bits_init(&bits, NULL, outbuf);
+   comp_bits_init(&bits, NULL, outbuf);
 
    size_t p=0;
    while (p<size)
    {
-      int len=MIN_MATCH-1;
-      int offset=W_SIZE;
+      int len=COMP_MIN_MATCH-1;
+      int offset=COMP_W_SIZE;
 
-      const int max_match=get_min(MAX_MATCH, size-p);
-      const int limit=get_max(p-W_SIZE, 0);
+      const int max_match=RvR_min((int)COMP_MAX_MATCH, (int)size-p);
+      const int limit=RvR_max((int)p-COMP_W_SIZE, 0);
 
       if(head[h1]>=limit)
       {
@@ -239,10 +179,10 @@ static size_t crush_compress(const uint8_t *buf, size_t size, uint8_t *outbuf, s
          }
       }
 
-      if(len<MAX_MATCH)
+      if(len<COMP_MAX_MATCH)
       {
          int chain_len = max_chain[level];
-         int s = head[h2+HASH1_SIZE];
+         int s = head[h2+COMP_HASH1_SIZE];
 
          while((chain_len--!=0)&&(s>=limit))
          {
@@ -252,7 +192,7 @@ static size_t crush_compress(const uint8_t *buf, size_t size, uint8_t *outbuf, s
                while(++l<max_match)
                   if(buf[s+l]!=buf[p+l])
                      break;
-               if(l>len+get_penalty((p-s)>>4,offset))
+               if(l>len+comp_get_penalty((p-s)>>4,offset))
                {
                   len=l;
                   offset=p-s;
@@ -260,20 +200,20 @@ static size_t crush_compress(const uint8_t *buf, size_t size, uint8_t *outbuf, s
                if(l==max_match)
                   break;
             }
-            s = prev[s&W_MASK];
+            s = prev[s&COMP_W_MASK];
          }
       }
 
-      if((len==MIN_MATCH)&&(offset>TOO_FAR))
+      if((len==COMP_MIN_MATCH)&&(offset>COMP_TOO_FAR))
          len = 0;
 
-      if((level>=2)&&(len>=MIN_MATCH)&&(len<max_match))
+      if((level>=2)&&(len>=COMP_MIN_MATCH)&&(len<max_match))
       {
          const int next_p = p+1;
-         const int max_lazy = get_min(len+4, max_match);
+         const int max_lazy = RvR_min((int)len+4, (int)max_match);
 
          int chain_len = max_chain[level];
-         int s = head[update_hash2(h2, buf[next_p+(HASH2_LEN-1)])+HASH1_SIZE];
+         int s = head[comp_update_hash2(h2, buf[next_p+(COMP_HASH2_LEN-1)])+COMP_HASH1_SIZE];
 
          while((chain_len--!=0)&&(s>=limit))
          {
@@ -283,7 +223,7 @@ static size_t crush_compress(const uint8_t *buf, size_t size, uint8_t *outbuf, s
                while(++l<max_lazy)
                   if(buf[s+l]!=buf[next_p+l])
                      break;
-               if(l>len+get_penalty(next_p-s, offset))
+               if(l>len+comp_get_penalty(next_p-s, offset))
                {
                   len=0;
                   break;
@@ -291,195 +231,187 @@ static size_t crush_compress(const uint8_t *buf, size_t size, uint8_t *outbuf, s
                if(l==max_lazy)
                   break;
             }
-            s = prev[s&W_MASK];
+            s = prev[s&COMP_W_MASK];
          }
       }
 
-      if(len>=MIN_MATCH) // Match
+      if(len>=COMP_MIN_MATCH) // Match
       {
-         bits_put(&bits, 1, 1);
+         comp_bits_put(&bits, 1, 1);
 
-         const int l=len-MIN_MATCH;
-         if(l<A)
+         const int l=len-COMP_MIN_MATCH;
+         if(l<COMP_A)
          {
-            bits_put(&bits, 1, 1); // 1
-            bits_put(&bits, A_BITS, l);
+            comp_bits_put(&bits, 1, 1); // 1
+            comp_bits_put(&bits, COMP_A_BITS, l);
          }
-         else if(l<B)
+         else if(l<COMP_B)
          {
-            bits_put(&bits, 2, 1<<1); // 01
-            bits_put(&bits, B_BITS, l-A);
+            comp_bits_put(&bits, 2, 1<<1); // 01
+            comp_bits_put(&bits, COMP_B_BITS, l-COMP_A);
          }
-         else if(l<C)
+         else if(l<COMP_C)
          {
-            bits_put(&bits, 3, 1<<2); // 001
-            bits_put(&bits, C_BITS, l-B);
+            comp_bits_put(&bits, 3, 1<<2); // 001
+            comp_bits_put(&bits, COMP_C_BITS, l-COMP_B);
          }
-         else if(l<D)
+         else if(l<COMP_D)
          {
-            bits_put(&bits, 4, 1<<3); // 0001
-            bits_put(&bits, D_BITS, l-C);
+            comp_bits_put(&bits, 4, 1<<3); // 0001
+            comp_bits_put(&bits, COMP_D_BITS, l-COMP_C);
          }
-         else if(l<E)
+         else if(l<COMP_E)
          {
-            bits_put(&bits, 5, 1<<4); // 00001
-            bits_put(&bits, E_BITS, l-D);
+            comp_bits_put(&bits, 5, 1<<4); // 00001
+            comp_bits_put(&bits, COMP_E_BITS, l-COMP_D);
          }
          else
          {
-            bits_put(&bits, 5, 0); // 00000
-            bits_put(&bits, F_BITS, l-E);
+            comp_bits_put(&bits, 5, 0); // 00000
+            comp_bits_put(&bits, COMP_F_BITS, l-COMP_E);
          }
 
          --offset;
-         int log=W_BITS-NUM_SLOTS;
+         int log=COMP_W_BITS-COMP_NUM_SLOTS;
          while(offset>=(2<<log))
             ++log;
-         bits_put(&bits, SLOT_BITS, log-(W_BITS-NUM_SLOTS));
-         if(log>(W_BITS-NUM_SLOTS))
-            bits_put(&bits, log, offset-(1<<log));
+         comp_bits_put(&bits, COMP_SLOT_BITS, log-(COMP_W_BITS-COMP_NUM_SLOTS));
+         if(log>(COMP_W_BITS-COMP_NUM_SLOTS))
+            comp_bits_put(&bits, log, offset-(1<<log));
          else
-            bits_put(&bits, W_BITS-(NUM_SLOTS-1),offset);
+            comp_bits_put(&bits, COMP_W_BITS-(COMP_NUM_SLOTS-1),offset);
       }
-      else // Literal
+      else //Literal
       {
-         len=1;
-         bits_put(&bits, 9, buf[p]<<1); // 0 xxxxxxxx
+         len = 1;
+         comp_bits_put(&bits,9,buf[p]<<1); //0 xxxxxxxx
       }
 
-      while(len--!=0) // Insert new strings
+      while(len--!=0) //Insert new strings
       {
-         head[h1]=p;
-         prev[p&W_MASK]=head[h2+HASH1_SIZE];
-         head[h2+HASH1_SIZE]=p;
-         ++p;
-         h1=update_hash1(h1, buf[p+(HASH1_LEN-1)]);
-         h2=update_hash2(h2, buf[p+(HASH2_LEN-1)]);
+         head[h1] = p;
+         prev[p&COMP_W_MASK] = head[h2+COMP_HASH1_SIZE];
+         head[h2+COMP_HASH1_SIZE] = p;
+         p++;
+         h1 = comp_update_hash1(h1,buf[p+(COMP_HASH1_LEN-1)]);
+         h2 = comp_update_hash2(h2,buf[p+(COMP_HASH2_LEN-1)]);
       }
    }
 
-   bits_flush(&bits);
-
-   return bits.g_outbuf_pos;
+   comp_bits_flush(&bits);
 }
 
-static size_t crush_decompress(const uint8_t *inbuf, size_t inlen, uint8_t *outbuf, size_t outsize)
+static void comp_crush_decompress(RvR_rw *inbuf, uint8_t *outbuf, uint32_t outlen)
 {
-   //TODO: actually use in decompression
-   (void)sizeof(outsize);
-   if(inlen<1)
-   {
-      //fprintf(stderr, "Corrupted stream: size=%d\n", (int)inlen);
-      return 0;
-   }
+   unsigned p = 0;
+   int s = 0;
+   comp_bits bits;
+   comp_bits_init(&bits,inbuf,NULL);
 
-   Bits bits;
-   bits_init(&bits,inbuf,NULL);
-
-   int p = 0;
-   while(bits.g_inbuf_pos<(int)inlen)
+   while(p<outlen)
    {
-      if(bits_get(&bits, 1))
+      if(comp_bits_get(&bits,1))
       {
-         int len;
-         if(bits_get(&bits, 1))      len = bits_get(&bits,A_BITS);
-         else if(bits_get(&bits, 1)) len = bits_get(&bits,B_BITS)+A;
-         else if(bits_get(&bits, 1)) len = bits_get(&bits,C_BITS)+B;
-         else if(bits_get(&bits, 1)) len = bits_get(&bits,D_BITS)+C;
-         else if(bits_get(&bits, 1)) len = bits_get(&bits,E_BITS)+D;
-         else                        len = bits_get(&bits,F_BITS)+E;
+         unsigned len;
+         if(comp_bits_get(&bits,1))      len = comp_bits_get(&bits,COMP_A_BITS);
+         else if(comp_bits_get(&bits,1)) len = comp_bits_get(&bits,COMP_B_BITS)+COMP_A;
+         else if(comp_bits_get(&bits,1)) len = comp_bits_get(&bits,COMP_C_BITS)+COMP_B;
+         else if(comp_bits_get(&bits,1)) len = comp_bits_get(&bits,COMP_D_BITS)+COMP_C;
+         else if(comp_bits_get(&bits,1)) len = comp_bits_get(&bits,COMP_E_BITS)+COMP_D;
+         else                            len = comp_bits_get(&bits,COMP_F_BITS)+COMP_E;
 
-         const int log=bits_get(&bits,SLOT_BITS)+(W_BITS-NUM_SLOTS);
-         int s = ~(log>(W_BITS-NUM_SLOTS)
-                  ?bits_get(&bits, log)+(1<<log)
-                  :bits_get(&bits, W_BITS-(NUM_SLOTS-1)))+p;
-         if(s<0)
-         {
-            //fprintf(stderr, "Corrupted stream: s=%d p=%d inlen=%d\n", s, p, (int)inlen);
-            return 0;
-         }
+         unsigned log = comp_bits_get(&bits,COMP_SLOT_BITS)+(COMP_W_BITS-COMP_NUM_SLOTS);
+         if(log>COMP_W_BITS-COMP_NUM_SLOTS)
+            s = comp_bits_get(&bits,log)+(1<<log);
+         else
+            s = comp_bits_get(&bits,COMP_W_BITS-COMP_NUM_SLOTS+1);
+         s = ~s+p;
 
-         outbuf[p++]=outbuf[s++];
-         outbuf[p++]=outbuf[s++];
-         outbuf[p++]=outbuf[s++];
+         RvR_error_check(s>=0&&s+len+3<=outlen,"RvR_decompress","corrupted stream (s=%d p=%d): s out of bounds\n",s,p);
+         RvR_error_check(p+len+3<=outlen,"RvR_decompress","corrupted stream (s=%d p=%d): longer than specified by length\n",s,p);
+
+         outbuf[p++] = outbuf[s++];
+         outbuf[p++] = outbuf[s++];
+         outbuf[p++] = outbuf[s++];
          while(len--!=0)
-            outbuf[p++]=outbuf[s++];
+            outbuf[p++] = outbuf[s++];
       }
       else
       {
-         outbuf[p++]=bits_get(&bits, 8);
+         outbuf[p++] = comp_bits_get(&bits,8);
+         RvR_error_check(p<=outlen,"RvR_decompress","corrupted stream (s=%d p=%d): longer than specified by length\n",s,p);
       }
    }
 
-   return p;
+RvR_err:
+   return;
 }
 
-static int update_hash1(int h, int c)
+static int comp_update_hash1(int h, int c)
 {
-   return ((h<<HASH1_SHIFT)+c)&HASH1_MASK;
+   return ((h<<COMP_HASH1_SHIFT)+c)&COMP_HASH1_MASK;
 }
 
-static int update_hash2(int h, int c)
+static int comp_update_hash2(int h, int c)
 {
-   return ((h<<HASH2_SHIFT)+c)&HASH2_MASK;
+   return ((h<<COMP_HASH2_SHIFT)+c)&COMP_HASH2_MASK;
 }
 
-static void bits_init(Bits *b, const uint8_t *inbuf, uint8_t *outbuf)
-{
-   b->bit_count = b->bit_buf = b->g_inbuf_pos = b->g_outbuf_pos = 0;
-   b->g_inbuf = inbuf;
-   b->g_outbuf = outbuf;
-}
-
-static int get_min(int a, int b)
-{
-   return a<b?a:b;
-}
-
-static int get_max(int a, int b)
-{
-   return a>b?a:b;
-}
-
-static int get_penalty(int a, int b)
+static int comp_get_penalty(int a, int b)
 {
    int p = 0;
    while(a>b)
    {
       a>>=3;
-      ++p;
+      p++;
    }
+
    return p;
 }
 
-static void bits_put(Bits *b, int n, int x)
+static void comp_bits_init(comp_bits *b, RvR_rw *inbuf, RvR_rw *outbuf)
+{
+   b->bit_count = b->bit_buf = 0;
+   b->inbuf = inbuf;
+   b->outbuf = outbuf;
+}
+
+//Write n bits of value x to stream
+static void comp_bits_put(comp_bits *b, unsigned n, unsigned x)
 {
    b->bit_buf|=x<<b->bit_count;
    b->bit_count+=n;
+
+   //Write filled bytes to output stream
    while(b->bit_count>=8)
    {
-      b->g_outbuf[b->g_outbuf_pos++] = b->bit_buf;
+      RvR_rw_write_u8(b->outbuf,b->bit_buf);
       b->bit_buf>>=8;
       b->bit_count-=8;
    }
 }
 
-static void bits_flush(Bits *b)
+//Forces bit buffer flush
+static void comp_bits_flush(comp_bits *b)
 {
-   bits_put(b,7,0);
-   b->bit_count=b->bit_buf = 0;
+   comp_bits_put(b,7,0);
+   b->bit_count = b->bit_buf = 0;
 }
 
-static int bits_get(Bits *b, int n)
+//Read n bits from input stream
+static unsigned comp_bits_get(comp_bits *b, unsigned n)
 {
-   while (b->bit_count<n)
+   //Fill bit buffer from input stream
+   while(b->bit_count<n)
    {
-      b->bit_buf|=b->g_inbuf[b->g_inbuf_pos++]<<b->bit_count;
+      b->bit_buf|=RvR_rw_read_u8(b->inbuf)<<b->bit_count;
       b->bit_count+=8;
    }
-   const int x=b->bit_buf&((1<<n)-1);
+
+   unsigned x = b->bit_buf&((1<<n)-1);
    b->bit_buf>>=n;
    b->bit_count-=n;
+
    return x;
 }
 //-------------------------------------

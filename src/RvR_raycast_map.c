@@ -112,7 +112,10 @@ void RvR_ray_map_load_path(const char *path)
 {
    int32_t size = 0;
    uint8_t endian;
-   uint8_t *mem = RvR_decompress_path(path,&size,&endian);
+   RvR_rw rw_decomp;
+   RvR_rw_init_path(&rw_decomp,path,"rb");
+   uint8_t *mem = RvR_decompress(&rw_decomp,&size,&endian);
+   RvR_rw_close(&rw_decomp);
 
    RvR_rw rw;
    RvR_rw_init_const_mem(&rw,mem,size);
@@ -133,7 +136,10 @@ void RvR_ray_map_load(uint16_t id)
    uint8_t *mem_pak, *mem_decomp;
    uint8_t endian;
    mem_pak = RvR_lump_get(tmp,&size_in);
-   mem_decomp = RvR_mem_decompress(mem_pak,size_in,&size_out,&endian);
+   RvR_rw rw_decomp;
+   RvR_rw_init_const_mem(&rw_decomp,mem_pak,size_in);
+   mem_decomp = RvR_decompress(&rw_decomp,&size_out,&endian);
+   RvR_rw_close(&rw_decomp);
 
    RvR_free(mem_pak);
 
@@ -271,9 +277,13 @@ void RvR_ray_map_save(const char *path)
    }
 
    //Compress and write to disk
-   FILE *f = fopen(path,"wb");
-   RvR_mem_compress(mem,size,f);
-   fclose(f);
+   RvR_rw in;
+   RvR_rw out;
+   RvR_rw_init_mem(&in,mem,size,size);
+   RvR_rw_init_path(&out,path,"wb");
+   RvR_compress(&in,&out,0);
+   RvR_rw_close(&in);
+   RvR_rw_close(&out);
 
    //Free temp buffer
    RvR_rw_close(&rw);

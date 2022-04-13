@@ -143,7 +143,10 @@ static void texture_load(uint16_t id)
    uint8_t *mem_pak, *mem_decomp;
    uint8_t endian;
    mem_pak = RvR_lump_get(tmp,&size_in);
-   mem_decomp = RvR_mem_decompress(mem_pak,size_in,&size_out,&endian);
+   RvR_rw rw_decomp;
+   RvR_rw_init_const_mem(&rw_decomp,mem_pak,size_in);
+   mem_decomp = RvR_decompress(&rw_decomp,&size_out,&endian);
+   RvR_rw_close(&rw_decomp);
 
    RvR_rw rw;
    RvR_rw_init_const_mem(&rw,mem_decomp,size_out);

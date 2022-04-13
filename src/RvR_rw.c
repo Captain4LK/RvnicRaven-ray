@@ -242,11 +242,11 @@ int RvR_rw_eof(RvR_rw *rw)
    if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
       return feof(rw->as.fp);
    else if(rw->type==RVR_RW_MEM)
-      return rw->as.mem.pos>=rw->as.mem.size;
+      return rw->as.mem.pos>=rw->as.mem.csize;
    else if(rw->type==RVR_RW_CONST_MEM)
       return rw->as.cmem.pos>=rw->as.cmem.size;
    else if(rw->type==RVR_RW_DYN_MEM)
-      return rw->as.dmem.pos>=rw->as.dmem.size;
+      return rw->as.dmem.pos>=rw->as.dmem.csize;
 
    RvR_log_line("RvR_rw_eof", "invalid RvR_rw type, handle might be corrupt\n");
 

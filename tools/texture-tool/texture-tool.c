@@ -113,18 +113,6 @@ int main(int argc, char **argv)
       else if(strcmp(argv[i],"-sprite")==0)
          flag|=SPRITE_SPRITE;
    }
-
-   FILE *fp = fopen("out.rvr","wb");
-   RvR_compress(fopen("../../../lovecraft.txt","rb"),fp);
-   fclose(fp);
-   int32_t clen;
-   uint8_t cendian;
-   char *cmem = (RvR_decompress(fopen("out.rvr","rb"),&clen,&cendian));
-   for(int i = 0;i<clen;i++)
-      fputc(cmem[i],stdout);
-   printf("%d\n",clen);
-   puts("");
-   puts("------------------");
    
    if(path_in==NULL)
    {
@@ -172,9 +160,13 @@ int main(int argc, char **argv)
       RvR_rw_write_u8(&rw,sp->data[i]);
    RvR_rw_close(&rw);
 
-   FILE *f = fopen(path_out,"wb");
-   RvR_mem_compress(mem,len,f);
-   fclose(f);
+   RvR_rw cin;
+   RvR_rw cout;
+   RvR_rw_init_const_mem(&cin,mem,len);
+   RvR_rw_init_path(&cout,path_out,"wb");
+   RvR_compress(&cin,&cout,10);
+   RvR_rw_close(&cin);
+   RvR_rw_close(&cout);
 
    sprite_pal_destroy(sp);
    RvR_free(mem);

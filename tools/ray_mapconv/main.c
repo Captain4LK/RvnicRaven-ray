@@ -76,18 +76,10 @@ int main(int argc, char **argv)
 
    RvR_rw rw_file = {0};
    RvR_rw_init_path(&rw_file,path_in,"rb");
-   RvR_rw_seek(&rw_file,0,SEEK_END);
-   int size_in = RvR_rw_tell(&rw_file);
-   RvR_rw_seek(&rw_file,0,SEEK_SET);
    int size_out = 0;
    uint8_t endian = 0;
-   uint8_t *mem_file = NULL;
    uint8_t *mem_map = NULL;
-
-   mem_file = RvR_malloc(size_in);
-   RvR_rw_read(&rw_file,mem_file,size_in,1);
-   mem_map = RvR_mem_decompress(mem_file,size_in,&size_out,&endian);
-   RvR_free(mem_file);
+   mem_map = RvR_decompress(&rw_file,&size_out,&endian);
 
    RvR_rw rw_map = {0};
    RvR_rw_init_const_mem(&rw_map,mem_map,size_out);
