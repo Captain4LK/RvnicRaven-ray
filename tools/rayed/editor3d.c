@@ -92,6 +92,14 @@ void editor3d_update()
             sprite_selec->flags^=8;
       }
 
+      if(RvR_core_key_pressed(RVR_KEY_T)&&wlocation==4&&sprite_selec!=NULL)
+      {
+         int flag = (sprite_selec->flags&96)>>5;
+         sprite_selec->flags^=flag<<5;
+         flag = (flag+1)%3;
+         sprite_selec->flags|=flag<<5;
+      }
+
       if(RvR_core_key_pressed(RVR_KEY_PGUP))
       {
          if(wlocation==0||wlocation==2)

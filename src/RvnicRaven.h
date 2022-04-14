@@ -319,7 +319,7 @@ void  RvR_malloc_report();
 void             RvR_palette_load(uint16_t id);
 const RvR_color *RvR_palette();
 uint8_t         *RvR_shade_table(uint8_t light);
-uint8_t         RvR_blend(uint8_t c0, uint8_t c1);
+uint8_t          RvR_blend(uint8_t c0, uint8_t c1);
 
 unsigned RvR_rand();
 int      RvR_rand_get_state();
@@ -501,7 +501,7 @@ void RvR_ray_map_load_path(const char *path);
 void RvR_ray_map_load(uint16_t id);
 void RvR_ray_map_load_rw(RvR_rw *rw);
 void RvR_ray_map_save(const char *path);
-int RvR_ray_map_sprite_count();
+int  RvR_ray_map_sprite_count();
 RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index);
 RvR_ray_map *RvR_ray_map_get();
 

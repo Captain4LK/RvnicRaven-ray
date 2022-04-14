@@ -344,8 +344,6 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
    //Floor alligned sprite
    if(flags&16)
    {
-      //TODO: do we actually want this?
-
       return;
    }
 
@@ -1129,7 +1127,7 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
 
       //Most ugly fix ever
       //Stops the texture coordinate from skipping back and forth due to
-      //fixed point inaccuracies by putting clamping it to the last value
+      //fixed point inaccuracies by clamping it to the last value
       if(clamp_dir)
          u = RvR_max(u_clamp,u);
       else
@@ -1178,12 +1176,33 @@ static void ray_sprite_draw_wall(ray_sprite *sp)
       tex = &texture->data[texture->height*(u>>20)];
       dst = &RvR_core_framebuffer()[ys*RVR_XRES+i];
       col = RvR_shade_table(RvR_min(63,depth>>9));
-      for(int yi = sy;yi<ye;yi++,dst+=RVR_XRES)
+
+      if(sp->flags&32)
       {
-         uint8_t index = tex[(v>>16)&mask];
-         //*dst = RvR_blend(*dst,col[index]);
-         *dst = index?col[index]:*dst;
-         v+=step_v;
+         for(int yi = sy;yi<ye;yi++,dst+=RVR_XRES)
+         {
+            uint8_t index = tex[(v>>16)&mask];
+            *dst = RvR_blend(col[index],*dst);
+            v+=step_v;
+         }
+      }
+      else if(sp->flags&64)
+      {
+         for(int yi = sy;yi<ye;yi++,dst+=RVR_XRES)
+         {
+            uint8_t index = tex[(v>>16)&mask];
+            *dst = RvR_blend(*dst,col[index]);
+            v+=step_v;
+         }
+      }
+      else
+      {
+         for(int yi = sy;yi<ye;yi++,dst+=RVR_XRES)
+         {
+            uint8_t index = tex[(v>>16)&mask];
+            *dst = index?col[index]:*dst;
+            v+=step_v;
+         }
       }
 
       depth_i+=step_depth;
@@ -1289,11 +1308,33 @@ static void ray_sprite_draw_billboard(ray_sprite *sp)
       tex = &texture->data[texture->height*(u>>10)];
       dst = &RvR_core_framebuffer()[ys*RVR_XRES+x];
       RvR_fix22 v = v_start+(ys-y)*v_step;
-      for(int y1 = sy;y1<ey1;y1++,dst+=RVR_XRES)
+
+      if(sp->flags&32)
       {
-         uint8_t index = tex[v>>10];
-         *dst = index?col[index]:*dst;
-         v+=v_step;
+         for(int y1 = sy;y1<ey1;y1++,dst+=RVR_XRES)
+         {
+            uint8_t index = tex[v>>10];
+            *dst = RvR_blend(col[index],*dst);
+            v+=v_step;
+         }
+      }
+      else if(sp->flags&64)
+      {
+         for(int y1 = sy;y1<ey1;y1++,dst+=RVR_XRES)
+         {
+            uint8_t index = tex[v>>10];
+            *dst = RvR_blend(*dst,col[index]);
+            v+=v_step;
+         }
+      }
+      else
+      {
+         for(int y1 = sy;y1<ey1;y1++,dst+=RVR_XRES)
+         {
+            uint8_t index = tex[v>>10];
+            *dst = index?col[index]:*dst;
+            v+=v_step;
+         }
       }
    }
 }
