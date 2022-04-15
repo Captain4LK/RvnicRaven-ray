@@ -136,38 +136,37 @@ static void comp_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf,
    static int prev[COMP_W_SIZE];
 
    const int max_chain[11] = { 0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 1<<12}; //[0fastest..10uber]
-   const size_t max_level = sizeof(max_chain)/sizeof(max_chain[0]);
-   level = level > max_level ? max_level : level;
+   level = RvR_min(level,11);
 
    comp_bits bits;
 
-   for(int i = 0;i<COMP_HASH1_SIZE+COMP_HASH2_SIZE;++i)
+   for(int i = 0;i<COMP_HASH1_SIZE+COMP_HASH2_SIZE;i++)
       head[i]=-1;
 
    int h1 = 0;
    int h2 = 0;
-   for(int i = 0;i<COMP_HASH1_LEN;++i)
+   for(int i = 0;i<COMP_HASH1_LEN;i++)
       h1 = comp_update_hash1(h1, buf[i]);
-   for(int i = 0;i<COMP_HASH2_LEN;++i)
+   for(int i = 0;i<COMP_HASH2_LEN;i++)
       h2 = comp_update_hash2(h2,buf[i]);
 
    comp_bits_init(&bits, NULL, outbuf);
 
-   size_t p=0;
+   size_t p = 0;
    while (p<size)
    {
-      int len=COMP_MIN_MATCH-1;
-      int offset=COMP_W_SIZE;
+      int len = COMP_MIN_MATCH-1;
+      int offset = COMP_W_SIZE;
 
-      const int max_match=RvR_min((int)COMP_MAX_MATCH, (int)size-p);
-      const int limit=RvR_max((int)p-COMP_W_SIZE, 0);
+      const int max_match = RvR_min((int)COMP_MAX_MATCH,(int)size-p);
+      const int limit = RvR_max((int)p-COMP_W_SIZE,0);
 
       if(head[h1]>=limit)
       {
          int s = head[h1];
          if(buf[s]==buf[p])
          {
-            int l=0;
+            int l = 0;
             while(++l<max_match)
                if(buf[s+l]!=buf[p+l])
                   break;
@@ -188,13 +187,13 @@ static void comp_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf,
          {
             if((buf[s+len]==buf[p+len])&&(buf[s]==buf[p]))
             {
-               int l=0;
+               int l = 0;
                while(++l<max_match)
                   if(buf[s+l]!=buf[p+l])
                      break;
                if(l>len+comp_get_penalty((p-s)>>4,offset))
                {
-                  len=l;
+                  len = l;
                   offset=p-s;
                }
                if(l==max_match)
@@ -210,7 +209,7 @@ static void comp_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf,
       if((level>=2)&&(len>=COMP_MIN_MATCH)&&(len<max_match))
       {
          const int next_p = p+1;
-         const int max_lazy = RvR_min((int)len+4, (int)max_match);
+         const int max_lazy = RvR_min((int)len+4,(int)max_match);
 
          int chain_len = max_chain[level];
          int s = head[comp_update_hash2(h2, buf[next_p+(COMP_HASH2_LEN-1)])+COMP_HASH1_SIZE];
@@ -219,7 +218,7 @@ static void comp_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf,
          {
             if((buf[s+len]==buf[next_p+len])&&(buf[s]==buf[next_p]))
             {
-               int l=0;
+               int l = 0;
                while(++l<max_lazy)
                   if(buf[s+l]!=buf[next_p+l])
                      break;
@@ -235,51 +234,51 @@ static void comp_crush_compress(const uint8_t *buf, size_t size, RvR_rw *outbuf,
          }
       }
 
-      if(len>=COMP_MIN_MATCH) // Match
+      if(len>=COMP_MIN_MATCH) //Match
       {
-         comp_bits_put(&bits, 1, 1);
+         comp_bits_put(&bits,1,1);
 
-         const int l=len-COMP_MIN_MATCH;
+         const int l = len-COMP_MIN_MATCH;
          if(l<COMP_A)
          {
-            comp_bits_put(&bits, 1, 1); // 1
-            comp_bits_put(&bits, COMP_A_BITS, l);
+            comp_bits_put(&bits,1,1); //1
+            comp_bits_put(&bits,COMP_A_BITS,l);
          }
          else if(l<COMP_B)
          {
-            comp_bits_put(&bits, 2, 1<<1); // 01
-            comp_bits_put(&bits, COMP_B_BITS, l-COMP_A);
+            comp_bits_put(&bits,2,1<<1); //01
+            comp_bits_put(&bits,COMP_B_BITS,l-COMP_A);
          }
          else if(l<COMP_C)
          {
-            comp_bits_put(&bits, 3, 1<<2); // 001
-            comp_bits_put(&bits, COMP_C_BITS, l-COMP_B);
+            comp_bits_put(&bits,3,1<<2); //001
+            comp_bits_put(&bits,COMP_C_BITS,l-COMP_B);
          }
          else if(l<COMP_D)
          {
-            comp_bits_put(&bits, 4, 1<<3); // 0001
-            comp_bits_put(&bits, COMP_D_BITS, l-COMP_C);
+            comp_bits_put(&bits,4,1<<3); //0001
+            comp_bits_put(&bits,COMP_D_BITS,l-COMP_C);
          }
          else if(l<COMP_E)
          {
-            comp_bits_put(&bits, 5, 1<<4); // 00001
-            comp_bits_put(&bits, COMP_E_BITS, l-COMP_D);
+            comp_bits_put(&bits,5,1<<4); //00001
+            comp_bits_put(&bits,COMP_E_BITS,l-COMP_D);
          }
          else
          {
-            comp_bits_put(&bits, 5, 0); // 00000
-            comp_bits_put(&bits, COMP_F_BITS, l-COMP_E);
+            comp_bits_put(&bits,5,0); //00000
+            comp_bits_put(&bits,COMP_F_BITS,l-COMP_E);
          }
 
-         --offset;
-         int log=COMP_W_BITS-COMP_NUM_SLOTS;
+         offset--;
+         int log = COMP_W_BITS-COMP_NUM_SLOTS;
          while(offset>=(2<<log))
-            ++log;
-         comp_bits_put(&bits, COMP_SLOT_BITS, log-(COMP_W_BITS-COMP_NUM_SLOTS));
+            log++;
+         comp_bits_put(&bits,COMP_SLOT_BITS,log-(COMP_W_BITS-COMP_NUM_SLOTS));
          if(log>(COMP_W_BITS-COMP_NUM_SLOTS))
-            comp_bits_put(&bits, log, offset-(1<<log));
+            comp_bits_put(&bits,log,offset-(1<<log));
          else
-            comp_bits_put(&bits, COMP_W_BITS-(COMP_NUM_SLOTS-1),offset);
+            comp_bits_put(&bits,COMP_W_BITS-(COMP_NUM_SLOTS-1),offset);
       }
       else //Literal
       {
