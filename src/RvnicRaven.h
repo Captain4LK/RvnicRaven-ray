@@ -612,7 +612,52 @@ int16_t RvR_port_sector_update(int16_t last_sector, RvR_fix22 x, RvR_fix22 y);
 void RvR_port_draw_2d();
 void RvR_port_draw();
 
-//RvnicRaven portal functions end
+//RvnicRaven pseudo3d functions end
+//-------------------------------------
+
+//RvnicRaven pseudo3d types
+
+typedef struct
+{
+   RvR_fix22 y;
+   RvR_fix22 z;
+}RvR_p3d_point;
+
+typedef struct
+{
+   RvR_fix22 pos;
+   uint16_t tex;
+   uint16_t flags;
+   int32_t next;
+}RvR_p3d_sprite;
+
+typedef struct
+{
+   RvR_p3d_point p0;
+   RvR_p3d_point p1; 
+
+   RvR_fix22 curve;
+
+   uint8_t color_border;
+   uint8_t color_road;
+   uint8_t color_lane;
+   uint8_t line;
+   int32_t sprite_first;
+}RvR_p3d_segment;
+
+//RvnicRaven pseudo3d types end
+//-------------------------------------
+
+//RvnicRaven pseudo3d functions
+
+int32_t RvR_p3d_sprite_new();
+void    RvR_p3d_sprite_free(uint32_t sprite);
+
+void RvR_p3d_draw_begin();
+void RvR_p3d_draw_track();
+void RvR_p3d_draw_end();
+
+//RvnicRaven pseudo3d functions end
 //-------------------------------------
 
 #endif
