@@ -306,7 +306,7 @@ void camera_update()
       }
       else
       {
-         camera.direction-=16;
+         camera.direction-=64;
       }
    }
    else if(RvR_core_key_down(RVR_KEY_RIGHT))
@@ -318,10 +318,10 @@ void camera_update()
       }
       else
       {
-         camera.direction+=16;
+         camera.direction+=64;
       }
    }
-   camera.direction&=1023;
+   camera.direction&=4095;
 
    //Update raycasting values
    //needed by collision

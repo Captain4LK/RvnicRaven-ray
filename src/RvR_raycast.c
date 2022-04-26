@@ -28,7 +28,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 static RvR_fix22 ray_cam_angle = 0;
 static RvR_vec3 ray_cam_position = {0};
 static int16_t ray_cam_shear = 0;
-static RvR_fix22 ray_cam_fov = 256;
+static RvR_fix22 ray_cam_fov = 1024;
 //-------------------------------------
 
 //Function prototypes
