@@ -460,7 +460,7 @@ void RvR_ray_draw_map()
          RvR_fix22 angle_step = (skyw*1024)/RVR_XRES;
          RvR_fix22 tex_step = (1024*skyh-1)/RVR_YRES;
 
-         RvR_fix22 angle = (RvR_ray_get_angle())*1024;
+         RvR_fix22 angle = (RvR_ray_get_angle())*256;
          angle+=(pl->min-1)*angle_step;
 
          for(int x = pl->min;x<pl->max+1;x++)
