@@ -37,6 +37,8 @@ Therefore it is safe to say that the FNV authors have no patent claims on the FN
 //-------------------------------------
 
 //#defines
+#define FNV_64_PRIME ((uint64_t)0x100000001b3ULL)
+#define FNV_32_PRIME ((uint32_t)0x01000193)
 //-------------------------------------
 
 //Typedefs
@@ -54,10 +56,10 @@ uint64_t RvR_fnv64a(const char *str)
 {
    RvR_error_check(str!=NULL,"RvR_fnv64a","argument 'str' must be non-NULL\n");
 
-   return RvR_fnv64a_str(str,0xcbf29ce484222325ULL);
+   return RvR_fnv64a_str(str,RVR_FNV64A_INIT);
 
 RvR_err:
-   return RVR_FNV_64_PRIME;
+   return FNV_64_PRIME;
 }
 
 uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
@@ -68,7 +70,7 @@ uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
    while(*s)
    {
       hval^=(uint64_t)*s++;
-      hval*=RVR_FNV_64_PRIME;
+      hval*=FNV_64_PRIME;
    }
 
 RvR_err:
@@ -84,7 +86,7 @@ uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval)
    while(bs<be)
    {
       hval^=(uint64_t)*bs++;
-      hval*=RVR_FNV_64_PRIME;
+      hval*=FNV_64_PRIME;
    }
 
 RvR_err:
@@ -95,10 +97,10 @@ uint32_t RvR_fnv32a(const char *str)
 {
    RvR_error_check(str!=NULL,"RvR_fnv32a","argument 'str' must be non-NULL\n");
 
-   return RvR_fnv32a_str(str,0x811c9dc5);
+   return RvR_fnv32a_str(str,RVR_FNV32A_INIT);
 
 RvR_err:
-   return RVR_FNV_32_PRIME;
+   return FNV_32_PRIME;
 }
 
 uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
@@ -109,7 +111,7 @@ uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
    while(*s) 
    {
       hval^=(uint32_t)*s++;
-      hval *= RVR_FNV_32_PRIME;
+      hval *= FNV_32_PRIME;
    }
 
 RvR_err:
@@ -125,10 +127,13 @@ uint32_t RvR_fnv32a_buf(const void *buf, size_t len, uint32_t hval)
    while(bs<be)
    {
       hval^=(uint32_t)*bs++;
-      hval *= RVR_FNV_32_PRIME;
+      hval *= FNV_32_PRIME;
    }
 
 RvR_err:
    return hval;
 }
+
+#undef RNV_64_PRIME
+#undef RNV_32_PRIME
 //-------------------------------------
