@@ -37,8 +37,6 @@ Therefore it is safe to say that the FNV authors have no patent claims on the FN
 //-------------------------------------
 
 //#defines
-#define FNV_64_PRIME ((uint64_t)0x100000001b3ULL)
-#define FNV_32_PRIME ((uint32_t)0x01000193)
 //-------------------------------------
 
 //Typedefs
@@ -59,7 +57,7 @@ uint64_t RvR_fnv64a(const char *str)
    return RvR_fnv64a_str(str,0xcbf29ce484222325ULL);
 
 RvR_err:
-   return FNV_64_PRIME;
+   return RVR_FNV_64_PRIME;
 }
 
 uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
@@ -70,13 +68,11 @@ uint64_t RvR_fnv64a_str(const char *str, uint64_t hval)
    while(*s)
    {
       hval^=(uint64_t)*s++;
-      hval*=FNV_64_PRIME;
+      hval*=RVR_FNV_64_PRIME;
    }
 
-   return hval;
-
 RvR_err:
-   return FNV_64_PRIME;
+   return hval;
 }
 
 uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval)
@@ -88,13 +84,11 @@ uint64_t RvR_fnv64a_buf(const void *buf, size_t len, uint64_t hval)
    while(bs<be)
    {
       hval^=(uint64_t)*bs++;
-      hval*=FNV_64_PRIME;
+      hval*=RVR_FNV_64_PRIME;
    }
 
-   return hval;
-
 RvR_err:
-   return FNV_64_PRIME;
+   return hval;
 }
 
 uint32_t RvR_fnv32a(const char *str)
@@ -104,7 +98,7 @@ uint32_t RvR_fnv32a(const char *str)
    return RvR_fnv32a_str(str,0x811c9dc5);
 
 RvR_err:
-   return FNV_32_PRIME;
+   return RVR_FNV_32_PRIME;
 }
 
 uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
@@ -115,13 +109,11 @@ uint32_t RvR_fnv32a_str(const char *str, uint32_t hval)
    while(*s) 
    {
       hval^=(uint32_t)*s++;
-      hval *= FNV_32_PRIME;
+      hval *= RVR_FNV_32_PRIME;
    }
 
-   return hval;
-
 RvR_err:
-   return FNV_32_PRIME;
+   return hval;
 }
 
 uint32_t RvR_fnv32a_buf(const void *buf, size_t len, uint32_t hval)
@@ -133,15 +125,10 @@ uint32_t RvR_fnv32a_buf(const void *buf, size_t len, uint32_t hval)
    while(bs<be)
    {
       hval^=(uint32_t)*bs++;
-      hval *= FNV_32_PRIME;
+      hval *= RVR_FNV_32_PRIME;
    }
 
-   return hval;
-
 RvR_err:
-   return FNV_32_PRIME;
+   return hval;
 }
-
-#undef RNV_64_PRIME
-#undef RNV_32_PRIME
 //-------------------------------------

@@ -40,6 +40,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Constants
 #define RvR_fix22_infinity 2000000000
+
+#define RVR_FNV_64_PRIME ((uint64_t)0x100000001b3ULL)
+#define RVR_FNV_32_PRIME ((uint32_t)0x01000193)
 //-------------------------------------
 
 //RvnicRaven vm
