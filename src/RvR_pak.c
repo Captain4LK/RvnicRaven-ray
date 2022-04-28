@@ -77,7 +77,6 @@ static void     pak_lumps_push(Pak_lump l);
 static uint32_t pak_paths_push(const char *path);
 static void     pak_add_csv(const char *path);
 static void     pak_add_pak(const char *path);
-static uint8_t  pak_xor_string(const char *str, size_t len);
 
 //cute_path
 static int pak_path_pop_ext(const char *path, char *out, char *ext);
@@ -222,7 +221,9 @@ void *RvR_lump_get(const char *name, unsigned *size)
 {
    RvR_error_check(name!=NULL,"RvR_lump_get","argument 'name' must be non-NULL\n");
 
-   uint8_t lump_index = pak_xor_string(name,strlen(name));
+   char name8[8];
+   strncpy(name8,name,8);
+   uint8_t lump_index = RvR_fnv32a_buf(name8,8,RVR_FNV32A_INIT); //Would xor folding be better?
 
    for(uint32_t i = 0;i<pak_lumps[lump_index].used;i++)
    {
@@ -285,7 +286,9 @@ const char *RvR_lump_get_path(const char *name)
 {
    RvR_error_check(name!=NULL,"RvR_lump_get_path","argument 'name' must be non-NULL\n");
 
-   uint8_t lump_index = pak_xor_string(name,strlen(name));
+   char name8[8];
+   strncpy(name8,name,8);
+   uint8_t lump_index = RvR_fnv32a_buf(name8,8,RVR_FNV32A_INIT); //Would xor folding be better?
 
    for(int i = pak_lumps[lump_index].used-1;i>=0;i--)
       if(strncmp(name,pak_lumps[lump_index].data[i].name,8)==0)
@@ -301,7 +304,9 @@ int RvR_lump_exists(const char *name)
 {
    RvR_error_check(name!=NULL,"RvR_lump_exists","argument 'name' must be non-NULL\n");
 
-   uint8_t lump_index = pak_xor_string(name,strlen(name));
+   char name8[8];
+   strncpy(name8,name,8);
+   uint8_t lump_index = RvR_fnv32a_buf(name8,8,RVR_FNV32A_INIT); //Would xor folding be better?
 
    for(int i = pak_lumps[lump_index].used-1;i>=0;i--)
       if(strncmp(name,pak_lumps[lump_index].data[i].name,8)==0)
@@ -394,7 +399,7 @@ RvR_err:
 //space is needed
 static void pak_lumps_push(Pak_lump l)
 {
-   uint8_t lump_index = pak_xor_string(l.name,8);
+   uint8_t lump_index = RvR_fnv32a_buf(l.name,8,RVR_FNV32A_INIT); //Would xor folding be better?
 
    //Allocate memory for list
    if(pak_lumps[lump_index].data==NULL)
@@ -450,19 +455,6 @@ static uint32_t pak_paths_push(const char *path)
 
 RvR_err:
    return pak_paths.used-1;
-}
-
-static uint8_t pak_xor_string(const char *str, size_t len)
-{
-   uint8_t hash = 0;
-
-   RvR_error_check(str!=NULL,"pak_xor_string","argument 'str' must be non-NULL\n");
-
-   for(size_t i = 0;i<len;i++)
-      hash^=str[i];
-
-RvR_err:
-   return hash;
 }
 
 //pak_path_pop, pak_path_pop_ext, pak_path_is_slash
