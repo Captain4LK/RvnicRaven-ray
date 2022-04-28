@@ -26,7 +26,9 @@ extern int config_camera_shear_step;
 #define MESSAGE_MAX 5
 #define MESSAGE_TIMEOUT (RVR_FPS*4)
 
-#define CAMERA_SHEAR_MAX 1024
+#define CAMERA_SHEAR_SPEED 3
+#define CAMERA_SHEAR_MAX 512
+
 #define CAMERA_COLL_RADIUS 256
 #define CAMERA_COLL_HEIGHT_BELOW 800
 #define CAMERA_COLL_HEIGHT_ABOVE 200

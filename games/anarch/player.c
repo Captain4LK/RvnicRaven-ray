@@ -29,6 +29,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define JUMP_SPEED 128
 
 #define CAMERA_SHEAR_MAX_PIXELS ((CAMERA_SHEAR_MAX*RVR_YRES)/1024)
+#define CAMERA_SHEAR_STEP_FRAME ((RVR_YRES*CAMERA_SHEAR_SPEED)/(RVR_FPS*4))
 //-------------------------------------
 
 //Typedefs
@@ -123,7 +124,7 @@ void player_update()
    //Shearing (fake looking up/down)
    //Drift back to 0
    if(!shearing&&player.shear!=0)
-      player.shear = (player.shear>0)?(RvR_max(0,player.shear-8)):(RvR_min(0,player.shear+8));
+      player.shear = (player.shear>0)?(RvR_max(0,player.shear-CAMERA_SHEAR_STEP_FRAME)):(RvR_min(0,player.shear+CAMERA_SHEAR_STEP_FRAME));
    //Enable freelook
    if(RvR_core_key_pressed(RVR_KEY_F))
       shearing = !shearing;

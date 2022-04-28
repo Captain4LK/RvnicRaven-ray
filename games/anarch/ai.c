@@ -73,6 +73,7 @@ static const AI_state ai_state[AI_STATE_MAX] = {
   { .next = AI_STATE_RUIN, .action = NULL, .ticks = 1, .sprite = SPRITE_RUIN},   //STATE_RUIN
   { .next = AI_STATE_TERMINAL, .action = NULL, .ticks = 1, .sprite = SPRITE_TERMINAL},   //STATE_TERMINAL
   { .next = AI_STATE_BLOCKER, .action = NULL, .ticks = 1, .sprite = SPRITE_MAX},   //STATE_BLOCKER
+  { .next = AI_STATE_BARREL, .action = NULL, .ticks = 1, .sprite = SPRITE_BARREL},   //STATE_BARREL
   { .next = AI_STATE_ELEVATOR_RISE, .action = elevator_rise, .ticks = 1, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_RISE
   { .next = AI_STATE_ELEVATOR_LOWER, .action = elevator_lower, .ticks = 1, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_LOWER
   { .next = AI_STATE_ELEVATOR_LOWER, .action = NULL, .ticks = 30, .sprite = SPRITE_MAX},   //STATE_ELEVATOR_STILLR
@@ -127,6 +128,13 @@ static const AI_info ai_entinfo[AI_TYPE_MAX] = {
     .state_move = AI_STATE_BLOCKER,
     .state_attack = AI_STATE_BLOCKER,
     .state_death = AI_STATE_BLOCKER,
+  },
+  //AI_TYPE_BARREL
+  {
+    .state_idle = AI_STATE_BARREL,
+    .state_move = AI_STATE_BARREL,
+    .state_attack = AI_STATE_BARREL,
+    .state_death = AI_STATE_BARREL,
   },
   //AI_TYPE_ELEVATOR
   {
@@ -194,8 +202,9 @@ AI_type ai_type_from_tex(uint16_t tex)
    case 1037: return AI_TYPE_RUIN;
    case 1039: return AI_TYPE_TERMINAL;
 
-   case 1030: return AI_TYPE_ITEM_KEY;
+   case 1028: return AI_TYPE_BARREL;
    case 1029: return AI_TYPE_ITEM_BULLET;
+   case 1030: return AI_TYPE_ITEM_KEY;
    case 1036: return AI_TYPE_ITEM_ROCKET;
    case 1035: return AI_TYPE_ITEM_CELL;
    case 1033: return AI_TYPE_ITEM_HEALTH;
