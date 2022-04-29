@@ -654,7 +654,7 @@ typedef struct
 //RvnicRaven pseudo3d functions
 
 int32_t RvR_p3d_sprite_new();
-void    RvR_p3d_sprite_free(uint32_t sprite);
+void    RvR_p3d_sprite_free(int32_t sprite);
 
 void RvR_p3d_draw_begin();
 void RvR_p3d_draw_track();
