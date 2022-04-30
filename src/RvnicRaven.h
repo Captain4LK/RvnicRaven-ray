@@ -334,6 +334,7 @@ RvR_fix22 RvR_fix22_tan(RvR_fix22 a);
 RvR_fix22 RvR_fix22_ctg(RvR_fix22 a);
 RvR_fix22 RvR_fix22_sqrt(RvR_fix22 a);
 RvR_fix22 RvR_fix22_atan2(RvR_fix22 x, RvR_fix22 y);
+RvR_fix22 RvR_fix22_atan2_slow(RvR_fix22 x, RvR_fix22 y);
 
 RvR_fix22 RvR_fix22_from_int(int a);
 int       RvR_fix22_to_int(RvR_fix22 a);
