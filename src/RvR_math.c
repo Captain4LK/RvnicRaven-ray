@@ -20,73 +20,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //#defines
-
-#define TYPE_NAME(pow) \
-   RvR_fix##pow
-
-#define AND(pow) \
-   (INT32_MAX-((1<<(32-pow))-1))
-
-#define FROM_INT(pow) \
-   TYPE_NAME(pow) RvR_fix##pow##_from_int(int a) \
-   { \
-      return (TYPE_NAME(pow))a*(1<<(32-pow)); \
-   }
-
-#define TO_INT(pow) \
-   int RvR_fix##pow##_to_int(TYPE_NAME(pow)a) \
-   { \
-      return (int)(a/(1<<(32-pow)));\
-   }
-
-#define MUL(pow) \
-   TYPE_NAME(pow) RvR_fix##pow##_mul(TYPE_NAME(pow) a, TYPE_NAME(pow) b) \
-   { \
-      int64_t p = (int64_t)a*(int64_t)b; \
-      return (TYPE_NAME(pow))(p/(1<<(32-pow))); \
-   }
-
-#define DIV(pow) \
-   TYPE_NAME(pow) RvR_fix##pow##_div(TYPE_NAME(pow) a, TYPE_NAME(pow) b) \
-   { \
-      int64_t p = (int64_t)a*(1<<(32-pow)); \
-      return (TYPE_NAME(pow))(p/(int64_t)b); \
-   }
-
-#define ROUND(pow) \
-   TYPE_NAME(pow) RvR_fix##pow##_round(TYPE_NAME(pow) a) \
-   { \
-      int sign = RvR_sign(a); \
-      a*=sign; \
-      a = ((a+((TYPE_NAME(pow))1<<(32-pow-1))))&AND(pow); \
-      a*=sign; \
-      return a; \
-   }
-
-#define FLOOR(pow) \
-   TYPE_NAME(pow) RvR_fix##pow##_floor(TYPE_NAME(pow) a) \
-   { \
-      int sign = RvR_sign(a); \
-      a*=sign; \
-      a&=AND(pow); \
-      a*=sign; \
-      return a; \
-   }
-
-#define CEIL(pow) \
-   TYPE_NAME(pow) RvR_fix##pow##_ceil(TYPE_NAME(pow) a) \
-   { \
-      int sign = RvR_sign(a); \
-      a*=sign; \
-      a = (a+((1<<(32-pow))-1))&AND(pow); \
-      a*=sign; \
-      return a; \
-   }
-
-#define SQRT(type,con,shift) \
-   type type##_sqrt(type in) { in*=sign; con result = 0, a = (con)in<<(shift/2), b = (con)1L<<(shift*2-2); while(b>a) b>>=2; \
-   while(b) { if(a>=result+b) { a-=result+b; result = result+2*b; } b>>=2; result>>=1; } return result; }
-
 //-------------------------------------
 
 //Typedefs
@@ -231,20 +164,6 @@ static const RvR_fix22 math_cos_table22[4096] =
 //-------------------------------------
 
 //Function implementations
-
-FROM_INT(22)
-
-TO_INT(22)
-
-MUL(22)
-
-DIV(22)
-
-ROUND(22)
-
-FLOOR(22)
-
-CEIL(22)
 
 RvR_fix22 RvR_fix22_cos(RvR_fix22 a)
 {
@@ -396,13 +315,3 @@ int32_t RvR_wrap(int32_t a, int32_t mod)
    return cmp*mod+(a%mod)-cmp;
 }
 //-------------------------------------
-
-#undef TYPE_NAME
-#undef AND
-#undef FROM_INT
-#undef TO_INT
-#undef MUL
-#undef DIV
-#undef ROUND
-#undef FLOOR
-#undef CEIL

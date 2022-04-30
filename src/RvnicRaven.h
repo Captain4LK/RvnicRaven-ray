@@ -336,14 +336,6 @@ RvR_fix22 RvR_fix22_sqrt(RvR_fix22 a);
 RvR_fix22 RvR_fix22_atan2(RvR_fix22 x, RvR_fix22 y);
 RvR_fix22 RvR_fix22_atan2_slow(RvR_fix22 x, RvR_fix22 y);
 
-RvR_fix22 RvR_fix22_from_int(int a);
-int       RvR_fix22_to_int(RvR_fix22 a);
-RvR_fix22 RvR_fix22_mul(RvR_fix22 a, RvR_fix22 b);
-RvR_fix22 RvR_fix22_div(RvR_fix22 a, RvR_fix22 b);
-RvR_fix22 RvR_fix22_round(RvR_fix22 a);
-RvR_fix22 RvR_fix22_floor(RvR_fix22 a);
-RvR_fix22 RvR_fix22_ceil(RvR_fix22 a);
-
 RvR_vec2  RvR_vec2_rot(RvR_fix22 angle);
 RvR_fix22 RvR_dist2(RvR_vec2 p0, RvR_vec2 p1);
 RvR_fix22 RvR_len2(RvR_vec2 v);
