@@ -341,18 +341,14 @@ RvR_fix22 RvR_dist2(RvR_vec2 p0, RvR_vec2 p1);
 RvR_fix22 RvR_len2(RvR_vec2 v);
 
 int32_t  RvR_div_round_down(int32_t a, int32_t b);
-int32_t  RvR_abs(int32_t a);
-int32_t  RvR_wrap(int32_t a, int32_t mod);
 uint32_t RvR_log2(uint32_t a);
 
-#define RvR_non_zero(a) ((a)+((a)==0)) ///< To prevent zero divisions.
-#define RvR_zero_clamp(x) ((x)*((x)>=0))
 #define RvR_min(a,b) ((a)<(b)?(a):(b))
 #define RvR_max(a,b) ((a)>(b)?(a):(b))
+#define RvR_abs(a) ((a)<0?-(a):(a))
 #define RvR_sign(a) (a<0?-1:1)
+#define RvR_non_zero(a) ((a)+((a)==0)) //To prevent zero divisions.
 #define RvR_clamp(a,min,max) (RvR_max((min),RvR_min((max),(a))))
-
-//These are here to make some code more understandable
 #define RvR_sign_equal(a,b) (((a)^(b))>=0)
 #define RvR_negative(a) ((a)<0)
 #define RvR_positive(a) ((a)>0)

@@ -12,7 +12,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <limits.h>
 //-------------------------------------
 
 //Internal includes
@@ -301,17 +300,5 @@ uint32_t RvR_log2(uint32_t a)
    while(a>>=1) r++;
 
    return r;
-}
-
-int32_t RvR_abs(int32_t a)
-{
-   return a*(((a>=0)<<1)-1);
-}
-
-//Like mod, but behaves differently for negative values.
-int32_t RvR_wrap(int32_t a, int32_t mod)
-{
-   int32_t cmp = a<0;
-   return cmp*mod+(a%mod)-cmp;
 }
 //-------------------------------------
