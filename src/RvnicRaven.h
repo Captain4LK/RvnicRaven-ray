@@ -201,19 +201,19 @@ typedef struct
 //RvnicRaven core functions
 
 RvR_config RvR_ini_parse(const char *path);
-void RvR_ini_free(RvR_config config);
-void RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char *ident);
+void       RvR_ini_free(RvR_config config);
+void       RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char *ident);
 
 void RvR_core_quit();
 void RvR_core_init(char *title, int scale);
 void RvR_core_mouse_relative(int relative);
 void RvR_core_mouse_show(int show);
 void RvR_core_key_repeat(int repeat);
-int RvR_core_running();
+int  RvR_core_running();
 void RvR_core_update();
 void RvR_core_render_present();
-int RvR_core_frametime();
-int RvR_core_frametime_average();
+int  RvR_core_frametime();
+int  RvR_core_frametime_average();
 
 int  RvR_core_key_down(RvR_key key);
 int  RvR_core_key_pressed(RvR_key key);
@@ -240,12 +240,12 @@ void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len, size_t clen);
 void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len);
 void RvR_rw_init_dyn_mem(RvR_rw *rw, size_t base_len, size_t min_grow);
 
-void RvR_rw_endian(RvR_rw *rw, uint8_t endian);
-void RvR_rw_close(RvR_rw *rw);
-void RvR_rw_flush(RvR_rw *rw);
-int RvR_rw_seek(RvR_rw *rw, long offset, int origin);
-long RvR_rw_tell(RvR_rw *rw);
-int RvR_rw_eof(RvR_rw *rw);
+void   RvR_rw_endian(RvR_rw *rw, uint8_t endian);
+void   RvR_rw_close(RvR_rw *rw);
+void   RvR_rw_flush(RvR_rw *rw);
+int    RvR_rw_seek(RvR_rw *rw, long offset, int origin);
+long   RvR_rw_tell(RvR_rw *rw);
+int    RvR_rw_eof(RvR_rw *rw);
 size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count);
 size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count);
 
@@ -364,10 +364,8 @@ const char *RvR_lump_get_path(const char *name);
 int         RvR_lump_exists(const char *name);
 
 RvR_texture *RvR_texture_get(uint16_t id); //Pointer returned is only valid until next RvR_texture_get() call (unless the texture has been manually created)
-void RvR_texture_create(uint16_t id, int width, int height); //These textures need to be manually managed
-void RvR_texture_create_free(uint16_t id);
-
-
+void         RvR_texture_create(uint16_t id, int width, int height); //These textures need to be manually managed
+void         RvR_texture_create_free(uint16_t id);
 
 //RvnicRaven core functions end
 //-------------------------------------
