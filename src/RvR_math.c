@@ -193,8 +193,8 @@ RvR_fix22 RvR_fix22_ctg(RvR_fix22 a)
 //THIS WORK IS PLACED IN THE PUBLIC DOMAIN
 RvR_fix22 RvR_fix22_atan2(RvR_fix22 x, RvR_fix22 y)
 {
-   RvR_fix22 coeff_1 = 512;
-   RvR_fix22 coeff_2 = 1536;
+   RvR_fix22 coeff_1 = 512; // = pi/4
+   RvR_fix22 coeff_2 = 1536; // = (3*pi)/4
    RvR_fix22 abs_y = RvR_non_zero(RvR_abs(y));
    RvR_fix22 angle = 0;
 
@@ -216,22 +216,22 @@ RvR_fix22 RvR_fix22_atan2(RvR_fix22 x, RvR_fix22 y)
 
 RvR_fix22 RvR_fix22_atan2_slow(RvR_fix22 x, RvR_fix22 y)
 {
-   RvR_fix22 coeff_1 = 512;
-   RvR_fix22 coeff_2 = 1536;
+   RvR_fix22 coeff_1 = 512; //pi/4
+   RvR_fix22 coeff_2 = 1536; //(3*pi)/4
    RvR_fix22 abs_y = RvR_non_zero(RvR_abs(y));
    RvR_fix22 angle = 0;
 
    if(x>=0)
    {
       RvR_fix22 r = ((x-abs_y)*1024)/(x+abs_y);
-      angle = (((((r*r)/1024)*r)/1024)*128)/1024;
+      angle = (((((r*r)/1024)*r)/1024)*128)/1024; //0.1963*r^3 - 0.9817*r + pi/4
       angle-=(640*r)/1024;
       angle+=coeff_1;
    }
    else
    {
       RvR_fix22 r = ((x+abs_y)*1024)/(abs_y-x);
-      angle = (((((r*r)/1024)*r)/1024)*128)/1024;
+      angle = (((((r*r)/1024)*r)/1024)*128)/1024; //0.1963*r^3 - 0.9817*r + (3*pi)/4
       angle-=(640*r)/1024;
       angle+=coeff_2;
    }
