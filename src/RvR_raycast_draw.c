@@ -23,14 +23,16 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-typedef struct
+typedef struct ray_plane
 {
-   int min;
-   int max;
+   int32_t min;
+   int32_t max;
    RvR_fix22 height;
    uint16_t tex;
    uint16_t start[RVR_XRES+2];
    uint16_t end[RVR_XRES+2];
+
+   struct ray_plane *next;
 }ray_plane;
 
 typedef struct
@@ -50,16 +52,17 @@ typedef struct
 //-------------------------------------
 
 //Variables
-RvR_ray_depth_buffer ray_depth_buffer = {0};
+static RvR_ray_depth_buffer ray_depth_buffer = {0};
+static ray_plane *ray_planes[128] = {0};
 
+//Linked list pools
+static ray_plane *ray_plane_pool = NULL;
 static RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_pool = NULL;
 
 static RvR_fix22 ray_start_floor_height = 0;
 static RvR_fix22 ray_start_ceil_height = 0;
 static int32_t ray_middle_row = 0;
 
-static int ray_planes_used;
-static ray_plane ray_planes[256];
 static RvR_fix22 ray_span_start[RVR_YRES];
 
 struct
@@ -98,6 +101,9 @@ static void ray_sprite_draw_billboard(ray_sprite *sp);
 
 static RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_new();
 static void ray_depth_buffer_entry_free(RvR_ray_depth_buffer_entry *ent);
+
+static ray_plane *ray_plane_new();
+static void ray_plane_free(ray_plane *pl);
 //-------------------------------------
 
 //Function implementations
@@ -115,7 +121,11 @@ void RvR_ray_draw_begin()
    }
 
    //Clear planes
-   ray_planes_used = 0;
+   for(int i = 0;i<128;i++)
+   {
+      ray_plane_free(ray_planes[i]);
+      ray_planes[i] = NULL;
+   }
 
    //Initialize needed vars
    ray_fov_factor_x = RvR_fix22_tan(RvR_ray_get_fov()/2);
@@ -442,103 +452,109 @@ void RvR_ray_draw_map()
    //-------------------------------------
    
    //Render floor planes
-   for(int i = 0;i<ray_planes_used;i++)
+   for(int i = 0;i<128;i++)
    {
-      ray_plane *pl = &ray_planes[i];
-
-      if(pl->min>pl->max)
-         continue;
-
-      //Sky texture is rendered differently (vertical collumns instead of horizontal ones)
-      if(pl->tex==RvR_ray_map_sky_tex())
+      ray_plane *pl = ray_planes[i];
+      while(pl!=NULL)
       {
-         RvR_texture *texture = RvR_texture_get(RvR_ray_map_sky_tex());
-         int skyw = 1<<RvR_log2(texture->width);
-         int skyh = 1<<RvR_log2(texture->height);
-         int mask = skyh-1;
+         if(pl->min>pl->max)
+            goto next;
 
-         RvR_fix22 angle_step = (skyw*1024)/RVR_XRES;
-         RvR_fix22 tex_step = (1024*skyh-1)/RVR_YRES;
-
-         RvR_fix22 angle = (RvR_ray_get_angle())*256;
-         angle+=(pl->min-1)*angle_step;
-
-         for(int x = pl->min;x<pl->max+1;x++)
+         //Sky texture is rendered differently (vertical collumns instead of horizontal ones)
+         if(pl->tex==RvR_ray_map_sky_tex())
          {
-            //Sky is rendered fullbright, no lut needed
-            uint8_t * restrict pix = &RvR_core_framebuffer()[(pl->start[x])*RVR_XRES+x-1];
-            const uint8_t * restrict tex = &texture->data[((angle>>10)&(skyw-1))*skyh];
-            const uint8_t * restrict col = RvR_shade_table(32);
+            RvR_texture *texture = RvR_texture_get(RvR_ray_map_sky_tex());
+            int skyw = 1<<RvR_log2(texture->width);
+            int skyh = 1<<RvR_log2(texture->height);
+            int mask = skyh-1;
 
-            //Split in two parts: above and below horizon
-            int middle = RvR_max(0,RvR_min(RVR_YRES,ray_middle_row+RVR_YRES/32));
-            int tex_start = pl->start[x];
-            int tex_end = middle;
-            if(tex_end>pl->end[x])
-               tex_end = pl->end[x];
-            if(tex_start>tex_end)
-               tex_end = tex_start;
-            if(tex_start>middle)
-               tex_end = tex_start-1;
-            int solid_end = pl->end[x];
-            RvR_fix22 texture_coord = (RVR_YRES-middle+pl->start[x])*tex_step;
+            RvR_fix22 angle_step = (skyw*1024)/RVR_XRES;
+            RvR_fix22 tex_step = (1024*skyh-1)/RVR_YRES;
 
-            for(int y = tex_start;y<tex_end+1;y++)
+            RvR_fix22 angle = (RvR_ray_get_angle())*256;
+            angle+=(pl->min-1)*angle_step;
+
+            for(int x = pl->min;x<pl->max+1;x++)
             {
-               *pix = tex[texture_coord>>10];
-               texture_coord+=tex_step;
-               pix+=RVR_XRES;
+               //Sky is rendered fullbright, no lut needed
+               uint8_t * restrict pix = &RvR_core_framebuffer()[(pl->start[x])*RVR_XRES+x-1];
+               const uint8_t * restrict tex = &texture->data[((angle>>10)&(skyw-1))*skyh];
+               const uint8_t * restrict col = RvR_shade_table(32);
+
+               //Split in two parts: above and below horizon
+               int middle = RvR_max(0,RvR_min(RVR_YRES,ray_middle_row+RVR_YRES/32));
+               int tex_start = pl->start[x];
+               int tex_end = middle;
+               if(tex_end>pl->end[x])
+                  tex_end = pl->end[x];
+               if(tex_start>tex_end)
+                  tex_end = tex_start;
+               if(tex_start>middle)
+                  tex_end = tex_start-1;
+               int solid_end = pl->end[x];
+               RvR_fix22 texture_coord = (RVR_YRES-middle+pl->start[x])*tex_step;
+
+               for(int y = tex_start;y<tex_end+1;y++)
+               {
+                  *pix = tex[texture_coord>>10];
+                  texture_coord+=tex_step;
+                  pix+=RVR_XRES;
+               }
+               RvR_fix22 tex_coord = (RVR_YRES)*tex_step-1;
+               texture_coord = RvR_min(tex_coord,tex_coord-tex_step*(tex_end-middle));
+               for(int y = tex_end+1;y<solid_end+1;y++)
+               {
+                  *pix = col[tex[(texture_coord>>10)&mask]];
+                  texture_coord-=tex_step;
+                  pix+=RVR_XRES;
+               }
+
+               angle+=angle_step;
             }
-            RvR_fix22 tex_coord = (RVR_YRES)*tex_step-1;
-            texture_coord = RvR_min(tex_coord,tex_coord-tex_step*(tex_end-middle));
-            for(int y = tex_end+1;y<solid_end+1;y++)
+
+            goto next;
+         }
+
+         //Convert plane to horizontal spans
+         RvR_texture *texture = RvR_texture_get(pl->tex);
+         for(int x = pl->min;x<pl->max+2;x++)
+         {
+            RvR_fix22 s0 = pl->start[x-1];
+            RvR_fix22 s1 = pl->start[x];
+            RvR_fix22 e0 = pl->end[x-1];
+            RvR_fix22 e1 = pl->end[x];
+
+            //End spans top
+            for(;s0<s1&&s0<=e0;s0++)
             {
-               *pix = col[tex[(texture_coord>>10)&mask]];
-               texture_coord-=tex_step;
-               pix+=RVR_XRES;
+#if RVR_RAY_DRAW_PLANES==1
+               ray_span_draw_flat(ray_span_start[s0],x-1,s0,(i+1)&255);
+#elif RVR_RAY_DRAW_PLANES==2
+               ray_span_draw_tex(ray_span_start[s0],x-1,s0,pl->height,texture);
+#endif
             }
 
-            angle+=angle_step;
-         }
-         continue;
-      }
-
-      //Convert plane to horizontal spans
-      RvR_texture *texture = RvR_texture_get(pl->tex);
-      for(int x = pl->min;x<pl->max+2;x++)
-      {
-         RvR_fix22 s0 = pl->start[x-1];
-         RvR_fix22 s1 = pl->start[x];
-         RvR_fix22 e0 = pl->end[x-1];
-         RvR_fix22 e1 = pl->end[x];
-
-         //End spans top
-         for(;s0<s1&&s0<=e0;s0++)
-         {
+            //End spans bottom
+            for(;e0>e1&&e0>=s0;e0--)
+            {
 #if RVR_RAY_DRAW_PLANES==1
-            ray_span_draw_flat(ray_span_start[s0],x-1,s0,(i+1)&255);
+               ray_span_draw_flat(ray_span_start[e0],x-1,e0,(i+1)&255);
 #elif RVR_RAY_DRAW_PLANES==2
-            ray_span_draw_tex(ray_span_start[s0],x-1,s0,pl->height,texture);
+               ray_span_draw_tex(ray_span_start[e0],x-1,e0,pl->height,texture);
 #endif
+            }
+
+            //Start spans top
+            for(;s1<s0&&s1<=e1;s1++)
+               ray_span_start[s1] = x-1;
+
+            //Start spans bottom
+            for(;e1>e0&&e1>=s1;e1--)
+               ray_span_start[e1] = x-1;
          }
 
-         //End spans bottom
-         for(;e0>e1&&e0>=s0;e0--)
-         {
-#if RVR_RAY_DRAW_PLANES==1
-            ray_span_draw_flat(ray_span_start[e0],x-1,e0,(i+1)&255);
-#elif RVR_RAY_DRAW_PLANES==2
-            ray_span_draw_tex(ray_span_start[e0],x-1,e0,pl->height,texture);
-#endif
-         }
-
-         //Start spans top
-         for(;s1<s0&&s1<=e1;s1++)
-            ray_span_start[s1] = x-1;
-
-         //Start spans bottom
-         for(;e1>e0&&e1>=s1;e1--)
-            ray_span_start[e1] = x-1;
+next:
+         pl = pl->next;
       }
    }
    //-------------------------------------
@@ -547,8 +563,20 @@ void RvR_ray_draw_map()
 void RvR_ray_draw_debug(uint8_t index)
 {
    char tmp[128];
-   snprintf(tmp,128,"%03d.%01d ms\n%03d Planes",RvR_core_frametime_average()/10,RvR_core_frametime_average()%10,ray_planes_used);
+   snprintf(tmp,128,"%03d.%01d ms\n",RvR_core_frametime_average()/10,RvR_core_frametime_average()%10);
    RvR_draw_string(2,2,1,tmp,index);
+
+   for(int i = 0;i<128;i++)
+   {
+      int num = 0;
+      ray_plane *pl = ray_planes[i];
+      while(pl!=NULL)
+      {
+         pl = pl->next;
+         num++;
+      }
+      RvR_draw_vertical_line(RVR_XRES-128+i,RVR_YRES-num,RVR_YRES,index);
+   }
 }
 
 static int16_t ray_draw_wall(RvR_fix22 y_current, RvR_fix22 y_from, RvR_fix22 y_to, RvR_fix22 limit0, RvR_fix22 limit1, RvR_fix22 height, int16_t increment, RvR_ray_pixel_info *pixel_info, RvR_ray_hit_result *hit)
@@ -801,70 +829,66 @@ RvR_ray_pixel_info RvR_ray_map_to_screen(RvR_vec3 world_position)
 
 static void ray_plane_add(RvR_fix22 height, uint16_t tex, int x, int y0, int y1)
 {
-   ray_plane *cur = NULL;
    x+=1;
+   //Div height by 128, since it's usually in these increments
+   int hash = ((height>>7)*7+tex*3)&127;
 
-   //TODO: hash + linked list?
-   int i;
-   for(i = 0;i<ray_planes_used;i++)
+   ray_plane *pl = ray_planes[hash];
+   while(pl!=NULL)
    {
       //ray_planes need to have the same height...
-      if(height!=ray_planes[i].height)
-         continue;
+      if(height!=pl->height)
+         goto next;
       //... and the same texture to be valid for concatination
-      if(tex!=ray_planes[i].tex)
-         continue;
+      if(tex!=pl->tex)
+         goto next;
 
       //Additionally the spans collumn needs to be either empty...
-      if(ray_planes[i].start[x]!=UINT16_MAX)
+      if(pl->start[x]!=UINT16_MAX)
       {
          //... or directly adjacent to each other vertically, in that case
          //Concat planes vertically
-         if(ray_planes[i].start[x]-1==y1)
+         if(pl->start[x]-1==y1)
          {
-            ray_planes[i].start[x] = y0;
+            pl->start[x] = y0;
             return;
          }
-         if(ray_planes[i].end[x]+1==y0)
+         if(pl->end[x]+1==y0)
          {
-            ray_planes[i].end[x] = y1;
+            pl->end[x] = y1;
             return;
          }
 
-         continue;
+         goto next;
       }
 
       break;
+next:
+      pl = pl->next;
    }
 
-   if(i==ray_planes_used)
+   if(pl==NULL)
    {
-      if(ray_planes_used==256)
-      {
-         //TODO
-      }
+      pl = ray_plane_new();
+      pl->next= ray_planes[hash];
+      ray_planes[hash] = pl;
 
-      cur = &ray_planes[ray_planes_used++];
-      cur->min = RVR_XRES;
-      cur->max = -1;
-      cur->height = height;
-      cur->tex = tex;
+      pl->min = RVR_XRES;
+      pl->max = -1;
+      pl->height = height;
+      pl->tex = tex;
 
       //Since this is an unsigned int, we can use memset to set all values to 65535 (0xffff)
-      memset(cur->start,255,sizeof(cur->start));
-   }
-   else
-   {
-      cur = &ray_planes[i];
+      memset(pl->start,255,sizeof(pl->start));
    }
 
-   if(x<cur->min)
-      cur->min = x;
-   if(x>cur->max)
-      cur->max = x;
+   if(x<pl->min)
+      pl->min = x;
+   if(x>pl->max)
+      pl->max = x;
 
-   cur->end[x] = y1;
-   cur->start[x] = y0;
+   pl->end[x] = y1;
+   pl->start[x] = y0;
 }
 
 static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR_texture *texture)
@@ -1337,6 +1361,39 @@ static void ray_sprite_draw_billboard(ray_sprite *sp)
          }
       }
    }
+}
+
+static ray_plane *ray_plane_new()
+{
+   if(ray_plane_pool==NULL)
+   {
+      ray_plane *p = RvR_malloc(sizeof(*p)*8);
+      memset(p,0,sizeof(*p)*8);
+
+      for(int i = 0;i<7;i++)
+         p[i].next = &p[i+1];
+      ray_plane_pool = p;
+   }
+
+   ray_plane *p = ray_plane_pool;
+   ray_plane_pool = p->next;
+   p->next = NULL;
+
+   return p;
+}
+
+static void ray_plane_free(ray_plane *pl)
+{
+   if(pl==NULL)
+      return;
+
+   //Find last
+   ray_plane *last = pl;
+   while(last->next!=NULL)
+      last = last->next;
+
+   last->next = ray_plane_pool;
+   ray_plane_pool = pl;
 }
 
 static RvR_ray_depth_buffer_entry *ray_depth_buffer_entry_new()
