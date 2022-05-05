@@ -37,7 +37,6 @@ Rvnic Raven incorporates code from multiple different sources. Here is a list of
    * memory allocator (RvR_malloc.c), public domain
    * random number generator (RvR_rand.c), public domain
    * atan2 implementation (RvR_math.c), public domain
-   * lisp interpreter (RvR_lisp.c), public domain
 * [r-lyeh](https://github.com/r-lyeh), for
    * tinyini (RvR_config.c), public domain
    * pak.c (RvR_pak.c), public domain
