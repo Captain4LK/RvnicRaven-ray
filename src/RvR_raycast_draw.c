@@ -63,8 +63,6 @@ static RvR_fix22 ray_start_floor_height = 0;
 static RvR_fix22 ray_start_ceil_height = 0;
 static int32_t ray_middle_row = 0;
 
-static RvR_fix22 ray_span_start[RVR_YRES];
-
 struct
 {
    ray_sprite * restrict data;
@@ -130,9 +128,12 @@ void RvR_ray_draw_begin()
    //Initialize needed vars
    ray_fov_factor_x = RvR_fix22_tan(RvR_ray_get_fov()/2);
    ray_fov_factor_y = (RVR_YRES*ray_fov_factor_x*2)/RVR_XRES;
+
    ray_middle_row = (RVR_YRES/2)+RvR_ray_get_shear();
+
    ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
    ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
+
    ray_cam_dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(RvR_ray_get_fov()/2));
    ray_cam_dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(RvR_ray_get_fov()/2));
    RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RvR_ray_get_fov()/2));
@@ -140,6 +141,7 @@ void RvR_ray_draw_begin()
    ray_cam_dir0.y = (ray_cam_dir0.y*1024)/cos;
    ray_cam_dir1.x = (ray_cam_dir1.x*1024)/cos;
    ray_cam_dir1.y = (ray_cam_dir1.y*1024)/cos;
+
    ray_cos = RvR_fix22_cos(RvR_ray_get_angle());
    ray_sin = RvR_fix22_sin(RvR_ray_get_angle());
    ray_cos_fov = (ray_cos*ray_fov_factor_x)/1024;
@@ -447,6 +449,8 @@ void RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_t tex, uint32_t f
 
 void RvR_ray_draw_map()
 {
+   RvR_fix22 ray_span_start[RVR_YRES];
+
    //Render walls and fill plane data
    RvR_rays_cast_multi_hit_draw(ray_draw_column);
    //-------------------------------------
