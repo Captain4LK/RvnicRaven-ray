@@ -54,15 +54,6 @@ void texture_list_create()
       snprintf(tmp,16,"TEX%05d",i);
       if(!RvR_lump_exists(tmp))
          continue;
-      //puts(tmp);
-
-      //RvR_texture_load(i);
-      //RvR_texture_lock(i);
-      RvR_texture *tex = RvR_texture_get(i);
-      //printf("%d %d\n",tex->width,tex->height);
-
-      if(tex->width==1<<8&&tex->height==1<<7)
-         texture_sky = i;
 
       texture_list.data[texture_list.data_used++] = i;
       if(texture_list.data_used==texture_list.data_size)
