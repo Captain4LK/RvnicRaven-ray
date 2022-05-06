@@ -115,10 +115,7 @@ static void texture_load(uint16_t id)
       //Delete texture
       int tex_index = texture_cache.cache[tex_old_index].tex;
       if(textures[tex_index]!=NULL)
-      {
-         RvR_free(textures[tex_index]->data);
          RvR_free(textures[tex_index]);
-      }
       textures[tex_index] = NULL;
       
 
@@ -152,10 +149,11 @@ static void texture_load(uint16_t id)
    RvR_rw_init_const_mem(&rw,mem_decomp,size_out);
    RvR_rw_endian(&rw,endian);
 
-   textures[id] = RvR_malloc(sizeof(*textures[id]));
-   textures[id]->width = RvR_rw_read_i32(&rw);
-   textures[id]->height = RvR_rw_read_i32(&rw);
-   textures[id]->data = RvR_malloc(sizeof(*textures[id]->data)*textures[id]->width*textures[id]->height);
+   int32_t width = RvR_rw_read_i32(&rw);
+   int32_t height = RvR_rw_read_i32(&rw);
+   textures[id] = RvR_malloc(sizeof(*textures[id])+sizeof(*textures[id]->data)*width*height);
+   textures[id]->width = width;
+   textures[id]->height = height;
    for(int i = 0;i<textures[id]->width*textures[id]->height;i++)
       textures[id]->data[i] = RvR_rw_read_u8(&rw);
    textures_cache[id] = index_new;
@@ -180,16 +178,14 @@ void RvR_texture_create(uint16_t id, int width, int height)
    if(textures[id]!=NULL)
       return;
 
-   textures[id] = RvR_malloc(sizeof(*textures[id]));
+   textures[id] = RvR_malloc(sizeof(*textures[id])+sizeof(*textures[id]->data)*width*height);
    textures[id]->width = width;
    textures[id]->height = height;
-   textures[id]->data = RvR_malloc(sizeof(*textures[id]->data)*textures[id]->width*textures[id]->height);
    textures_cache[id] = -1;
 }
 
 void RvR_texture_create_free(uint16_t id)
 {
-   RvR_free(textures[id]->data);
    RvR_free(textures[id]);
    textures[id] = NULL;
 }

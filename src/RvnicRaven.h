@@ -142,9 +142,9 @@ typedef struct
 
 typedef struct
 {
-   int width;
-   int height;
-   uint8_t *data;
+   int32_t width;
+   int32_t height;
+   uint8_t data[];
 }RvR_texture;
 
 typedef int32_t RvR_fix22;

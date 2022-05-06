@@ -52,9 +52,7 @@ int main(int argc, char **argv)
    }
 
    //Init memory manager
-   //Disabled, seems to cause problems on windows
-   //(during a project, a team mate experienced random crashes)
-   //RvR_malloc_init(1<<25,1<<26);
+   RvR_malloc_init(1<<25,1<<26);
 
    //Init RvnicRaven core
    RvR_core_init("Rayed",0);
