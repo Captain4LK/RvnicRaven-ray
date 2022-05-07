@@ -25,7 +25,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static uint8_t shade_table[64][256] = {0};
+static uint8_t *shade_table = NULL;
 static uint8_t trans_table[256][256] = {0};
 static RvR_color *palette = NULL;
 //-------------------------------------
@@ -76,6 +76,9 @@ void RvR_palette_load(uint16_t id)
 
 static void pal_calculate_colormap()
 {
+   if(shade_table==NULL)
+      shade_table = RvR_malloc(sizeof(*shade_table)*256*64);
+
    //Distance fading
    for(int x = 0;x<256;x++)
    {
@@ -83,7 +86,7 @@ static void pal_calculate_colormap()
       {
          if(x==0)
          {
-            shade_table[y][x] = 0;
+            shade_table[y*256+x] = 0;
             continue;
          }
 
@@ -91,7 +94,7 @@ static void pal_calculate_colormap()
          int g = RvR_max(0,RvR_min(255,((int)palette[x].g*(63-y))/63));
          int b = RvR_max(0,RvR_min(255,((int)palette[x].b*(63-y))/63));
 
-         shade_table[y][x] = pal_find_closest(r,g,b);
+         shade_table[y*256+x] = pal_find_closest(r,g,b);
       }
    }
 
@@ -151,7 +154,7 @@ const RvR_color *RvR_palette()
 
 uint8_t *RvR_shade_table(uint8_t light)
 {
-   return shade_table[light];
+   return &shade_table[light*256];
 }
 
 uint8_t RvR_blend(uint8_t c0, uint8_t c1)
