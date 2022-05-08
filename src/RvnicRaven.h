@@ -316,6 +316,7 @@ void *RvR_malloc(size_t size);
 void  RvR_free(void *ptr);
 void *RvR_realloc(void *ptr, size_t size);
 void  RvR_malloc_report();
+void *RvR_malloc_base();
 
 //RvnicRaven stores its palette in a binary format, with the
 //colors just being dumped sequentially (768 bytes --> 256 colors --> 1 byte r,g,b each)
@@ -371,30 +372,31 @@ void         RvR_texture_create_free(uint16_t id);
 //-------------------------------------
 
 //RvnicRaven vm types
+
+//Using RvR_vm requires using the custom memory allocator!
 typedef struct RvR_vm RvR_vm;
 typedef intptr_t (*RvR_vm_func_call) (RvR_vm *vm, intptr_t *args);
 
 struct RvR_vm
 {
-   int32_t *code;
-   RvR_vm_func_call callback;
+   uint8_t *code;
+   void *mem_base;
+   void *stack;
 
-   //Code
-   int instruction_count;
-   intptr_t *instruction_pointers;
+   int32_t code_size;
 
-   //Data
-   int32_t *data;
-   int data_len;
-   int data_mask;
+   //Registers
+   uint8_t *pc;
+   int32_t regs[32];
 };
 //RvnicRaven vm types end
 //-------------------------------------
 
 //RvnicRaven vm functions
-void RvR_vm_create(RvR_vm *vm, RvR_rw *code, RvR_vm_func_call callback);
+void RvR_vm_create(RvR_vm *vm, RvR_rw *code, uint32_t stack);
 void RvR_vm_free(RvR_vm *vm);
-void RvR_vm_call(RvR_vm *vm, uint8_t opcode, ...);
+void RvR_vm_disassemble(RvR_vm *vm);
+void RvR_vm_run(RvR_vm *vm, uint32_t instr);
 //RvnicRaven vm functions end
 //-------------------------------------
 

@@ -27,98 +27,63 @@ Limitations:
 
 //#defines
 #if !RVR_VM_COMPUTED_GOTO
-#define case_OP_RETURN case VM_OP_RETURN
+#define case_OP_INVALID default
+
 #define case_OP_LOAD case VM_OP_LOAD
-#define case_OP_LB case VM_OP_LB
-#define case_OP_LH case VM_OP_LH
-#define case_OP_LW case VM_OP_LW
-#define case_OP_SB case VM_OP_SB
-#define case_OP_SH case VM_OP_SH
-#define case_OP_SW case VM_OP_SW
-#define case_OP_JUMP case VM_OP_JUMP
-#define case_OP_BEQ case VM_OP_BEQ
-#define case_OP_BNE case VM_OP_BNE
-#define case_OP_BLT case VM_OP_BLT
-#define case_OP_BLE case VM_OP_BLE
-#define case_OP_BGT case VM_OP_BGT
-#define case_OP_BGE case VM_OP_BGE
-#define case_OP_BLTU case VM_OP_BLTU
-#define case_OP_BLEU case VM_OP_BLEU
-#define case_OP_BGTU case VM_OP_BGTU
-#define case_OP_BGEU case VM_OP_BGEU
-#define case_OP_ADD case VM_OP_ADD
-#define case_OP_SUB case VM_OP_SUB
-#define case_OP_NEGI case VM_OP_NEGI
-#define case_OP_DIVI case VM_OP_DIVI
-#define case_OP_DIVU case VM_OP_DIVU
-#define case_OP_MULI case VM_OP_MULI
-#define case_OP_MULU case VM_OP_MULU
-#define case_OP_MODI case VM_OP_MODI
-#define case_OP_MODU case VM_OP_MODU
-#define case_OP_AND case VM_OP_AND
-#define case_OP_OR case VM_OP_OR
-#define case_OP_XOR case VM_OP_XOR
-#define case_OP_NOT case VM_OP_NOT
-#define case_OP_LSH case VM_OP_LSH
-#define case_OP_RSHI case VM_OP_RSHI
-#define case_OP_RSHU case VM_OP_RSHU
-#define case_OP_SEX8 case VM_OP_SEX8
-#define case_OP_SEX16 case VM_OP_SEX16
+#define case_OP_LOAD_FP case VM_OP_LOAD_FP
+#define case_OP_CUSTOM_0 case VM_OP_CUSTOM_0
+#define case_OP_MISC_MEM case VM_OP_MISC_MEM
+#define case_OP_IMM case VM_OP_IMM
+#define case_OP_AUIPC case VM_OP_AUIPC
+#define case_OP_AUIPC case VM_OP_AUIPC
+#define case_OP_IMM_32 case VM_OP_IMM_32
+
+#define case_OP_STORE case VM_OP_STORE
+#define case_OP_STORE_FP case VM_OP_STORE_FP
+#define case_OP_CUSTOM_1 case VM_OP_CUSTOM_1
+#define case_OP_AMO case VM_OP_AMO
+#define case_OP case VM_OP
+#define case_OP_LUI case VM_OP_LUI
+#define case_OP_32 case VM_OP_32
+
+#define case_OP_MADD case VM_OP_MADD
+#define case_OP_MSUB case VM_OP_MSUB
+#define case_OP_NMSUB case VM_OP_NMSUB
+#define case_OP_NMADD case VM_OP_NMADD
+#define case_OP_FP case VM_OP_FP
+//reserved
+#define case_OP_CUSTOM_2 case VM_OP_CUSTOM_2
+
+#define case_OP_BRANCH case VM_OP_BRANCH
+#define case_OP_JALR case VM_OP_JALR
+//reserved
+#define case_OP_JAL case VM_OP_JAL
+#define case_OP_SYSTEM case VM_OP_SYSTEM
+//reserved
+#define case_OP_CUSTOM_3 case VM_OP_CUSTOM_3
 #endif
 //-------------------------------------
 
 //Typedefs
 typedef enum
 {
-   VM_OP_RETURN = 1,
-
-   //
-   VM_OP_LOAD = 2, //Load constant
-   VM_OP_LB = 3, //Load Byte (8 bit)
-   VM_OP_LH = 4, //Load Halfword (16 bit)
-   VM_OP_LW = 5, //Load Word (32 bit)
-   VM_OP_SB = 6, //Store Byte (8 bit)
-   VM_OP_SH = 7, //Store Halfword (16 bit)
-   VM_OP_SW = 8, //Store Word (32 bit)
-
-   //Branches
-   VM_OP_JUMP = 9, //Jump
-   VM_OP_BEQ = 10, //Branch if equal
-   VM_OP_BNE = 11, //Brain if not equal
-   VM_OP_BLT = 12, //Branch if less than
-   VM_OP_BLE = 13, //Branch if less than or equal
-   VM_OP_BGT = 14, //Branch if greater than
-   VM_OP_BGE = 15, //Branch if greater than or equal
-   VM_OP_BLTU = 16, //Branch if less than, unsigned
-   VM_OP_BLEU = 17, //Branch if less than or equal, unsigned
-   VM_OP_BGTU = 18, //Branch if greater than, unsigned
-   VM_OP_BGEU = 19, //Branch if greater than or equal, unsigned
-   
-   //Arithmetic
-   VM_OP_ADD = 20,
-   VM_OP_SUB = 21,
-   VM_OP_NEGI = 22,
-   VM_OP_DIVI = 23,
-   VM_OP_DIVU = 24,
-   VM_OP_MULI = 25,
-   VM_OP_MULU = 26,
-   VM_OP_MODI = 27,
-   VM_OP_MODU = 28,
-
-   //Bitwise manipulation
-   VM_OP_AND = 29,
-   VM_OP_OR = 30,
-   VM_OP_XOR = 31,
-   VM_OP_NOT = 32,
-   VM_OP_LSH = 33,
-   VM_OP_RSHI = 34,
-   VM_OP_RSHU = 35,
-   VM_OP_SEX8 = 36,
-   VM_OP_SEX16 = 37,
-}VM_opcode;
+   VM_OP_LOAD = 3,
+   VM_OP_MISC_MEM = 15,
+   VM_OP_IMM = 19,
+   VM_OP_AUIPC = 23,
+   VM_OP_STORE = 35,
+   VM_OP = 51,
+   VM_OP_LUI = 55,
+   VM_OP_BRANCH = 99,
+   VM_OP_JALR = 103,
+   VM_OP_JAL = 111,
+   VM_OP_SYSTEM = 115,
+}vm_opcode;
 //-------------------------------------
 
 //Variables
+
+//Registers
 //-------------------------------------
 
 //Function prototypes
@@ -126,193 +91,446 @@ typedef enum
 
 //Function implementations
 
-void RvR_vm_create(RvR_vm *vm, RvR_rw *code, RvR_vm_func_call callback)
+void RvR_vm_create(RvR_vm *vm, RvR_rw *code, uint32_t stack)
 {
    if(vm==NULL)
       return;
+   memset(vm,0,sizeof(*vm));
 
-   vm->callback = callback;
+   RvR_rw_seek(code,0,SEEK_END);
+   size_t size = RvR_rw_tell(code);
+   RvR_rw_seek(code,0,SEEK_SET);
 
-   //Read header
-   uint8_t endian = RvR_rw_read_u8(code);
-   RvR_rw_endian(code,endian);
-   int32_t code_len = RvR_rw_read_i32(code);
-   int32_t code_offset = RvR_rw_read_i32(code);
-   int32_t code_count = RvR_rw_read_i32(code);
-   int32_t data_offset = RvR_rw_read_i32(code);
-   int32_t data_len = RvR_rw_read_i32(code);
-   int32_t str_len = RvR_rw_read_i32(code);
-   int32_t bss_len = RvR_rw_read_i32(code);
+   vm->code_size = size;
+   vm->code = RvR_malloc(size+4096);
+   for(int i = 0;i<size/sizeof(uint32_t);i++)
+      ((uint32_t *)vm->code)[i+1024] = RvR_rw_read_u32(code);
 
-   //Populate vm struct with info read from header
-   vm->instruction_count = code_count;
-   vm->instruction_pointers = RvR_malloc(sizeof(*vm->instruction_pointers)*code_count);
+   vm->mem_base = vm->code;
+   vm->stack = RvR_malloc(stack);
+   vm->regs[2] = (intptr_t)vm->mem_base-(intptr_t)vm->stack;
+   vm->regs[2]+=stack;
 
-   //Allocate memory for data, round up length to next power of two
-   //Using: https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
-   int len = (data_len+str_len+bss_len-1)*2; //Subtract 1 and multiply by two --> next power of two is largest bit set
-   int r = 0;
-   while(len>>=1)
-      r++;
-   len = 1<<r;
-   vm->data_len = len+4;
-   vm->data_mask = len-1;
-   vm->data = RvR_malloc(vm->data_len);
-   memset(vm->data,0,vm->data_len);
-   
-   //Read data
-   //.data section may need to be byteswapped (int32)
-   RvR_rw_seek(code,data_offset,SEEK_SET);
-   for(int i = 0;i<data_len/4;i++)
-      vm->data[i] = RvR_rw_read_u32(code);
-   for(int i = 0;i<str_len;i++)
-      *(((uint8_t *)vm->data)+i) = RvR_rw_read_u8(code);
-
-   //Read instructions and make them int32 aligned (TODO: does this improve or worsen performance?)
-   vm->code = RvR_malloc(code_len*sizeof(*vm->code)); 
-   RvR_rw_seek(code,code_offset,SEEK_SET);
-   int code_current = 0;
-   int instr_current = 0;
-   while(instr_current<vm->instruction_count)
-   {
-      uint8_t opcode = RvR_rw_read_u8(code);
-
-      vm->instruction_pointers[instr_current++] = code_current;
-      vm->code[code_current++] = opcode;
-
-
-      switch(opcode)
-      {
-      //Instructions with 32bit argument
-      case VM_OP_LOAD:
-      case VM_OP_BEQ:
-      case VM_OP_BNE:
-      case VM_OP_BLT:
-      case VM_OP_BLE:
-      case VM_OP_BGT:
-      case VM_OP_BGE:
-      case VM_OP_BLTU:
-      case VM_OP_BLEU:
-      case VM_OP_BGTU:
-      case VM_OP_BGEU:
-         vm->code[code_current++] = RvR_rw_read_u32(code);
-         break;
-      }
-   }
-
-   //Remap jump indexes for branch instructions
-   code_current = 0;
-   instr_current = 0;
-   while(instr_current<vm->instruction_count)
-   {
-      uint8_t opcode = vm->code[code_current++];
-      instr_current++;
-
-      switch(opcode)
-      {
-      case VM_OP_BEQ:
-      case VM_OP_BNE:
-      case VM_OP_BLT:
-      case VM_OP_BLE:
-      case VM_OP_BGT:
-      case VM_OP_BGE:
-      case VM_OP_BLTU:
-      case VM_OP_BLEU:
-      case VM_OP_BGTU:
-      case VM_OP_BGEU:
-         vm->code[code_current] = vm->instruction_pointers[vm->code[code_current]];
-         code_current++;
-         break;
-      case VM_OP_LOAD:
-         code_current++;
-         break;
-      }
-   }
+   vm->pc = vm->code+4096;
 }
 
 void RvR_vm_free(RvR_vm *vm)
 {
    if(vm==NULL)
       return;
+
+   RvR_free(vm->code);
+   RvR_free(vm->stack);
 }
 
-void RvR_vm_call(RvR_vm *vm, uint8_t opcode, ...)
+void RvR_vm_disassemble(RvR_vm *vm)
 {
    if(vm==NULL)
       return;
 
-   int args[16] = {0};
-   args[0] = opcode;
+   static const char *reg_names[32] = {"zero","ra","sp","gp","tp","t0","t1","t2","s0/fp","s1","a0","a1","a2","a3","a4","a5","a6","a7","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","t3","t4","t5","t6"};
 
-   va_list va;
-   va_start(va,opcode);
-   for(int i = 1;i<16;i++)
-      args[i] = va_arg(va,int);
-   va_end(va);
-
-   int32_t stack_array[RVR_VM_STACK_SIZE] = {0};
-   int32_t *stack = stack_array;
-
-   int32_t *ip = vm->code;
-   int32_t r0;
-   int32_t r1;
-
-#if RVR_VM_XOMPUTED_GOTO
-   static const void *dispatch_tabel[] = 
+   for(int i = 0;i<vm->code_size/4;i++)
    {
-      &&case_OP_RETURN,
-   };
-   #define DISPATCH() goto *dispatch_table[*ip++]
-   #define DISPATCH_R() r0 = *stack; r1 = *(stack-1); DISPATCH()
+      int32_t op = ((uint32_t *)vm->code)[i+1024];
+      int32_t arg0;
+      int32_t arg1;
+      int32_t arg2;
+      int32_t arg3;
+      int32_t arg4;
+
+      switch(op&127)
+      {
+      case VM_OP_LOAD:
+         //I format
+         arg3 = (op>>7)&31;
+         arg2 = (op>>12)&7;
+         arg1 = (op>>15)&7;
+         arg0 = (op>>20)&4095;
+         arg0 = (arg0<<20)>>20; //sign extend
+
+         switch(arg2)
+         {
+         case 0: //LB
+            printf("lb %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+            break;
+         case 1: //LH
+            printf("lh %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+            break;
+         case 2: //LW
+            printf("lw %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+            break;
+         case 4: //LBU
+            printf("lbu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+            break;
+         case 5: //LHU
+            printf("lhu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+            break;
+         }
+         break;
+      case VM_OP_MISC_MEM:
+         puts("MISC_MEM");
+         break;
+      case VM_OP_IMM:
+         puts("IMM");
+         break;
+      case VM_OP_AUIPC:
+         puts("AUIPC");
+         break;
+      case VM_OP_STORE:
+         puts("STORE");
+         break;
+      case VM_OP:
+         puts("OP");
+         break;
+      case VM_OP_LUI:
+         puts("LUI");
+         break;
+      case VM_OP_BRANCH:
+         puts("BRANCH");
+         break;
+      case VM_OP_JALR:
+         puts("JALR");
+         break;
+      case VM_OP_JAL:
+         puts("JAL");
+         break;
+      case VM_OP_SYSTEM:
+         puts("SYSTEM");
+         break;
+      default:
+         printf("Unknown instruction %d\n",op&127);
+         break;
+      }
+   }
+}
+
+void RvR_vm_run(RvR_vm *vm, uint32_t instr)
+{
+   if(vm==NULL)
+      return;
+
+#if RVR_VM_COMPUTED_GOTO
+
+   const void *dispatch_table[128] =
+   {
+      &&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_LOAD,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,
+      &&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_MISC_MEM,
+      &&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_IMM,
+   }
+
 #else
-   #define DISPATCH_R() goto next_r
-   #define DISPATCH() goto next
+#define DISPATCH() vm->pc+=4; goto next
+#define DISPATCH_BRANCH() goto next
 #endif
+
+   int32_t op;
+   int32_t arg0;
+   int32_t arg1;
+   int32_t arg2;
+   int32_t arg3;
+   int32_t arg4;
+
+   //R format
+   //arg0 - funct7
+   //arg1 - rs2
+   //arg2 - rs1
+   //arg3 - func3
+   //arg4 - rd
+
+   //I format
+   //arg0 - imm[11:0]
+   //arg1 - rs1
+   //arg2 - funct3
+   //arg3 - rd
+
+   //S format
+   //arg0 - imm[11:5]
+   //arg1 - rs2
+   //arg2 - rs1
+   //arg3 - funct3
+   //arg0 - imm[4:0]
+
+   //B format
+   //arg0 - imm[12|10:5]
+   //arg1 - rs2
+   //arg2 - rs1
+   //arg3 - funct3
+   //arg0 - imm[4:1|11]
+
+   //U format
+   //arg0 - imm[31,12]
+   //arg1 - rd
+
+   vm->pc = (uint8_t *)vm->mem_base+instr;
 
    for(;;)
    {
-   next_r:
-      r0 = *stack;
-      r1 = *(stack-1);
+#if !RVR_VM_COMPUTED_GOTO
    next:
+   vm->regs[0] = 0;
+   op = *vm->pc++;
+#endif
 
-      switch(*ip++)
+      switch(op&127)
       {
-      case_OP_RETURN: break;
+      case_OP_LOAD:
+         //I format
+         arg3 = (op>>7)&31;
+         arg2 = (op>>12)&7;
+         arg1 = (op>>15)&7;
+         arg0 = (op>>20)&4095;
+         arg0 = (arg0<<20)>>20; //sign extend
 
-      case_OP_LOAD: stack++; r1 = r0; r0 = *ip; *stack = *ip; ip++; DISPATCH();
+         switch(arg2)
+         {
+         case 0: //LB
+            vm->regs[arg3] = *(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]);
+            vm->regs[arg3] = (vm->regs[arg3]<<24)>>24;
+            break;
+         case 1: //LH
+            vm->regs[arg3] = *((uint16_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
+            vm->regs[arg3] = (vm->regs[arg3]<<16)>>16;
+            break;
+         case 2: //LW
+            vm->regs[arg3] = *((uint32_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
+            break;
+         case 4: //LBU
+            vm->regs[arg3] = *(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]);
+            break;
+         case 5: //LHU
+            vm->regs[arg3] = *((uint16_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
+            break;
+         }
+         
+         DISPATCH();
 
-      case_OP_JUMP: ip = vm->code+vm->instruction_pointers[r0]; stack--; DISPATCH_R();
-      case_OP_BEQ: stack-=2; if(r1==r0) { ip = vm->code+(*ip); DISPATCH_R(); } else { ip++; DISPATCH_R(); }
-      case_OP_BNE: stack-=2; if(r1!=r0) { ip = vm->code+(*ip); DISPATCH_R(); } else { ip++; DISPATCH_R(); }
-      case_OP_BLT: stack-=2; if(r1<r0) { ip = vm->code+(*ip); DISPATCH_R(); } else { ip++; DISPATCH_R(); }
-      case_OP_BLE: stack-=2; if(r1<=r0) { ip = vm->code+(*ip); DISPATCH_R(); } else { ip++; DISPATCH_R(); }
-      case_OP_BGT: stack-=2; if(r1>r0) { ip = vm->code+(*ip); DISPATCH_R(); } else { ip++; DISPATCH_R(); }
-      case_OP_BGE: stack-=2; if(r1>=r0) { ip = vm->code+(*ip); DISPATCH_R(); } else { ip++; DISPATCH_R(); }
-      case_OP_BLTU: stack-=2; if((uint32_t)r1<(uint32_t)r0) { ip = vm->code+(*ip); DISPATCH_R(); } else { ip++; DISPATCH_R(); }
-      case_OP_BLEU: stack-=2; if((uint32_t)r1<=(uint32_t)r0) { ip = vm->code+(*ip); DISPATCH_R(); } else { ip++; DISPATCH_R(); }
-      case_OP_BGTU: stack-=2; if((uint32_t)r1>(uint32_t)r0) { ip = vm->code+(*ip); DISPATCH_R(); } else { ip++; DISPATCH_R(); }
-      case_OP_BGEU: stack-=2; if((uint32_t)r1>=(uint32_t)r0) { ip = vm->code+(*ip); DISPATCH_R(); } else { ip++; DISPATCH_R(); }
+      case_OP_MISC_MEM:
+         //TODO?
+         DISPATCH();
+      case_OP_IMM:
+         //I format
+         arg3 = (op>>7)&31;
+         arg2 = (op>>12)&7;
+         arg1 = (op>>15)&7;
+         arg0 = (op>>20)&4095;
+         arg0 = (arg0<<20)>>20; //sign extend
 
-      case_OP_ADD: stack--; *stack = r1+r0; DISPATCH_R();
-      case_OP_SUB: stack--; *stack = r1-r0; DISPATCH_R();
-      case_OP_NEGI: *stack = -r0; DISPATCH_R();
-      case_OP_DIVI: stack--; *stack = r1/r0; DISPATCH_R();
-      case_OP_DIVU: stack--; *stack = (uint32_t)r1/(uint32_t)r0; DISPATCH_R();
-      case_OP_MULI: stack--; *stack = r1*r0; DISPATCH_R();
-      case_OP_MULU: stack--; *stack = (uint32_t)r1*(uint32_t)r0; DISPATCH_R();
-      case_OP_MODI: stack--; *stack = r1%r0; DISPATCH_R();
-      case_OP_MODU: stack--; *stack = (uint32_t)r1%(uint32_t)r0; DISPATCH_R();
+         switch(arg2)
+         {
+         case 0: //ADDI
+            vm->regs[arg3] = vm->regs[arg1]+arg0;
+            break;
+         case 1: //SLLI
+            vm->regs[arg3] = (uint32_t)vm->regs[arg1]<<arg0;
+            break;
+         case 2: //SLTI
+            vm->regs[arg3] = vm->regs[arg1]<arg0;
+            break;
+         case 3: //SLTIU
+            vm->regs[arg3] = (uint32_t)vm->regs[arg1]<(uint32_t)arg0;
+            break;
+         case 4: //XORI
+            vm->regs[arg3] = (uint32_t)vm->regs[arg1]^arg0;
+            break;
+         case 5:  //SRLI/SRAI
+            if(arg0&1024)
+               vm->regs[arg3] = ((int32_t)vm->regs[arg1])>>arg0;
+            else
+               vm->regs[arg3] = ((uint32_t)vm->regs[arg1])>>arg0;
+            break;
+         case 6: //ORI
+            vm->regs[arg3] = (uint32_t)vm->regs[arg1]|arg0;
+            break;
+         case 7: //ANDI
+            vm->regs[arg3] = (uint32_t)vm->regs[arg1]&arg0;
+            break;
+         }
 
-      case_OP_AND: stack--; *stack = (uint32_t)r1&(uint32_t)r0; DISPATCH_R();
-      case_OP_OR: stack--; *stack = (uint32_t)r1|(uint32_t)r0; DISPATCH_R();
-      case_OP_XOR: stack--; *stack = (uint32_t)r1^(uint32_t)r0; DISPATCH_R();
-      case_OP_NOT: *stack = ~(uint32_t)r0; DISPATCH_R();
-      case_OP_LSH: stack--; *stack = r1<<r0; DISPATCH_R();
-      case_OP_RSHI: stack--; *stack = r1>>r0; DISPATCH_R();
-      case_OP_RSHU: stack--; *stack = (uint32_t)r1>>r0; DISPATCH_R();
-      case_OP_SEX8: *stack = (uint8_t)*stack; DISPATCH_R();
-      case_OP_SEX16: *stack = (uint16_t)*stack; DISPATCH_R();
+         DISPATCH();
+      case_OP_AUIPC:
+         //U format
+         arg0 = op&4294963200;
+         arg1 = (op>>7)&31;
+
+         vm->regs[arg1] = (intptr_t)vm->mem_base-(intptr_t)vm->code;
+         vm->regs[arg1]+=arg0;
+
+         DISPATCH();
+      case_OP_STORE:
+         //S format
+         arg0 = (op>>20)&4064;
+         arg1 = (op>>20)&31;
+         arg2 = (op>>15)&31;
+         arg3 = (op>>12)&7;
+         arg0|=(op>>7)&31;
+         arg0 = (arg0<<20)>>20;
+
+         switch(arg3)
+         {
+         case 0: //SB
+            *(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg2]) = (uint8_t)vm->regs[arg1];
+            break;
+         case 1: //SH
+            *((uint16_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg2])) = (uint16_t)vm->regs[arg1];
+            break;
+         case 2: //SW
+            *((uint32_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg2])) = (uint32_t)vm->regs[arg1];
+            break;
+         }
+
+         DISPATCH();
+      case_OP:
+         //R format
+         arg0 = (op>>25)&127;
+         arg1 = (op>>20)&31;
+         arg2 = (op>>15)&31;
+         arg3 = (op>>12)&7;
+         arg4 = (op>>7)&31;
+
+         switch((arg0<<3)|arg3)
+         {
+         case 0: //ADD
+            vm->regs[arg4] = vm->regs[arg2]+vm->regs[arg1];
+            break;
+         case 256: //SUB
+            vm->regs[arg4] = vm->regs[arg2]-vm->regs[arg1];
+            break;
+         case 1: //SLL
+            vm->regs[arg4] = vm->regs[arg2]<<(vm->regs[arg1]&31);
+            break;
+         case 2: //SLT
+            vm->regs[arg4] = vm->regs[arg2]<vm->regs[arg1];
+            break;
+         case 3: //SLT
+            vm->regs[arg4] = (uint32_t)vm->regs[arg2]<(uint32_t)vm->regs[arg1];
+            break;
+         case 4: //XOR
+            vm->regs[arg4] = (uint32_t)vm->regs[arg2]^(uint32_t)vm->regs[arg1];
+            break;
+         case 5: //SRL
+            vm->regs[arg4] = (uint32_t)vm->regs[arg2]>>(vm->regs[arg1]&31);
+            break;
+         case 261: //SRA
+            vm->regs[arg4] = vm->regs[arg2]>>(vm->regs[arg1]&31);
+            break;
+         case 6: //OR
+            vm->regs[arg4] = (uint32_t)vm->regs[arg2]|(uint32_t)vm->regs[arg1];
+            break;
+         case 7: //AND
+            vm->regs[arg4] = (uint32_t)vm->regs[arg2]&(uint32_t)vm->regs[arg1];
+            break;
+         case 8: //MUL
+            vm->regs[arg4] = vm->regs[arg2]*vm->regs[arg1];
+            break;
+         case 9: //MULH
+            vm->regs[arg4] = ((int64_t)vm->regs[arg2]*(int64_t)vm->regs[arg1])>>32;
+            break;
+         case 10: //MULHSU
+            vm->regs[arg4] = ((int64_t)vm->regs[arg2]*(uint64_t)vm->regs[arg1])>>32;
+            break;
+         case 11: //MULHU
+            vm->regs[arg4] = ((uint64_t)vm->regs[arg2]*(uint64_t)vm->regs[arg1])>>32;
+            break;
+         case 12: //DIV
+            vm->regs[arg4] = vm->regs[arg2]/vm->regs[arg1];
+            break;
+         case 13: //DIVU
+            vm->regs[arg4] = (uint32_t)vm->regs[arg2]/(uint32_t)vm->regs[arg1];
+            break;
+         case 14: //REM
+            vm->regs[arg4] = vm->regs[arg2]%vm->regs[arg1];
+            break;
+         case 15: //REMU
+            vm->regs[arg4] = (uint32_t)vm->regs[arg2]%(uint32_t)vm->regs[arg1];
+            break;
+         }
+
+         DISPATCH();
+      case_OP_LUI:
+         //U format
+         arg0 = op&4294963200;
+         arg1 = (op>>7)&31;
+
+         vm->regs[arg1] = arg0;
+
+         DISPATCH();
+      case_OP_BRANCH:
+         {
+            //B format
+            arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op>>19)&4096)|((op>>20)&2016))|((op>>7)&30))|((op<<4)&2048))<<19))>>19); 
+            arg1 = (op>>20)&31;
+            arg2 = (op>>15)&31;
+            arg3 = (op>>12)&7;
+            int32_t cmp = 0;
+
+            switch(arg3)
+            {
+            case 0: //BEQ
+               cmp = vm->regs[arg2]==vm->regs[arg1];
+               break;
+            case 1: //BNE
+               cmp = vm->regs[arg2]!=vm->regs[arg1];
+               break;
+            case 4: //BLT
+               cmp = vm->regs[arg2]<vm->regs[arg1];
+               break;
+            case 5: //BGE
+               cmp = vm->regs[arg2]>=vm->regs[arg1];
+               break;
+            case 6: //BLTU
+               cmp = (uint32_t)vm->regs[arg2]<(uint32_t)vm->regs[arg1];
+               break;
+            case 7: //BGEU
+               cmp = (uint32_t)vm->regs[arg2]>=(uint32_t)vm->regs[arg1];
+               break;
+            }
+
+            if(cmp)
+            {
+               vm->pc+=arg0;
+               DISPATCH_BRANCH();
+            }
+
+            DISPATCH();
+         }
+      case_OP_JALR:
+         //I format
+         arg3 = (op>>7)&31;
+         arg2 = (op>>12)&7;
+         arg1 = (op>>15)&7;
+         arg0 = (op>>20)&4095;
+         arg0 = (arg0<<20)>>20; //sign extend
+
+         uint8_t *pc = vm->pc+4;
+         vm->pc = vm->pc+((vm->regs[arg1]+arg0)&-2);
+         vm->regs[arg3] = (intptr_t)vm->mem_base-(intptr_t)pc;
+
+         DISPATCH_BRANCH();
+      case_OP_JAL:
+         //J format
+         arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op>>11)&1048576)|((op>>20)&2046))|((op>>9)&2048))|((op<<0)&1044480))<<11))>>11);
+         arg1 = (op>>7)&31;
+         vm->regs[arg1] = ((intptr_t)vm->mem_base-(intptr_t)vm->pc)+4;
+         vm->pc+=arg0;
+
+         DISPATCH_BRANCH();
+      case_OP_SYSTEM:
+         //I format
+         arg0 = (op>>20)&4095;
+         arg0 = (arg0<<20)>>20; //sign extend
+
+         switch(arg0)
+         {
+         case 0:
+            //TODO: syscall
+            //puts("SYSCALL");
+            break;
+         case 1:
+            return;
+         }
+
+         DISPATCH();
       }
    }
 }

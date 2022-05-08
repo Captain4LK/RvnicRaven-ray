@@ -9,9 +9,13 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 //External includes
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 //-------------------------------------
 
 //Internal includes
+#include "../../src/RvnicRaven.h"
 //-------------------------------------
 
 //#defines
@@ -27,32 +31,35 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Function implementations
-#include "RvR_pak.c"
-#include "RvR_rw.c"
-#include "RvR_core.c"
-#include "RvR_log.c"
-#include "RvR_endian.c"
-#include "RvR_rand.c"
-#include "RvR_hash.c"
-#include "RvR_math.c"
-#include "RvR_pal.c"
 
-#include "RvR_config.c"
-#include "RvR_malloc.c"
-#include "RvR_compress.c"
-#include "RvR_draw.c"
-#include "RvR_texture.c"
+int main(int argc, char **argv)
+{
+   //Init memory manager
+   RvR_malloc_init(1<<25,1<<26);
 
-#include "RvR_vm.c"
+   //Init RvnicRaven core
+   RvR_core_init("Anarch",0);
+   RvR_core_mouse_relative(1);
 
-#include "RvR_raycast.c"
-#include "RvR_raycast_draw.c"
-#include "RvR_raycast_map.c"
+   RvR_pak_create_from_csv("data_anarch/main.csv","test.pak");
+   RvR_pak_add("test.pak");
+   //RvR_pak_add("data_anarch/main.csv");
 
-#include "RvR_portal.c"
-#include "RvR_portal_sector.c"
-#include "RvR_portal_map.c"
-#include "RvR_portal_draw.c"
+   RvR_vm vm = {0};
+   RvR_rw rw = {0};
+   RvR_rw_init_path(&rw,"test.bin","rb");
+   RvR_vm_create(&vm,&rw,1<<16);
+   RvR_rw_close(&rw);
 
-#include "backend/RvR_backend_sdl2.c"
+   RvR_vm_disassemble(&vm);
+   //RvR_vm_run(&vm,4096);
+
+   while(RvR_core_running())
+   {
+      RvR_core_update();
+      RvR_core_render_present();
+   }
+
+   return 0;
+}
 //-------------------------------------

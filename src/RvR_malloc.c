@@ -117,6 +117,11 @@ void *RvR_malloc(size_t size)
    return NULL;
 }
 
+void *RvR_malloc_base()
+{
+   return malloc_bmanage.addr;
+}
+
 void RvR_free(void *ptr)
 {
    if(!malloc_bmanage_total) 
