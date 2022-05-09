@@ -82,11 +82,11 @@ typedef enum
 //-------------------------------------
 
 //Variables
-
-//Registers
+static int vm_syscall_term = 0;
 //-------------------------------------
 
 //Function prototypes
+static uint32_t vm_syscall(RvR_vm *vm, uint32_t code);
 //-------------------------------------
 
 //Function implementations
@@ -712,12 +712,14 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          //I format
          arg0 = (op>>20)&4095;
          arg0 = (arg0<<20)>>20; //sign extend
+         vm_syscall_term = 0;
 
          switch(arg0)
          {
          case 0:
-            //TODO: syscall
-            //puts("SYSCALL");
+            vm->regs[10] = vm_syscall(vm,vm->regs[17]);
+            if(vm_syscall_term)
+               return;
             break;
          case 1:
             return;
@@ -726,5 +728,16 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          DISPATCH();
       }
    }
+}
+
+static uint32_t vm_syscall(RvR_vm *vm, uint32_t code)
+{
+   switch(code)
+   {
+   case 0: //exit
+      vm_syscall_term = 1;
+      break;
+   }
+   return 0;
 }
 //-------------------------------------
