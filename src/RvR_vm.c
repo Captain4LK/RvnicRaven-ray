@@ -87,6 +87,8 @@ static int vm_syscall_term = 0;
 
 //Function prototypes
 static uint32_t vm_syscall(RvR_vm *vm, uint32_t code);
+
+static void vm_disassemble_instruction(uint32_t op);
 //-------------------------------------
 
 //Function implementations
@@ -102,13 +104,13 @@ void RvR_vm_create(RvR_vm *vm, RvR_rw *code, uint32_t stack)
    RvR_rw_seek(code,0,SEEK_SET);
 
    vm->code_size = size;
-   vm->code = RvR_malloc(size+4096);
+   vm->code = RvR_malloc(size);
    for(int i = 0;i<size/sizeof(uint32_t);i++)
-      ((uint32_t *)vm->code)[i+1024] = RvR_rw_read_u32(code);
+      ((uint32_t *)vm->code)[i] = RvR_rw_read_u32(code);
 
    vm->mem_base = vm->code;
    vm->stack = RvR_malloc(stack);
-   vm->regs[2] = (intptr_t)vm->mem_base-(intptr_t)vm->stack;
+   vm->regs[2] = (intptr_t)vm->stack-(intptr_t)vm->mem_base;
    vm->regs[2]+=stack;
 
    vm->pc = vm->code+4096;
@@ -128,273 +130,13 @@ void RvR_vm_disassemble(RvR_vm *vm)
    if(vm==NULL)
       return;
 
-   static const char *reg_names[32] = {"zero","ra","sp","gp","tp","t0","t1","t2","s0/fp","s1","a0","a1","a2","a3","a4","a5","a6","a7","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","t3","t4","t5","t6"};
 
    for(int i = 0;i<vm->code_size/4;i++)
    {
       printf("%8d|",i*4);
 
       int32_t op = ((uint32_t *)vm->code)[i+1024];
-      int32_t arg0;
-      int32_t arg1;
-      int32_t arg2;
-      int32_t arg3;
-      int32_t arg4;
-
-      switch(op&127)
-      {
-      case VM_OP_LOAD:
-         //I format
-         arg3 = (op>>7)&31;
-         arg2 = (op>>12)&7;
-         arg1 = (op>>15)&7;
-         arg0 = (op>>20)&4095;
-         arg0 = (arg0<<20)>>20; //sign extend
-
-         switch(arg2)
-         {
-         case 0: //LB
-            printf("lb %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 1: //LH
-            printf("lh %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 2: //LW
-            printf("lw %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 4: //LBU
-            printf("lbu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 5: //LHU
-            printf("lhu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         default:
-            printf("unknown LOAD instruction %d\n",arg2);
-            break;
-         }
-         break;
-      case VM_OP_MISC_MEM:
-         puts("fence");
-         break;
-      case VM_OP_IMM:
-         //I format
-         arg3 = (op>>7)&31;
-         arg2 = (op>>12)&7;
-         arg1 = (op>>15)&7;
-         arg0 = (op>>20)&4095;
-         arg0 = (arg0<<20)>>20; //sign extend
-
-         switch(arg2)
-         {
-         case 0: //ADDI
-            printf("addi %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 1: //SLLI
-            printf("slli %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 2: //SLTI
-            printf("slti %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 3: //SLTIU
-            printf("sltiu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 4: //XORI
-            printf("xori %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 5:  //SRLI/SRAI
-            if(arg0&1024)
-               printf("srai %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            else
-               printf("srli %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 6: //ORI
-            printf("ori %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         case 7: //ANDI
-            printf("andi %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-            break;
-         default:
-            printf("unknown OP-IMM instruction %d\n",arg2);
-            break;
-         }
-         break;
-      case VM_OP_AUIPC:
-         //U format
-         arg0 = op&4294963200;
-         arg1 = (op>>7)&31;
-
-         printf("auipc %s,%d\n",reg_names[arg1],arg0);
-         break;
-      case VM_OP_STORE:
-         //S format
-         arg0 = (op>>20)&4064;
-         arg1 = (op>>20)&31;
-         arg2 = (op>>15)&31;
-         arg3 = (op>>12)&7;
-         arg0|=(op>>7)&31;
-         arg0 = (arg0<<20)>>20;
-
-         switch(arg3)
-         {
-         case 0: //SB
-            printf("sb %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
-            break;
-         case 1: //SH
-            printf("sh %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
-            break;
-         case 2: //SW
-            printf("sw %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
-            break;
-         default:
-            printf("unknown STORE instruction %d\n",arg3);
-            break;
-         }
-         break;
-      case VM_OP:
-         //R format
-         arg0 = (op>>25)&127;
-         arg1 = (op>>20)&31;
-         arg2 = (op>>15)&31;
-         arg3 = (op>>12)&7;
-         arg4 = (op>>7)&31;
-
-         switch((arg0<<3)|arg3)
-         {
-         case 0: //ADD
-            printf("add %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 256: //SUB
-            printf("sub %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 1: //SLL
-            printf("sll %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 2: //SLT
-            printf("slt %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 3: //SLTU
-            printf("sltu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 4: //XOR
-            printf("xor %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 5: //SRL
-            printf("srl %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 261: //SRA
-            printf("sra %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 6: //OR
-            printf("or %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 7: //AND
-            printf("and %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 8: //MUL
-            printf("mul %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 9: //MULH
-            printf("mulh %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 10: //MULHSU
-            printf("mulhsu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 11: //MULHU
-            printf("mulhu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 12: //DIV
-            printf("div %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 13: //DIVU
-            printf("divu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 14: //REM
-            printf("rem %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         case 15: //REMU
-            printf("remu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
-            break;
-         default:
-            printf("unknown OP instruction %d\n",(arg0<<3)|arg3);
-            break;
-         }
-         break;
-      case VM_OP_LUI:
-         //U format
-         arg0 = op&4294963200;
-         arg1 = (op>>7)&31;
-
-         printf("lui %s,%d\n",reg_names[arg1],arg0);
-         break;
-      case VM_OP_BRANCH:
-         //B format
-         arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op>>19)&4096)|((op>>20)&2016))|((op>>7)&30))|((op<<4)&2048))<<19))>>19); 
-         arg1 = (op>>20)&31;
-         arg2 = (op>>15)&31;
-         arg3 = (op>>12)&7;
-
-         switch(arg3)
-         {
-         case 0: //BEQ
-            printf("beq %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
-            break;
-         case 1: //BNE
-            printf("bne %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
-            break;
-         case 4: //BLT
-            printf("blt %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
-            break;
-         case 5: //BGE
-            printf("bge %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
-            break;
-         case 6: //BLTU
-            printf("bltu %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
-            break;
-         case 7: //BGEU
-            printf("bgeu %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
-            break;
-         default:
-            printf("unknown BRANCH instruction %d\n",arg3);
-            break;
-         }
-         break;
-      case VM_OP_JALR:
-         //I format
-         arg3 = (op>>7)&31;
-         arg2 = (op>>12)&7;
-         arg1 = (op>>15)&7;
-         arg0 = (op>>20)&4095;
-         arg0 = (arg0<<20)>>20; //sign extend
-
-         printf("jalr %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
-         break;
-      case VM_OP_JAL:
-         arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op>>11)&1048576)|((op>>20)&2046))|((op>>9)&2048))|((op<<0)&1044480))<<11))>>11);
-         arg1 = (op>>7)&31;
-         printf("jal %s,%d\n",reg_names[arg1],arg0);
-         break;
-      case VM_OP_SYSTEM:
-         //I format
-         arg0 = (op>>20)&4095;
-         arg0 = (arg0<<20)>>20; //sign extend
-
-         switch(arg0)
-         {
-         case 0:
-            printf("scall\n");
-            break;
-         case 1:
-            printf("sbreak\n");
-            break;
-         default:
-            printf("unknown SYSTEM instruction %d\n",arg0);
-            break;
-         }
-         break;
-      default:
-         printf("Unknown instruction %d\n",op&127);
-         break;
-      }
+      vm_disassemble_instruction(op);
    }
 }
 
@@ -455,14 +197,15 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
    //arg0 - imm[31,12]
    //arg1 - rd
 
-   vm->pc = (uint8_t *)vm->mem_base+instr;
+   vm->pc = (uint8_t *)vm->code+instr;
 
    for(;;)
    {
 #if !RVR_VM_COMPUTED_GOTO
    next:
    vm->regs[0] = 0;
-   op = *vm->pc++;
+   op = *((int32_t *)vm->pc);
+   //vm_disassemble_instruction(op);
 #endif
 
       switch(op&127)
@@ -471,7 +214,7 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          //I format
          arg3 = (op>>7)&31;
          arg2 = (op>>12)&7;
-         arg1 = (op>>15)&7;
+         arg1 = (op>>15)&31;
          arg0 = (op>>20)&4095;
          arg0 = (arg0<<20)>>20; //sign extend
 
@@ -505,7 +248,7 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          //I format
          arg3 = (op>>7)&31;
          arg2 = (op>>12)&7;
-         arg1 = (op>>15)&7;
+         arg1 = (op>>15)&31;
          arg0 = (op>>20)&4095;
          arg0 = (arg0<<20)>>20; //sign extend
 
@@ -546,7 +289,7 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          arg0 = op&4294963200;
          arg1 = (op>>7)&31;
 
-         vm->regs[arg1] = (intptr_t)vm->mem_base-(intptr_t)vm->code;
+         vm->regs[arg1] = (intptr_t)vm->code-(intptr_t)vm->mem_base;
          vm->regs[arg1]+=arg0;
 
          DISPATCH();
@@ -691,20 +434,20 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          //I format
          arg3 = (op>>7)&31;
          arg2 = (op>>12)&7;
-         arg1 = (op>>15)&7;
+         arg1 = (op>>15)&31;
          arg0 = (op>>20)&4095;
          arg0 = (arg0<<20)>>20; //sign extend
 
          uint8_t *pc = vm->pc+4;
-         vm->pc = vm->pc+((vm->regs[arg1]+arg0)&-2);
-         vm->regs[arg3] = (intptr_t)vm->mem_base-(intptr_t)pc;
+         vm->pc = vm->code+((vm->regs[arg1]+arg0)&-2);
+         vm->regs[arg3] = (intptr_t)pc-(intptr_t)vm->mem_base;
 
          DISPATCH_BRANCH();
       case_OP_JAL:
          //J format
          arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op>>11)&1048576)|((op>>20)&2046))|((op>>9)&2048))|((op<<0)&1044480))<<11))>>11);
          arg1 = (op>>7)&31;
-         vm->regs[arg1] = ((intptr_t)vm->mem_base-(intptr_t)vm->pc)+4;
+         vm->regs[arg1] = ((intptr_t)vm->pc-(intptr_t)vm->mem_base)+4;
          vm->pc+=arg0;
 
          DISPATCH_BRANCH();
@@ -737,7 +480,276 @@ static uint32_t vm_syscall(RvR_vm *vm, uint32_t code)
    case 0: //exit
       vm_syscall_term = 1;
       break;
+   case 64: //puts
+      puts((char *)((uint8_t *)vm->mem_base+vm->regs[10])); 
+      break;
    }
    return 0;
+}
+
+static void vm_disassemble_instruction(uint32_t op)
+{
+   printf("0x%x: ",op);
+   static const char *reg_names[32] = {"zero","ra","sp","gp","tp","t0","t1","t2","s0/fp","s1","a0","a1","a2","a3","a4","a5","a6","a7","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","t3","t4","t5","t6"};
+   int32_t arg0;
+   int32_t arg1;
+   int32_t arg2;
+   int32_t arg3;
+   int32_t arg4;
+
+   switch(op&127)
+   {
+   case VM_OP_LOAD:
+      //I format
+      arg3 = (op>>7)&31;
+      arg2 = (op>>12)&7;
+      arg1 = (op>>15)&31;
+      arg0 = (op>>20)&4095;
+      arg0 = (arg0<<20)>>20; //sign extend
+
+      switch(arg2)
+      {
+      case 0: //LB
+         printf("lb %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 1: //LH
+         printf("lh %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 2: //LW
+         printf("lw %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 4: //LBU
+         printf("lbu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 5: //LHU
+         printf("lhu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      default:
+         printf("unknown LOAD instruction %d\n",arg2);
+         break;
+      }
+      break;
+   case VM_OP_MISC_MEM:
+      puts("fence");
+      break;
+   case VM_OP_IMM:
+      //I format
+      arg3 = (op>>7)&31;
+      arg2 = (op>>12)&7;
+      arg1 = (op>>15)&31;
+      arg0 = (op>>20)&4095;
+      arg0 = (arg0<<20)>>20; //sign extend
+
+      switch(arg2)
+      {
+      case 0: //ADDI
+         printf("addi %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 1: //SLLI
+         printf("slli %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 2: //SLTI
+         printf("slti %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 3: //SLTIU
+         printf("sltiu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 4: //XORI
+         printf("xori %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 5:  //SRLI/SRAI
+         if(arg0&1024)
+            printf("srai %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         else
+            printf("srli %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 6: //ORI
+         printf("ori %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      case 7: //ANDI
+         printf("andi %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         break;
+      default:
+         printf("unknown OP-IMM instruction %d\n",arg2);
+         break;
+      }
+      break;
+   case VM_OP_AUIPC:
+      //U format
+      arg0 = op&4294963200;
+      arg1 = (op>>7)&31;
+
+      printf("auipc %s,%d\n",reg_names[arg1],arg0);
+      break;
+   case VM_OP_STORE:
+      //S format
+      arg0 = (op>>20)&4064;
+      arg1 = (op>>20)&31;
+      arg2 = (op>>15)&31;
+      arg3 = (op>>12)&7;
+      arg0|=(op>>7)&31;
+      arg0 = (arg0<<20)>>20;
+
+      switch(arg3)
+      {
+      case 0: //SB
+         printf("sb %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         break;
+      case 1: //SH
+         printf("sh %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         break;
+      case 2: //SW
+         printf("sw %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         break;
+      default:
+         printf("unknown STORE instruction %d\n",arg3);
+         break;
+      }
+      break;
+   case VM_OP:
+      //R format
+      arg0 = (op>>25)&127;
+      arg1 = (op>>20)&31;
+      arg2 = (op>>15)&31;
+      arg3 = (op>>12)&7;
+      arg4 = (op>>7)&31;
+
+      switch((arg0<<3)|arg3)
+      {
+      case 0: //ADD
+         printf("add %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 256: //SUB
+         printf("sub %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 1: //SLL
+         printf("sll %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 2: //SLT
+         printf("slt %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 3: //SLTU
+         printf("sltu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 4: //XOR
+         printf("xor %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 5: //SRL
+         printf("srl %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 261: //SRA
+         printf("sra %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 6: //OR
+         printf("or %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 7: //AND
+         printf("and %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 8: //MUL
+         printf("mul %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 9: //MULH
+         printf("mulh %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 10: //MULHSU
+         printf("mulhsu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 11: //MULHU
+         printf("mulhu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 12: //DIV
+         printf("div %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 13: //DIVU
+         printf("divu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 14: //REM
+         printf("rem %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      case 15: //REMU
+         printf("remu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         break;
+      default:
+         printf("unknown OP instruction %d\n",(arg0<<3)|arg3);
+         break;
+      }
+      break;
+   case VM_OP_LUI:
+      //U format
+      arg0 = (op>>12)&1048575;
+      arg1 = (op>>7)&31;
+
+      printf("lui %s,%d\n",reg_names[arg1],arg0);
+      break;
+   case VM_OP_BRANCH:
+      //B format
+      arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op>>19)&4096)|((op>>20)&2016))|((op>>7)&30))|((op<<4)&2048))<<19))>>19); 
+      arg1 = (op>>20)&31;
+      arg2 = (op>>15)&31;
+      arg3 = (op>>12)&7;
+
+      switch(arg3)
+      {
+      case 0: //BEQ
+         printf("beq %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         break;
+      case 1: //BNE
+         printf("bne %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         break;
+      case 4: //BLT
+         printf("blt %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         break;
+      case 5: //BGE
+         printf("bge %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         break;
+      case 6: //BLTU
+         printf("bltu %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         break;
+      case 7: //BGEU
+         printf("bgeu %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         break;
+      default:
+         printf("unknown BRANCH instruction %d\n",arg3);
+         break;
+      }
+      break;
+   case VM_OP_JALR:
+      //I format
+      arg3 = (op>>7)&31;
+      arg2 = (op>>12)&7;
+      arg1 = (op>>15)&31;
+      arg0 = (op>>20)&4095;
+      arg0 = (arg0<<20)>>20; //sign extend
+
+      printf("jalr %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+      break;
+   case VM_OP_JAL:
+      arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op>>11)&1048576)|((op>>20)&2046))|((op>>9)&2048))|((op<<0)&1044480))<<11))>>11);
+      arg1 = (op>>7)&31;
+      printf("jal %s,%d\n",reg_names[arg1],arg0);
+      break;
+   case VM_OP_SYSTEM:
+      //I format
+      arg0 = (op>>20)&4095;
+      arg0 = (arg0<<20)>>20; //sign extend
+
+      switch(arg0)
+      {
+      case 0:
+         printf("scall\n");
+         break;
+      case 1:
+         printf("sbreak\n");
+         break;
+      default:
+         printf("unknown SYSTEM instruction %d\n",arg0);
+         break;
+      }
+      break;
+   default:
+      printf("Unknown instruction %d\n",op&127);
+      break;
+   }
 }
 //-------------------------------------

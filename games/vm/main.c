@@ -45,14 +45,16 @@ int main(int argc, char **argv)
    RvR_pak_add("test.pak");
    //RvR_pak_add("data_anarch/main.csv");
 
+   RvR_palette_load(0);
+
    RvR_vm vm = {0};
    RvR_rw rw = {0};
    RvR_rw_init_path(&rw,"test.bin","rb");
    RvR_vm_create(&vm,&rw,1<<16);
    RvR_rw_close(&rw);
 
-   RvR_vm_disassemble(&vm);
-   //RvR_vm_run(&vm,4096);
+   //RvR_vm_disassemble(&vm);
+   RvR_vm_run(&vm,4096);
 
    while(RvR_core_running())
    {
