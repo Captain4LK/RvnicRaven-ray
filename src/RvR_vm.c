@@ -222,11 +222,11 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          {
          case 0: //LB
             vm->regs[arg3] = *(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]);
-            vm->regs[arg3] = (vm->regs[arg3]<<24)>>24;
+            vm->regs[arg3] = ((int32_t)vm->regs[arg3]<<24)>>24;
             break;
          case 1: //LH
             vm->regs[arg3] = *((uint16_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
-            vm->regs[arg3] = (vm->regs[arg3]<<16)>>16;
+            vm->regs[arg3] = ((int32_t)vm->regs[arg3]<<16)>>16;
             break;
          case 2: //LW
             vm->regs[arg3] = *((uint32_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
@@ -289,7 +289,7 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          arg0 = op&4294963200;
          arg1 = (op>>7)&31;
 
-         vm->regs[arg1] = (intptr_t)vm->code-(intptr_t)vm->mem_base;
+         vm->regs[arg1] = (intptr_t)vm->pc-(intptr_t)vm->mem_base;
          vm->regs[arg1]+=arg0;
 
          DISPATCH();
@@ -480,8 +480,17 @@ static uint32_t vm_syscall(RvR_vm *vm, uint32_t code)
    case 0: //exit
       vm_syscall_term = 1;
       break;
+   case 1: //malloc
+      vm->regs[10] = (intptr_t)RvR_malloc(vm->regs[10])-(intptr_t)vm->mem_base;
+      break;
    case 64: //puts
-      puts((char *)((uint8_t *)vm->mem_base+vm->regs[10])); 
+      vm->regs[10] = puts((char *)((uint8_t *)vm->mem_base+vm->regs[10])); 
+      break;
+   case 65: //putchar
+      vm->regs[10] = putchar(vm->regs[10]); 
+      break;
+   case 128: //memset
+      vm->regs[10] = (intptr_t)memset((uint8_t *)vm->mem_base+vm->regs[10],vm->regs[11],vm->regs[12])-(intptr_t)vm->mem_base;
       break;
    }
    return 0;
@@ -489,8 +498,8 @@ static uint32_t vm_syscall(RvR_vm *vm, uint32_t code)
 
 static void vm_disassemble_instruction(uint32_t op)
 {
-   printf("0x%x: ",op);
-   static const char *reg_names[32] = {"zero","ra","sp","gp","tp","t0","t1","t2","s0/fp","s1","a0","a1","a2","a3","a4","a5","a6","a7","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","t3","t4","t5","t6"};
+   printf("%8x|",op);
+   static const char *reg_names[32] = {"zero","ra","sp","gp","tp","t0","t1","t2","s0","s1","a0","a1","a2","a3","a4","a5","a6","a7","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","t3","t4","t5","t6"};
    int32_t arg0;
    int32_t arg1;
    int32_t arg2;
@@ -510,19 +519,19 @@ static void vm_disassemble_instruction(uint32_t op)
       switch(arg2)
       {
       case 0: //LB
-         printf("lb %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         printf("lb %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
          break;
       case 1: //LH
-         printf("lh %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         printf("lh %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
          break;
       case 2: //LW
-         printf("lw %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         printf("lw %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
          break;
       case 4: //LBU
-         printf("lbu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         printf("lbu %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
          break;
       case 5: //LHU
-         printf("lhu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         printf("lhu %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
          break;
       default:
          printf("unknown LOAD instruction %d\n",arg2);
@@ -576,7 +585,7 @@ static void vm_disassemble_instruction(uint32_t op)
       break;
    case VM_OP_AUIPC:
       //U format
-      arg0 = op&4294963200;
+      arg0 = (op>>12)&1048575;
       arg1 = (op>>7)&31;
 
       printf("auipc %s,%d\n",reg_names[arg1],arg0);
@@ -593,13 +602,13 @@ static void vm_disassemble_instruction(uint32_t op)
       switch(arg3)
       {
       case 0: //SB
-         printf("sb %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         printf("sb %s,%d(%s)\n",reg_names[arg1],arg0,reg_names[arg1]);
          break;
       case 1: //SH
-         printf("sh %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         printf("sh %s,%d(%s)\n",reg_names[arg1],arg0,reg_names[arg1]);
          break;
       case 2: //SW
-         printf("sw %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         printf("sw %s,%d(%s)\n",reg_names[arg1],arg0,reg_names[arg1]);
          break;
       default:
          printf("unknown STORE instruction %d\n",arg3);
