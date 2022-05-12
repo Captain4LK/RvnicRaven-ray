@@ -221,15 +221,15 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          switch(arg2)
          {
          case 0: //LB
-            vm->regs[arg3] = *(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]);
-            vm->regs[arg3] = ((int32_t)vm->regs[arg3]<<24)>>24;
+            vm->regs[arg3] = *(((int8_t *)vm->mem_base)+arg0+vm->regs[arg1]);
+            //vm->regs[arg3] = ((int32_t)vm->regs[arg3]<<24)>>24;
             break;
          case 1: //LH
-            vm->regs[arg3] = *((uint16_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
-            vm->regs[arg3] = ((int32_t)vm->regs[arg3]<<16)>>16;
+            vm->regs[arg3] = *((int16_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
+            //vm->regs[arg3] = ((int32_t)vm->regs[arg3]<<16)>>16;
             break;
          case 2: //LW
-            vm->regs[arg3] = *((uint32_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
+            vm->regs[arg3] = *((int32_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
             break;
          case 4: //LBU
             vm->regs[arg3] = *(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]);
@@ -267,7 +267,7 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
             vm->regs[arg3] = (uint32_t)vm->regs[arg1]<(uint32_t)arg0;
             break;
          case 4: //XORI
-            vm->regs[arg3] = (uint32_t)vm->regs[arg1]^arg0;
+            vm->regs[arg3] = vm->regs[arg1]^arg0;
             break;
          case 5:  //SRLI/SRAI
             if(arg0&1024)
@@ -276,10 +276,10 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
                vm->regs[arg3] = ((uint32_t)vm->regs[arg1])>>arg0;
             break;
          case 6: //ORI
-            vm->regs[arg3] = (uint32_t)vm->regs[arg1]|arg0;
+            vm->regs[arg3] = vm->regs[arg1]|arg0;
             break;
          case 7: //ANDI
-            vm->regs[arg3] = (uint32_t)vm->regs[arg1]&arg0;
+            vm->regs[arg3] = vm->regs[arg1]&arg0;
             break;
          }
 
@@ -338,11 +338,11 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          case 2: //SLT
             vm->regs[arg4] = vm->regs[arg2]<vm->regs[arg1];
             break;
-         case 3: //SLT
+         case 3: //SLTU
             vm->regs[arg4] = (uint32_t)vm->regs[arg2]<(uint32_t)vm->regs[arg1];
             break;
          case 4: //XOR
-            vm->regs[arg4] = (uint32_t)vm->regs[arg2]^(uint32_t)vm->regs[arg1];
+            vm->regs[arg4] = vm->regs[arg2]^vm->regs[arg1];
             break;
          case 5: //SRL
             vm->regs[arg4] = (uint32_t)vm->regs[arg2]>>(vm->regs[arg1]&31);
@@ -351,10 +351,10 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
             vm->regs[arg4] = vm->regs[arg2]>>(vm->regs[arg1]&31);
             break;
          case 6: //OR
-            vm->regs[arg4] = (uint32_t)vm->regs[arg2]|(uint32_t)vm->regs[arg1];
+            vm->regs[arg4] = vm->regs[arg2]|vm->regs[arg1];
             break;
          case 7: //AND
-            vm->regs[arg4] = (uint32_t)vm->regs[arg2]&(uint32_t)vm->regs[arg1];
+            vm->regs[arg4] = vm->regs[arg2]&vm->regs[arg1];
             break;
          case 8: //MUL
             vm->regs[arg4] = vm->regs[arg2]*vm->regs[arg1];
@@ -746,10 +746,10 @@ static void vm_disassemble_instruction(uint32_t op)
       switch(arg0)
       {
       case 0:
-         printf("scall\n");
+         printf("ecall\n");
          break;
       case 1:
-         printf("sbreak\n");
+         printf("ebreak\n");
          break;
       default:
          printf("unknown SYSTEM instruction %d\n",arg0);
