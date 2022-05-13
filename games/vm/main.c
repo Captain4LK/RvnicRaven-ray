@@ -40,7 +40,7 @@ int main(int argc, char **argv)
    RvR_vm vm = {0};
    RvR_rw rw = {0};
    RvR_rw_init_path(&rw,"test.bin","rb");
-   RvR_vm_create(&vm,&rw,1<<24);
+   RvR_vm_create(&vm,&rw);
    RvR_rw_close(&rw);
 
    //RvR_vm_disassemble(&vm);

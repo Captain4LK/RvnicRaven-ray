@@ -75,7 +75,7 @@ static void vm_disassemble_instruction(uint32_t op);
 
 //Function implementations
 
-void RvR_vm_create(RvR_vm *vm, RvR_rw *code, uint32_t stack)
+void RvR_vm_create(RvR_vm *vm, RvR_rw *code)
 {
    if(vm==NULL)
       return;

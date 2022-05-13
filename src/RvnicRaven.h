@@ -393,7 +393,7 @@ struct RvR_vm
 //-------------------------------------
 
 //RvnicRaven vm functions
-void RvR_vm_create(RvR_vm *vm, RvR_rw *code, uint32_t stack);
+void RvR_vm_create(RvR_vm *vm, RvR_rw *code);
 void RvR_vm_free(RvR_vm *vm);
 void RvR_vm_disassemble(RvR_vm *vm);
 void RvR_vm_run(RvR_vm *vm, uint32_t instr);
