@@ -112,7 +112,7 @@ void RvR_vm_disassemble(RvR_vm *vm)
 
    for(int i = 0;i<vm->code_size/4;i++)
    {
-      printf("%8d|",i*4);
+      RvR_log("%8d|",i*4);
 
       int32_t op = ((uint32_t *)vm->code)[i+1024];
       vm_disassemble_instruction(op);
@@ -490,7 +490,7 @@ static uint32_t vm_syscall(RvR_vm *vm, uint32_t code)
 
 static void vm_disassemble_instruction(uint32_t op)
 {
-   printf("%8x|",op);
+   RvR_log("%8x|",op);
    static const char *reg_names[32] = {"zero","ra","sp","gp","tp","t0","t1","t2","s0","s1","a0","a1","a2","a3","a4","a5","a6","a7","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","t3","t4","t5","t6"};
    int32_t arg0;
    int32_t arg1;
@@ -511,22 +511,22 @@ static void vm_disassemble_instruction(uint32_t op)
       switch(arg2)
       {
       case 0: //LB
-         printf("lb %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
+         RvR_log("lb %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
          break;
       case 1: //LH
-         printf("lh %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
+         RvR_log("lh %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
          break;
       case 2: //LW
-         printf("lw %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
+         RvR_log("lw %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
          break;
       case 4: //LBU
-         printf("lbu %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
+         RvR_log("lbu %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
          break;
       case 5: //LHU
-         printf("lhu %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
+         RvR_log("lhu %s,%d(%s)\n",reg_names[arg3],arg0,reg_names[arg1]);
          break;
       default:
-         printf("unknown LOAD instruction %d\n",arg2);
+         RvR_log("unknown LOAD instruction %d\n",arg2);
          break;
       }
       break;
@@ -544,34 +544,34 @@ static void vm_disassemble_instruction(uint32_t op)
       switch(arg2)
       {
       case 0: //ADDI
-         printf("addi %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         RvR_log("addi %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
          break;
       case 1: //SLLI
-         printf("slli %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         RvR_log("slli %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
          break;
       case 2: //SLTI
-         printf("slti %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         RvR_log("slti %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
          break;
       case 3: //SLTIU
-         printf("sltiu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         RvR_log("sltiu %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
          break;
       case 4: //XORI
-         printf("xori %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         RvR_log("xori %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
          break;
       case 5:  //SRLI/SRAI
          if(arg0&1024)
-            printf("srai %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+            RvR_log("srai %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
          else
-            printf("srli %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+            RvR_log("srli %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
          break;
       case 6: //ORI
-         printf("ori %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         RvR_log("ori %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
          break;
       case 7: //ANDI
-         printf("andi %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+         RvR_log("andi %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
          break;
       default:
-         printf("unknown OP-IMM instruction %d\n",arg2);
+         RvR_log("unknown OP-IMM instruction %d\n",arg2);
          break;
       }
       break;
@@ -580,7 +580,7 @@ static void vm_disassemble_instruction(uint32_t op)
       arg0 = (op>>12)&1048575;
       arg1 = (op>>7)&31;
 
-      printf("auipc %s,%d\n",reg_names[arg1],arg0);
+      RvR_log("auipc %s,%d\n",reg_names[arg1],arg0);
       break;
    case VM_OP_STORE:
       //S format
@@ -594,16 +594,16 @@ static void vm_disassemble_instruction(uint32_t op)
       switch(arg3)
       {
       case 0: //SB
-         printf("sb %s,%d(%s)\n",reg_names[arg1],arg0,reg_names[arg1]);
+         RvR_log("sb %s,%d(%s)\n",reg_names[arg1],arg0,reg_names[arg1]);
          break;
       case 1: //SH
-         printf("sh %s,%d(%s)\n",reg_names[arg1],arg0,reg_names[arg1]);
+         RvR_log("sh %s,%d(%s)\n",reg_names[arg1],arg0,reg_names[arg1]);
          break;
       case 2: //SW
-         printf("sw %s,%d(%s)\n",reg_names[arg1],arg0,reg_names[arg1]);
+         RvR_log("sw %s,%d(%s)\n",reg_names[arg1],arg0,reg_names[arg1]);
          break;
       default:
-         printf("unknown STORE instruction %d\n",arg3);
+         RvR_log("unknown STORE instruction %d\n",arg3);
          break;
       }
       break;
@@ -618,61 +618,61 @@ static void vm_disassemble_instruction(uint32_t op)
       switch((arg0<<3)|arg3)
       {
       case 0: //ADD
-         printf("add %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("add %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 256: //SUB
-         printf("sub %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("sub %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 1: //SLL
-         printf("sll %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("sll %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 2: //SLT
-         printf("slt %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("slt %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 3: //SLTU
-         printf("sltu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("sltu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 4: //XOR
-         printf("xor %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("xor %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 5: //SRL
-         printf("srl %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("srl %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 261: //SRA
-         printf("sra %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("sra %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 6: //OR
-         printf("or %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("or %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 7: //AND
-         printf("and %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("and %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 8: //MUL
-         printf("mul %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("mul %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 9: //MULH
-         printf("mulh %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("mulh %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 10: //MULHSU
-         printf("mulhsu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("mulhsu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 11: //MULHU
-         printf("mulhu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("mulhu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 12: //DIV
-         printf("div %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("div %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 13: //DIVU
-         printf("divu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("divu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 14: //REM
-         printf("rem %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("rem %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       case 15: //REMU
-         printf("remu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
+         RvR_log("remu %s,%s,%s\n",reg_names[arg4],reg_names[arg2],reg_names[arg1]);
          break;
       default:
-         printf("unknown OP instruction %d\n",(arg0<<3)|arg3);
+         RvR_log("unknown OP instruction %d\n",(arg0<<3)|arg3);
          break;
       }
       break;
@@ -681,7 +681,7 @@ static void vm_disassemble_instruction(uint32_t op)
       arg0 = (op>>12)&1048575;
       arg1 = (op>>7)&31;
 
-      printf("lui %s,%d\n",reg_names[arg1],arg0);
+      RvR_log("lui %s,%d\n",reg_names[arg1],arg0);
       break;
    case VM_OP_BRANCH:
       //B format
@@ -693,25 +693,25 @@ static void vm_disassemble_instruction(uint32_t op)
       switch(arg3)
       {
       case 0: //BEQ
-         printf("beq %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         RvR_log("beq %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
          break;
       case 1: //BNE
-         printf("bne %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         RvR_log("bne %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
          break;
       case 4: //BLT
-         printf("blt %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         RvR_log("blt %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
          break;
       case 5: //BGE
-         printf("bge %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         RvR_log("bge %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
          break;
       case 6: //BLTU
-         printf("bltu %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         RvR_log("bltu %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
          break;
       case 7: //BGEU
-         printf("bgeu %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
+         RvR_log("bgeu %s,%s,%d\n",reg_names[arg2],reg_names[arg1],arg0);
          break;
       default:
-         printf("unknown BRANCH instruction %d\n",arg3);
+         RvR_log("unknown BRANCH instruction %d\n",arg3);
          break;
       }
       break;
@@ -723,12 +723,12 @@ static void vm_disassemble_instruction(uint32_t op)
       arg0 = (op>>20)&4095;
       arg0 = (arg0<<20)>>20; //sign extend
 
-      printf("jalr %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
+      RvR_log("jalr %s,%s,%d\n",reg_names[arg3],reg_names[arg1],arg0);
       break;
    case VM_OP_JAL:
       arg0 = (int32_t)(((int32_t)((uint32_t)(int32_t)(((((op>>11)&1048576)|((op>>20)&2046))|((op>>9)&2048))|((op<<0)&1044480))<<11))>>11);
       arg1 = (op>>7)&31;
-      printf("jal %s,%d\n",reg_names[arg1],arg0);
+      RvR_log("jal %s,%d\n",reg_names[arg1],arg0);
       break;
    case VM_OP_SYSTEM:
       //I format
@@ -738,18 +738,18 @@ static void vm_disassemble_instruction(uint32_t op)
       switch(arg0)
       {
       case 0:
-         printf("ecall\n");
+         RvR_log("ecall\n");
          break;
       case 1:
-         printf("ebreak\n");
+         RvR_log("ebreak\n");
          break;
       default:
-         printf("unknown SYSTEM instruction %d\n",arg0);
+         RvR_log("unknown SYSTEM instruction %d\n",arg0);
          break;
       }
       break;
    default:
-      printf("Unknown instruction %d\n",op&127);
+      RvR_log("Unknown instruction %d\n",op&127);
       break;
    }
 }
