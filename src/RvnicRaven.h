@@ -47,7 +47,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //RvnicRaven vm
 
-#define RVR_VM_STACK_SIZE 1024
+#define RVR_VM_STACK_SIZE (1<<24)
 
 #define RVR_VM_COMPUTED_GOTO 0
 //-------------------------------------
@@ -397,6 +397,7 @@ void RvR_vm_create(RvR_vm *vm, RvR_rw *code, uint32_t stack);
 void RvR_vm_free(RvR_vm *vm);
 void RvR_vm_disassemble(RvR_vm *vm);
 void RvR_vm_run(RvR_vm *vm, uint32_t instr);
+void RvR_vm_stack_free(); //Call after all vms have been destroyed
 //RvnicRaven vm functions end
 //-------------------------------------
 

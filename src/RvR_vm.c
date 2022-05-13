@@ -63,6 +63,8 @@ typedef enum
 
 //Variables
 static int vm_syscall_term = 0;
+
+static void *vm_stack = NULL;
 //-------------------------------------
 
 //Function prototypes
@@ -77,6 +79,13 @@ void RvR_vm_create(RvR_vm *vm, RvR_rw *code, uint32_t stack)
 {
    if(vm==NULL)
       return;
+
+   if(vm_stack==NULL)
+   {
+      vm_stack = RvR_malloc(RVR_VM_STACK_SIZE);
+      memset(vm_stack,0,RVR_VM_STACK_SIZE);
+   }
+
    memset(vm,0,sizeof(*vm));
 
    RvR_rw_seek(code,0,SEEK_END);
@@ -89,11 +98,6 @@ void RvR_vm_create(RvR_vm *vm, RvR_rw *code, uint32_t stack)
       ((uint32_t *)vm->code)[i] = RvR_rw_read_u32(code);
 
    vm->mem_base = vm->code;
-   vm->stack = RvR_malloc(stack);
-   vm->regs[2] = (intptr_t)vm->stack-(intptr_t)vm->mem_base;
-   vm->regs[2]+=stack;
-
-   vm->pc = vm->code+4096;
 }
 
 void RvR_vm_free(RvR_vm *vm)
@@ -103,6 +107,12 @@ void RvR_vm_free(RvR_vm *vm)
 
    RvR_free(vm->code);
    RvR_free(vm->stack);
+}
+
+void RvR_vm_stack_free()
+{
+   if(vm_stack!=NULL)
+      RvR_free(vm_stack);
 }
 
 void RvR_vm_disassemble(RvR_vm *vm)
@@ -125,6 +135,7 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
       return;
 
    vm->pc = (uint8_t *)vm->code+instr;
+   vm->regs[2] = ((intptr_t)vm_stack-(intptr_t)vm->mem_base)+RVR_VM_STACK_SIZE;
    int32_t op;
    int32_t arg0;
    int32_t arg1;
