@@ -9,8 +9,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 */
 
 /*
-Limitations: 
-   * no floating point support: RvR doesn't use floating point in general, why should the vm?
+Implements rv32im
+No float/double extensions since RvnicRaven only uses fixed point anyway
 */
 
 //External includes
@@ -27,40 +27,20 @@ Limitations:
 
 //#defines
 #if !RVR_VM_COMPUTED_GOTO
-#define case_OP_INVALID default
 
-#define case_OP_LOAD case VM_OP_LOAD
-#define case_OP_LOAD_FP case VM_OP_LOAD_FP
-#define case_OP_CUSTOM_0 case VM_OP_CUSTOM_0
+#define case_OP_INVALID  default
+#define case_OP_LOAD     case VM_OP_LOAD
 #define case_OP_MISC_MEM case VM_OP_MISC_MEM
-#define case_OP_IMM case VM_OP_IMM
-#define case_OP_AUIPC case VM_OP_AUIPC
-#define case_OP_AUIPC case VM_OP_AUIPC
-#define case_OP_IMM_32 case VM_OP_IMM_32
+#define case_OP_IMM      case VM_OP_IMM
+#define case_OP_AUIPC    case VM_OP_AUIPC
+#define case_OP_STORE    case VM_OP_STORE
+#define case_OP          case VM_OP
+#define case_OP_LUI      case VM_OP_LUI
+#define case_OP_BRANCH   case VM_OP_BRANCH
+#define case_OP_JALR     case VM_OP_JALR
+#define case_OP_JAL      case VM_OP_JAL
+#define case_OP_SYSTEM   case VM_OP_SYSTEM
 
-#define case_OP_STORE case VM_OP_STORE
-#define case_OP_STORE_FP case VM_OP_STORE_FP
-#define case_OP_CUSTOM_1 case VM_OP_CUSTOM_1
-#define case_OP_AMO case VM_OP_AMO
-#define case_OP case VM_OP
-#define case_OP_LUI case VM_OP_LUI
-#define case_OP_32 case VM_OP_32
-
-#define case_OP_MADD case VM_OP_MADD
-#define case_OP_MSUB case VM_OP_MSUB
-#define case_OP_NMSUB case VM_OP_NMSUB
-#define case_OP_NMADD case VM_OP_NMADD
-#define case_OP_FP case VM_OP_FP
-//reserved
-#define case_OP_CUSTOM_2 case VM_OP_CUSTOM_2
-
-#define case_OP_BRANCH case VM_OP_BRANCH
-#define case_OP_JALR case VM_OP_JALR
-//reserved
-#define case_OP_JAL case VM_OP_JAL
-#define case_OP_SYSTEM case VM_OP_SYSTEM
-//reserved
-#define case_OP_CUSTOM_3 case VM_OP_CUSTOM_3
 #endif
 //-------------------------------------
 
@@ -130,7 +110,6 @@ void RvR_vm_disassemble(RvR_vm *vm)
    if(vm==NULL)
       return;
 
-
    for(int i = 0;i<vm->code_size/4;i++)
    {
       printf("%8d|",i*4);
@@ -145,26 +124,40 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
    if(vm==NULL)
       return;
 
-#if RVR_VM_COMPUTED_GOTO
-
-   const void *dispatch_table[128] =
-   {
-      &&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_LOAD,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,
-      &&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_MISC_MEM,
-      &&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_INVALID,&&case_OP_IMM,
-   }
-
-#else
-#define DISPATCH() vm->pc+=4; goto next
-#define DISPATCH_BRANCH() goto next
-#endif
-
+   vm->pc = (uint8_t *)vm->code+instr;
    int32_t op;
    int32_t arg0;
    int32_t arg1;
    int32_t arg2;
    int32_t arg3;
    int32_t arg4;
+
+#if RVR_VM_COMPUTED_GOTO
+
+   void *dispatch_table[128];
+   for(int i = 0;i<128;i++)
+      dispatch_table[i] = &&case_OP_INVALID;
+   dispatch_table[3] = &&case_OP_LOAD;
+   dispatch_table[15] = &&case_OP_MISC_MEM;
+   dispatch_table[19] = &&case_OP_IMM;
+   dispatch_table[23] = &&case_OP_AUIPC;
+   dispatch_table[35] = &&case_OP_STORE;
+   dispatch_table[51] = &&case_OP;
+   dispatch_table[55] = &&case_OP_LUI;
+   dispatch_table[99] = &&case_OP_BRANCH;
+   dispatch_table[103] = &&case_OP_JALR;
+   dispatch_table[111] = &&case_OP_JAL;
+   dispatch_table[115] = &&case_OP_SYSTEM;
+
+#define DISPATCH() vm->pc+=4; vm->regs[0] = 0; op = *((int32_t *)vm->pc); goto *dispatch_table[op&127]
+#define DISPATCH_BRANCH() vm->regs[0] = 0; op = *((int32_t *)vm->pc); goto *dispatch_table[op&127]
+
+DISPATCH_BRANCH();
+
+#else
+#define DISPATCH() vm->pc+=4; goto next
+#define DISPATCH_BRANCH() goto next
+#endif
 
    //R format
    //arg0 - funct7
@@ -197,15 +190,20 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
    //arg0 - imm[31,12]
    //arg1 - rd
 
-   vm->pc = (uint8_t *)vm->code+instr;
+   //J format
+   //arg0 - imm[20]
+   //arg0 - imm[10:1]
+   //arg0 - imm[11]
+   //arg0 - imm[19:12]
+   //arg1 - rd
 
    for(;;)
    {
 #if !RVR_VM_COMPUTED_GOTO
    next:
-   vm->regs[0] = 0;
-   op = *((int32_t *)vm->pc);
-   //vm_disassemble_instruction(op);
+      vm->regs[0] = 0;
+      op = *((int32_t *)vm->pc);
+      //vm_disassemble_instruction(op);
 #endif
 
       switch(op&127)
@@ -222,11 +220,9 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          {
          case 0: //LB
             vm->regs[arg3] = *(((int8_t *)vm->mem_base)+arg0+vm->regs[arg1]);
-            //vm->regs[arg3] = ((int32_t)vm->regs[arg3]<<24)>>24;
             break;
          case 1: //LH
             vm->regs[arg3] = *((int16_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
-            //vm->regs[arg3] = ((int32_t)vm->regs[arg3]<<16)>>16;
             break;
          case 2: //LW
             vm->regs[arg3] = *((int32_t *)(((uint8_t *)vm->mem_base)+arg0+vm->regs[arg1]));
@@ -240,7 +236,6 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          }
          
          DISPATCH();
-
       case_OP_MISC_MEM:
          //TODO?
          DISPATCH();
@@ -433,7 +428,6 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
       case_OP_JALR:
          //I format
          arg3 = (op>>7)&31;
-         arg2 = (op>>12)&7;
          arg1 = (op>>15)&31;
          arg0 = (op>>20)&4095;
          arg0 = (arg0<<20)>>20; //sign extend
@@ -469,6 +463,8 @@ void RvR_vm_run(RvR_vm *vm, uint32_t instr)
          }
 
          DISPATCH();
+      case_OP_INVALID:
+         DISPATCH();
       }
    }
 }
@@ -481,17 +477,13 @@ static uint32_t vm_syscall(RvR_vm *vm, uint32_t code)
       vm_syscall_term = 1;
       break;
    case 1: //malloc
-      vm->regs[10] = (intptr_t)RvR_malloc(vm->regs[10])-(intptr_t)vm->mem_base;
-      break;
+      return (intptr_t)RvR_malloc(vm->regs[10])-(intptr_t)vm->mem_base;
    case 64: //puts
-      vm->regs[10] = puts((char *)((uint8_t *)vm->mem_base+vm->regs[10])); 
-      break;
+      return puts((char *)((uint8_t *)vm->mem_base+vm->regs[10])); 
    case 65: //putchar
-      vm->regs[10] = putchar(vm->regs[10]); 
-      break;
+      return putchar(vm->regs[10]); 
    case 128: //memset
-      vm->regs[10] = (intptr_t)memset((uint8_t *)vm->mem_base+vm->regs[10],vm->regs[11],vm->regs[12])-(intptr_t)vm->mem_base;
-      break;
+      return (intptr_t)memset((uint8_t *)vm->mem_base+vm->regs[10],vm->regs[11],vm->regs[12])-(intptr_t)vm->mem_base;
    }
    return 0;
 }
