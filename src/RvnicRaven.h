@@ -47,7 +47,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //RvnicRaven vm
 
-#define RVR_VM_STACK_SIZE (1<<24)
+#define RVR_VM_STACK_SIZE (1<<20)
 
 #define RVR_VM_COMPUTED_GOTO 0
 //-------------------------------------
