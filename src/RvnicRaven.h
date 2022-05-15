@@ -384,6 +384,7 @@ struct RvR_vm
    void *stack;
 
    int32_t code_size;
+   uint32_t pc_entry;
 
    //Registers
    uint8_t *pc;

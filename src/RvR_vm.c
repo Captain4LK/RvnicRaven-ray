@@ -88,14 +88,26 @@ void RvR_vm_create(RvR_vm *vm, RvR_rw *code)
 
    memset(vm,0,sizeof(*vm));
 
-   RvR_rw_seek(code,0,SEEK_END);
-   size_t size = RvR_rw_tell(code);
-   RvR_rw_seek(code,0,SEEK_SET);
+   vm->pc_entry = RvR_rw_read_u32(code);
+   size_t size = RvR_rw_read_u32(code);
+   uint32_t entry_count = RvR_rw_read_u32(code);
 
    vm->code_size = size;
    vm->code = RvR_malloc(size);
-   for(int i = 0;i<size/sizeof(uint32_t);i++)
-      ((uint32_t *)vm->code)[i] = RvR_rw_read_u32(code);
+
+   for(int i = 0;i<entry_count;i++)
+   {
+      uint32_t offset = RvR_rw_read_u32(code);
+      uint32_t addr = RvR_rw_read_u32(code);
+      uint32_t filesz = RvR_rw_read_u32(code);
+      uint32_t memsz = RvR_rw_read_u32(code);
+
+      size_t pos = RvR_rw_tell(code);
+      memset(vm->code+addr,0,memsz);
+      RvR_rw_seek(code,offset,SEEK_SET);
+      RvR_rw_read(code,vm->code+addr,1,filesz);
+      RvR_rw_seek(code,pos,SEEK_SET);
+   }
 
    vm->mem_base = vm->code;
 }

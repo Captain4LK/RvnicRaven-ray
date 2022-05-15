@@ -44,7 +44,7 @@ int main(int argc, char **argv)
    RvR_rw_close(&rw);
 
    //RvR_vm_disassemble(&vm);
-   RvR_vm_run(&vm,4096);
+   RvR_vm_run(&vm,vm.pc_entry);
 
    return 0;
 }
