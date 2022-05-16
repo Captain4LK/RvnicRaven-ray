@@ -500,7 +500,22 @@ static uint32_t vm_syscall(RvR_vm *vm, uint32_t code)
       vm_syscall_term = 1;
       break;
    case 1: //malloc
-      return (intptr_t)RvR_malloc(vm->regs[10])-(intptr_t)vm->mem_base;
+      {
+         void *mem = RvR_malloc(vm->regs[10]);
+         if(mem==NULL)
+            return 0;
+         return (intptr_t)mem-(intptr_t)vm->mem_base;
+      }
+   case 2: //realloc
+      {
+         void *mem = RvR_realloc((uint8_t *)vm->mem_base+vm->regs[10],vm->regs[11]);
+         if(mem==NULL)
+            return 0;
+         return (intptr_t)mem-(intptr_t)vm->mem_base;
+      }
+   case 3: //free
+      RvR_free((uint8_t *)vm->mem_base+vm->regs[10]);
+      break;
    case 64: //puts
       return puts((char *)((uint8_t *)vm->mem_base+vm->regs[10])); 
    case 65: //putchar
