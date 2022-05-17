@@ -1,0 +1,57 @@
+/*
+RvnicRaven retro game engine
+
+Written in 2022 by Lukas Holzbeierlein (Captain4LK) email: captain4lk [at] tutanota [dot] com
+
+To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+*/
+
+#ifndef _RVR_LIBC_H_
+
+#define _RVR_LIBC_H_
+
+#include <stdint.h>
+#include <stdarg.h>
+#include <stddef.h>
+
+//ctype.h
+int isalnum(int c);
+int isalpha(int c);
+int iscntrl(int c);
+int isdigit(int c);
+int isgraph(int c);
+int islower(int c);
+int isprint(int c);
+int ispunct(int c);
+int isspace(int c);
+int isupper(int c);
+int isxdigit(int c);
+int tolower(int c);
+int toupper(int c);
+
+//string.h
+void	*memchr(const void *ptr, int c, size_t count);
+int	 memcmp(const void *lhs, const void *rhs, size_t count);
+void	*memcpy(void * restrict dest, const void * restrict src, size_t count);
+void	*memmove(void *dest, const void *src, size_t count);
+void	*memset(void *dest, int c, size_t count);
+char	*strcat(char * restrict dest, const char * restrict src);
+char	*strchr(const char *str, int c);
+int	 strcmp(const char *lhs, const char *rhs);
+char	*strcpy(char * restrict dest, const char * restrict src);
+int	 strcspn(char *s, char *set);
+
+char	*strdup(char *s);
+char	*strerror(int err);
+int	 strlen(char *s);
+char	*strncat(char *s, char *a, int len);
+int	 strncmp(char *s1, char *s2, int len);
+char	*strncpy(char *dest, char *src, int len);
+char	*strpbrk(char *s, char *set);
+char	*strrchr(char *s, int c);
+int	 strspn(char *s, char *set);
+char	*strtok(char *s, char *sep);
+
+#endif
