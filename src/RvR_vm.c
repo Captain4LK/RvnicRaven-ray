@@ -19,6 +19,7 @@ No float/double extensions since RvnicRaven only uses fixed point anyway
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 //-------------------------------------
 
 //Internal includes
@@ -499,29 +500,52 @@ static uint32_t vm_syscall(RvR_vm *vm, uint32_t code)
    case 0: //exit
       vm_syscall_term = 1;
       break;
-   case 1: //malloc
+   case 1: //memchr
       {
-         void *mem = RvR_malloc(vm->regs[10]);
-         if(mem==NULL)
-            return 0;
-         return (intptr_t)mem-(intptr_t)vm->mem_base;
+         void *res = memchr((uint8_t *)vm->mem_base+vm->regs[10],vm->regs[11],vm->regs[12]);
+         return res==NULL?0:(intptr_t)res-(intptr_t)vm->mem_base;
       }
-   case 2: //realloc
-      {
-         void *mem = RvR_realloc((uint8_t *)vm->mem_base+vm->regs[10],vm->regs[11]);
-         if(mem==NULL)
-            return 0;
-         return (intptr_t)mem-(intptr_t)vm->mem_base;
-      }
-   case 3: //free
-      RvR_free((uint8_t *)vm->mem_base+vm->regs[10]);
-      break;
-   case 64: //puts
-      return puts((char *)((uint8_t *)vm->mem_base+vm->regs[10])); 
-   case 65: //putchar
-      return putchar(vm->regs[10]); 
-   case 128: //memset
+   case 2: //memcmp
+      return memcmp((uint8_t *)vm->mem_base+vm->regs[10],(uint8_t *)vm->mem_base+vm->regs[11],vm->regs[12]);
+   case 3: //memcpy
+      return (intptr_t)memcpy((uint8_t *)vm->mem_base+vm->regs[10],(uint8_t *)vm->mem_base+vm->regs[11],vm->regs[12])-(intptr_t)vm->mem_base;
+   case 4: //memmove
+      return (intptr_t)memmove((uint8_t *)vm->mem_base+vm->regs[10],(uint8_t *)vm->mem_base+vm->regs[11],vm->regs[12])-(intptr_t)vm->mem_base;
+   case 5: //memset
       return (intptr_t)memset((uint8_t *)vm->mem_base+vm->regs[10],vm->regs[11],vm->regs[12])-(intptr_t)vm->mem_base;
+   case 6: //strcat
+      return (intptr_t)strcat((char *)((uint8_t *)vm->mem_base+vm->regs[10]),(char *)((uint8_t *)vm->mem_base+vm->regs[11]))-(intptr_t)vm->mem_base;
+   case 7: //strchr
+      {
+         void *res = strchr((char *)((uint8_t *)vm->mem_base+vm->regs[10]),vm->regs[11]);
+         return res==NULL?0:(intptr_t)res-(intptr_t)vm->mem_base;
+      }
+   case 8: //strcmp
+      return strcmp((char *)((uint8_t *)vm->mem_base+vm->regs[10]),(char *)((uint8_t *)vm->mem_base+vm->regs[11]));
+   case 9: //strcpy
+      return (intptr_t)strcpy((char *)((uint8_t *)vm->mem_base+vm->regs[10]),(char *)((uint8_t *)vm->mem_base+vm->regs[11]))-(intptr_t)vm->mem_base;
+   case 10: //strcspn
+      return strcspn((char *)((uint8_t *)vm->mem_base+vm->regs[10]),(char *)((uint8_t *)vm->mem_base+vm->regs[11]));
+   case 11: //strlen
+      return strlen((char *)((uint8_t *)vm->mem_base+vm->regs[10]));
+   case 12: //strncat
+      return (intptr_t)strncat((char *)((uint8_t *)vm->mem_base+vm->regs[10]),(char *)((uint8_t *)vm->mem_base+vm->regs[11]),vm->regs[12])-(intptr_t)vm->mem_base;
+   case 13: //strncmp
+      return strncmp((char *)((uint8_t *)vm->mem_base+vm->regs[10]),(char *)((uint8_t *)vm->mem_base+vm->regs[11]),vm->regs[12]);
+   case 14: //strncpy
+      return (intptr_t)strncmp((char *)((uint8_t *)vm->mem_base+vm->regs[10]),(char *)((uint8_t *)vm->mem_base+vm->regs[11]),vm->regs[12])-(intptr_t)vm->mem_base;
+   case 15: //strpbrk
+      {
+         void *res = strpbrk((char *)((uint8_t *)vm->mem_base+vm->regs[10]),(char *)((uint8_t *)vm->mem_base+vm->regs[11]));
+         return res==NULL?0:(intptr_t)res-(intptr_t)vm->mem_base;
+      }
+   case 16: //strrchr
+      {
+         void *res = strrchr((char *)((uint8_t *)vm->mem_base+vm->regs[10]),vm->regs[11]);
+         return res==NULL?0:(intptr_t)res-(intptr_t)vm->mem_base;
+      }
+   case 17: //strspn
+      return strspn((char *)((uint8_t *)vm->mem_base+vm->regs[10]),(char *)((uint8_t *)vm->mem_base+vm->regs[11]));
    }
    return 0;
 }

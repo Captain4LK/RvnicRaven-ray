@@ -24,16 +24,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-//-------------------------------------
-
-//Variables
-//-------------------------------------
-
-//Function prototypes
-//-------------------------------------
-
-//Function implementations
-
 enum
 {
    U = 0x01, //upper case
@@ -45,7 +35,9 @@ enum
    S = 0x40, //space
    G = 0x80  //graph
 };
+//-------------------------------------
 
+//Variables
 static const char ctypes[] =
 {
    C, C, C, C, C, C, C, C,
@@ -65,6 +57,12 @@ static const char ctypes[] =
    G|L,  G|L,  G|L,  G|L,  G|L,  G|L,  G|L,  G|L,
    G|L,  G|L,  G|L,  G|P,  G|P,  G|P,  G|P,  C,
 };
+//-------------------------------------
+
+//Function prototypes
+//-------------------------------------
+
+//Function implementations
 
 int isalnum(int c) { return 0!=(ctypes[c&127]&(D|U|L)); }
 int isalpha(int c) { return 0!=(ctypes[c&127]&(U|L)); }

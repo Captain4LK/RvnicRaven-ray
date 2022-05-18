@@ -32,26 +32,24 @@ int tolower(int c);
 int toupper(int c);
 
 //string.h
-void	*memchr(const void *ptr, int c, size_t count);
-int	 memcmp(const void *lhs, const void *rhs, size_t count);
-void	*memcpy(void * restrict dest, const void * restrict src, size_t count);
-void	*memmove(void *dest, const void *src, size_t count);
-void	*memset(void *dest, int c, size_t count);
-char	*strcat(char * restrict dest, const char * restrict src);
-char	*strchr(const char *str, int c);
-int	 strcmp(const char *lhs, const char *rhs);
-char	*strcpy(char * restrict dest, const char * restrict src);
-int	 strcspn(char *s, char *set);
-
-char	*strdup(char *s);
-char	*strerror(int err);
-int	 strlen(char *s);
-char	*strncat(char *s, char *a, int len);
-int	 strncmp(char *s1, char *s2, int len);
-char	*strncpy(char *dest, char *src, int len);
-char	*strpbrk(char *s, char *set);
-char	*strrchr(char *s, int c);
-int	 strspn(char *s, char *set);
-char	*strtok(char *s, char *sep);
+void  *memchr(const void *ptr, int c, size_t count);
+int    memcmp(const void *lhs, const void *rhs, size_t count);
+void  *memcpy(void * restrict dest, const void * restrict src, size_t count);
+void  *memmove(void *dest, const void *src, size_t count);
+void  *memset(void *dest, int c, size_t count);
+char  *strcat(char * restrict dest, const char * restrict src);
+char  *strchr(const char *str, int c);
+int    strcmp(const char *lhs, const char *rhs);
+char  *strcpy(char * restrict dest, const char * restrict src);
+size_t strcspn(const char *dest, const char *src);
+char  *strerror(int errnum);
+size_t strlen(const char *str);
+char  *strncat(char * restrict dest, const char * restrict src, size_t count);
+int    strncmp(const char *lhs, const char *rhs, size_t count);
+char  *strncpy(char * restrict dest, const char * restrict src, size_t count);
+char  *strpbrk(const char *dest, const char *breakset);
+char  *strrchr(const char *str, int c);
+size_t strspn(const char *dest, const char *src);
+char  *strtok(char * restrict src, const char * restrict delim);
 
 #endif
