@@ -546,6 +546,26 @@ static uint32_t vm_syscall(RvR_vm *vm, uint32_t code)
       }
    case 17: //strspn
       return strspn((char *)((uint8_t *)vm->mem_base+vm->regs[10]),(char *)((uint8_t *)vm->mem_base+vm->regs[11]));
+   case 18: //abort
+      vm_syscall_term = 1;
+      break;
+   case 19: //atoi
+      return atoi((char *)((uint8_t *)vm->mem_base+vm->regs[10]));
+   case 20: //free
+      RvR_free((uint8_t *)vm->mem_base+vm->regs[10]);
+      break;
+   case 21: //malloc
+      {
+         void *res = RvR_malloc(vm->regs[10]);
+         return res==NULL?0:(intptr_t)res-(intptr_t)vm->mem_base;
+      }
+   case 22: //rand
+      return rand();
+   case 23: //realloc
+      {
+         void *res = RvR_realloc((uint8_t *)vm->mem_base+vm->regs[10],vm->regs[11]);
+         return res==NULL?0:(intptr_t)res-(intptr_t)vm->mem_base;
+      }
    }
    return 0;
 }

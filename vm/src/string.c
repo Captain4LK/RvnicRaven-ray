@@ -202,7 +202,7 @@ size_t strspn(const char *dest, const char *src)
 
 char *strtok(char * restrict src, const char * restrict delim)
 {
-   static char	*s = 0;
+   static char	*s = NULL;
    char *p;
 
    if(src==NULL)

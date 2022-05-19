@@ -52,4 +52,17 @@ char  *strrchr(const char *str, int c);
 size_t strspn(const char *dest, const char *src);
 char  *strtok(char * restrict src, const char * restrict delim);
 
+//stdlib.h
+void   abort();
+int    abs(int n);
+int    atoi(const char *s);
+void  *bsearch(const void *key, const void *ptr, size_t count, size_t size, int (*cmp)(const void *, const void *));
+void  *calloc(size_t num, size_t size);
+void   exit(int exit_code);
+void   free(void *ptr);
+void  *malloc(size_t size);
+void   qsort(void *array, size_t count, size_t size, int (*cmp)(const void *, const void *));
+int    rand();
+void  *realloc(void *ptr, size_t new_size);
+
 #endif
