@@ -65,4 +65,8 @@ void   qsort(void *array, size_t count, size_t size, int (*cmp)(const void *, co
 int    rand();
 void  *realloc(void *ptr, size_t new_size);
 
+//stdio.h
+int puts(const char *str);
+int putchar(int ch);
+
 #endif

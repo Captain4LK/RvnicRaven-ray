@@ -566,6 +566,10 @@ static uint32_t vm_syscall(RvR_vm *vm, uint32_t code)
          void *res = RvR_realloc((uint8_t *)vm->mem_base+vm->regs[10],vm->regs[11]);
          return res==NULL?0:(intptr_t)res-(intptr_t)vm->mem_base;
       }
+   case 24: //puts
+      return puts((char *)((uint8_t *)vm->mem_base+vm->regs[10]));
+   case 25: //putchar
+      return putchar(vm->regs[10]);
    }
    return 0;
 }
