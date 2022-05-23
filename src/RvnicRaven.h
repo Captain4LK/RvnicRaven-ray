@@ -200,7 +200,7 @@ typedef struct
 
 //RvnicRaven core functions
 
-RvR_config RvR_ini_parse(const char *path);
+RvR_config RvR_ini_parse(RvR_rw *rw);
 void       RvR_ini_free(RvR_config config);
 void       RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char *ident);
 

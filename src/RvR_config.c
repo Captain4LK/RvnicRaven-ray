@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 //-------------------------------------
 
 //Internal includes
@@ -34,65 +35,48 @@ static RvR_key config_strtokey(const char *s);
 
 //Function implementations
 
-RvR_config RvR_ini_parse(const char *path)
+RvR_config RvR_ini_parse(RvR_rw *rw)
 {
-   char *buffer_in = NULL;
-   char *kv = NULL;
-   int32_t size = 0;
-   FILE *in = NULL;
+   RvR_error_check(rw!=NULL,"RvR_ini_parse","argument 'rw' must be non-NULL\n");
 
-   RvR_error_check(path!=NULL,"RvR_ini_parse","argument 'path' must be non-NULL\n");
-   in = fopen(path,"rb");
-   RvR_error_check(in!=NULL,"RvR_ini_parse","failed to open '%s'\n",path);
-
-   RvR_error_check(fseek(in,0,SEEK_END)==0,"RvR_ini_parse","fseek() failed\n");
-   size = ftell(in);
-   RvR_error_check(size!=EOF,"RvR_ini_parse","ftell() failed\n");
-   RvR_error_check(fseek(in,0,SEEK_SET)==0,"RvR_ini_parse","fseek() failed\n");
-   buffer_in = RvR_malloc(size+1);
-   RvR_error_check(fread(buffer_in,size,1,in)==1,"RvR_ini_parse","fread() failed\n");
+   RvR_rw_seek(rw,0,SEEK_END);
+   int32_t size = RvR_rw_tell(rw);
+   RvR_rw_seek(rw,0,SEEK_SET);
+   char *buffer_in = RvR_malloc(sizeof(*buffer_in)*(size+1));
+   RvR_rw_read(rw,buffer_in,sizeof(*buffer_in)*size,1);
    buffer_in[size] = '\0';
-   RvR_error_check(fclose(in)!=EOF,"RvR_ini_parse","fclose() failed\n");
-   in = NULL;
 
-   kv = config_ini(buffer_in);
-   RvR_error_check(kv!=NULL,"RvR_ini_parse","failed to parse ini file ('%s')\n",path);
+   char *kv = config_ini(buffer_in);
+   RvR_error_check(kv!=NULL,"RvR_ini_parse","failed to parse ini file\n");
 
    RvR_free(buffer_in);
 
    return kv;
 
-RvR_err:
-
-   if(in!=NULL)
-      fclose(in);
-
-   if(kv!=NULL)
-      RvR_free(kv);
-
-   if(buffer_in!=NULL)
-      RvR_free(buffer_in);
-
-   return NULL;
+   RvR_err:
+      return NULL;
 }
 
 void RvR_ini_free(RvR_config config)
 {
+   RvR_error_check(config!=NULL,"RvR_ini_free","argument 'config' must be non-NULL\n");
+
    RvR_free(config);
+
+RvR_err:
+   return;
 }
 
 void RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char *ident)
 {
-   uint64_t hash = RvR_fnv64a(ident);
-   uint64_t hash_key = 0;
+   RvR_error_check(config!=NULL,"RvR_ini_read","argument 'config' must be non-NULL\n");
+   RvR_error_check(dst!=NULL,"RvR_ini_read","argument 'dst' must be non-NULL\n");
+   RvR_error_check(ident!=NULL,"RvR_ini_read","argument 'ident' must be non-NULL\n");
 
    char *iter = NULL;
    for(iter = config;iter[0];)
    {
-      //Read key
-      hash_key = RvR_fnv64a(iter);
-
-      if(hash_key==hash)
+      if(strcmp(ident,iter)==0)
       {
          while(*iter++);
          
@@ -108,6 +92,11 @@ void RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char
       while(*iter++);
       while(*iter++);
    }
+
+   RvR_error_fail("RvR_ini_read","identifier '%s' not found in ini\n",ident);
+
+RvR_err:
+   return;
 }
 
 //Ini parser by r-lyeh: https://github.com/r-lyeh/tinybits
@@ -183,6 +172,8 @@ static char *config_ini(const char *s)
 
 static RvR_key config_strtokey(const char *s)
 {
+   RvR_error_check(s!=NULL,"RvR_ini_read","argument 's' must be non-NULL\n");
+
    uint32_t hash_key = RvR_fnv32a(s);
    RvR_log("ikey: %s;%u\n",s,hash_key);
 
@@ -227,5 +218,8 @@ static RvR_key config_strtokey(const char *s)
    case 0x3553e285: return RVR_KEY_SPACE; //'space'
    default: return RVR_KEY_NONE;
    }
+
+RvR_err:
+   return RVR_KEY_NONE;
 }
 //-------------------------------------
