@@ -276,9 +276,9 @@ void editor2d_update()
    }
 
    static Map_sprite *sprite_move = NULL;
-   if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT)&&sprite_sel!=NULL)
+   if(RvR_core_key_pressed(RVR_BUTTON_LEFT)&&sprite_sel!=NULL)
       sprite_move = sprite_sel;
-   if(RvR_core_mouse_released(RVR_BUTTON_LEFT))
+   if(RvR_core_key_released(RVR_BUTTON_LEFT))
       sprite_move = NULL;
 
    if(sprite_move!=NULL)
@@ -317,7 +317,7 @@ void editor2d_update()
       map_sprite_add(ms);
    }
 
-   if(RvR_core_mouse_pressed(RVR_BUTTON_RIGHT))
+   if(RvR_core_key_pressed(RVR_BUTTON_RIGHT))
    {
       mouse_scroll = 1;
       RvR_core_mouse_relative(1);
@@ -326,7 +326,7 @@ void editor2d_update()
       camera.pos.y = ((scroll_y+my)*1024)/grid_size;
    }
 
-   if(RvR_core_mouse_released(RVR_BUTTON_RIGHT))
+   if(RvR_core_key_released(RVR_BUTTON_RIGHT))
    {
       mouse_scroll = 0;
       RvR_core_mouse_relative(0);

@@ -89,6 +89,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 typedef enum 
 {
    RVR_KEY_NONE,
+
    RVR_KEY_A,RVR_KEY_B,RVR_KEY_C,RVR_KEY_D,RVR_KEY_E,RVR_KEY_F,RVR_KEY_G,
    RVR_KEY_H,RVR_KEY_I,RVR_KEY_J,RVR_KEY_K,RVR_KEY_L,RVR_KEY_M,RVR_KEY_N,
    RVR_KEY_O,RVR_KEY_P,RVR_KEY_Q,RVR_KEY_R,RVR_KEY_S,RVR_KEY_T,RVR_KEY_U,
@@ -104,6 +105,9 @@ typedef enum
    RVR_KEY_BACK,RVR_KEY_ESCAPE,RVR_KEY_RETURN,RVR_KEY_ENTER,RVR_KEY_PAUSE,RVR_KEY_SCROLL,
    RVR_KEY_NP0,RVR_KEY_NP1,RVR_KEY_NP2,RVR_KEY_NP3,RVR_KEY_NP4,RVR_KEY_NP5,RVR_KEY_NP6,RVR_KEY_NP7,RVR_KEY_NP8,RVR_KEY_NP9,
    RVR_KEY_NP_MUL,RVR_KEY_NP_DIV,RVR_KEY_NP_ADD,RVR_KEY_NP_SUB,RVR_KEY_NP_DECIMAL, RVR_KEY_NP_ENTER,
+
+   RVR_BUTTON_LEFT,RVR_BUTTON_RIGHT,RVR_BUTTON_MIDDLE,RVR_BUTTON_X1,RVR_BUTTON_X2,
+
    RVR_KEY_MAX,
 }RvR_key;
 
@@ -114,12 +118,6 @@ typedef enum
    RVR_PAD_RIGHTSHOULDER, RVR_PAD_UP, RVR_PAD_DOWN, RVR_PAD_LEFT, RVR_PAD_RIGHT,
    RVR_PAD_MAX,
 }RvR_gamepad_button;
-
-typedef enum 
-{
-   RVR_BUTTON_LEFT,RVR_BUTTON_RIGHT,RVR_BUTTON_MIDDLE,RVR_BUTTON_X1,RVR_BUTTON_X2,
-   RVR_BUTTON_MAX,
-}RvR_mouse_button;
 
 typedef enum
 {
@@ -218,9 +216,6 @@ int  RvR_core_frametime_average();
 int  RvR_core_key_down(RvR_key key);
 int  RvR_core_key_pressed(RvR_key key);
 int  RvR_core_key_released(RvR_key key);
-int  RvR_core_mouse_down(RvR_mouse_button button);
-int  RvR_core_mouse_pressed(RvR_mouse_button button);
-int  RvR_core_mouse_released(RvR_mouse_button button);
 int  RvR_core_mouse_wheel_scroll();
 int  RvR_core_gamepad_down(int index, RvR_gamepad_button button);
 int  RvR_core_gamepad_pressed(int index, RvR_gamepad_button button);

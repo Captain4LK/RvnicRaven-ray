@@ -140,14 +140,14 @@ void editor3d_update()
       }
 
       //To prevent accidental texture editing after selecting a texture
-      if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
+      if(RvR_core_key_pressed(RVR_BUTTON_LEFT))
       {
          if(wlocation==4&&sprite_selec!=NULL)
             sprite_selec->texture = texture_selected;
          else
             brush = 1;
       }
-      if(RvR_core_mouse_released(RVR_BUTTON_LEFT))
+      if(RvR_core_key_released(RVR_BUTTON_LEFT))
          brush = 0;
       if(brush)
       {
@@ -202,7 +202,7 @@ void editor3d_update()
 
       if(mx/64<RVR_XRES/64)
       {
-         if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
+         if(RvR_core_key_pressed(RVR_BUTTON_LEFT))
          {
             int index = texture_list_used_wrap(texture_list_used.data_last-(mx/64+(texture_selection_scroll+my/64)*RVR_XRES/64));
             texture_selected = texture_list_used.data[index];
@@ -228,7 +228,7 @@ void editor3d_update()
 
       if(mx/64<RVR_XRES/64)
       {
-         if(RvR_core_mouse_pressed(RVR_BUTTON_LEFT))
+         if(RvR_core_key_pressed(RVR_BUTTON_LEFT))
          {
             unsigned index = mx/64+(texture_selection_scroll+my/64)*RVR_XRES/64;
             if(index<texture_list.data_used)

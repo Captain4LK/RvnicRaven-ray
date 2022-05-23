@@ -51,8 +51,6 @@ static uint8_t mouse_map[6];
 static uint8_t gamepad_map[SDL_CONTROLLER_BUTTON_MAX];
 static uint8_t new_key_state[RVR_KEY_MAX];
 static uint8_t old_key_state[RVR_KEY_MAX];
-static uint8_t new_mouse_state[RVR_BUTTON_MAX];
-static uint8_t old_mouse_state[RVR_BUTTON_MAX];
 static Gamepad gamepads[MAX_CONTROLLERS];
 static int mouse_x_rel;
 static int mouse_y_rel;
@@ -264,8 +262,6 @@ void RvR_backend_init(const char *title, int scale)
    //should already be empty since known at compile time
    memset(new_key_state,0,sizeof(new_key_state));
    memset(old_key_state,0,sizeof(old_key_state));
-   memset(new_mouse_state,0,sizeof(new_mouse_state));
-   memset(old_mouse_state,0,sizeof(old_mouse_state));
    for(int i = 0;i<MAX_CONTROLLERS;i++)
    {
       memset(gamepads[i].new_button_state,0,sizeof(gamepads[i].new_button_state));
@@ -301,7 +297,6 @@ void RvR_backend_update()
 
    mouse_wheel = 0;
    memcpy(old_key_state,new_key_state,sizeof(new_key_state));
-   memcpy(old_mouse_state,new_mouse_state,sizeof(new_mouse_state));
    for(int i = 0;i<MAX_CONTROLLERS;i++)
       memcpy(gamepads[i].old_button_state,gamepads[i].new_button_state,sizeof(gamepads[0].new_button_state));
 
@@ -330,11 +325,11 @@ void RvR_backend_update()
          break;
       case SDL_MOUSEBUTTONDOWN:
          if(event.button.state==SDL_PRESSED)
-            new_mouse_state[mouse_map[event.button.button]] = 1;
+            new_key_state[mouse_map[event.button.button]] = 1;
          break;
       case SDL_MOUSEBUTTONUP:
          if(event.button.state==SDL_RELEASED)
-            new_mouse_state[mouse_map[event.button.button]] = 0;
+            new_key_state[mouse_map[event.button.button]] = 0;
          break;       
       case SDL_TEXTINPUT:
          if(text_input_active&&strlen(text_input)+strlen(event.text.text)<text_input_max)
@@ -502,21 +497,6 @@ int RvR_backend_key_pressed(int key)
 int RvR_backend_key_released(int key)
 {
    return !new_key_state[key]&&old_key_state[key];
-}
-
-int RvR_backend_mouse_down(int key)
-{
-   return new_mouse_state[key];
-}
-
-int RvR_backend_mouse_pressed(int key)
-{
-   return new_mouse_state[key]&&!old_mouse_state[key];
-}
-
-int RvR_backend_mouse_released(int key)
-{
-   return !new_mouse_state[key]&&old_mouse_state[key];
 }
 
 int RvR_backend_mouse_wheel_get_scroll()

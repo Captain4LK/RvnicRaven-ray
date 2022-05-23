@@ -94,21 +94,6 @@ int RvR_core_key_released(RvR_key key)
    return RvR_backend_key_released(key);
 }
 
-int RvR_core_mouse_down(RvR_mouse_button button)
-{
-   return RvR_backend_mouse_down(button);
-}
-
-int RvR_core_mouse_pressed(RvR_mouse_button button)
-{
-   return RvR_backend_mouse_pressed(button);
-}
-
-int RvR_core_mouse_released(RvR_mouse_button button)
-{
-   return RvR_backend_mouse_released(button);
-}
-
 int RvR_core_mouse_wheel_scroll()
 {
    return RvR_backend_mouse_wheel_get_scroll();
