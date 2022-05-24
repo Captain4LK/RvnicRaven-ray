@@ -198,36 +198,35 @@ typedef struct
 
 //RvnicRaven core functions
 
-RvR_config RvR_ini_parse(RvR_rw *rw);
-void       RvR_ini_free(RvR_config config);
-void       RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char *ident);
-
-void RvR_core_quit();
-void RvR_core_init(char *title, int scale);
-void RvR_core_mouse_relative(int relative);
-void RvR_core_mouse_show(int show);
-void RvR_core_key_repeat(int repeat);
-int  RvR_core_running();
-void RvR_core_update();
-void RvR_core_render_present();
-int  RvR_core_frametime();
-int  RvR_core_frametime_average();
+void     RvR_core_init(char *title, int scale);
+void     RvR_core_quit();
+int      RvR_core_running();
+void     RvR_core_update();
+int      RvR_core_frametime();
+int      RvR_core_frametime_average();
+void     RvR_core_render_present();
+uint8_t *RvR_core_framebuffer();
+uint32_t RvR_core_frame();
 
 int  RvR_core_key_down(RvR_key key);
 int  RvR_core_key_pressed(RvR_key key);
 int  RvR_core_key_released(RvR_key key);
-int  RvR_core_mouse_wheel_scroll();
+void RvR_core_key_repeat(int repeat);
 int  RvR_core_gamepad_down(int index, RvR_gamepad_button button);
 int  RvR_core_gamepad_pressed(int index, RvR_gamepad_button button);
 int  RvR_core_gamepad_released(int index, RvR_gamepad_button button);
 void RvR_core_mouse_relative_pos(int *x, int *y);
 void RvR_core_mouse_pos(int *x, int *y);
 void RvR_core_mouse_set_pos(int x, int y);
+void RvR_core_mouse_relative(int relative);
+void RvR_core_mouse_show(int show);
+int  RvR_core_mouse_wheel_scroll();
 void RvR_core_text_input_start(char *text, int max_length);
 void RvR_core_text_input_end();
 
-uint8_t *RvR_core_framebuffer();
-uint32_t RvR_core_frame();
+RvR_config RvR_ini_parse(RvR_rw *rw);
+void       RvR_ini_free(RvR_config config);
+void       RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char *ident);
 
 void RvR_rw_init_file(RvR_rw *rw, FILE *f);
 void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode);
