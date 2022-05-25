@@ -22,9 +22,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //Fps, RvnicRaven must use a fixed timestep
 #define RVR_FPS 30
 
-//Size of precalculated rng table
-#define RVR_RNG_TABLE_SIZE 512
-
 //Maximum amount of textures loaded at once
 #define RVR_TEXTURE_MAX 256
 
