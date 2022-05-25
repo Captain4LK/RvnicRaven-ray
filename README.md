@@ -35,8 +35,8 @@ Rvnic Raven incorporates code from multiple different sources. Here is a list of
 
 * Crack dot Com (Golgotha, Abuse), for
    * memory allocator (RvR_malloc.c), public domain
-   * random number generator (RvR_rand.c), public domain
-   * atan2 implementation (RvR_math.c), public domain
+* Mattias Gustavsson, for
+   * rnd.h (RvR_rand.c), unlicense/mit
 * [r-lyeh](https://github.com/r-lyeh), for
    * tinyini (RvR_config.c), public domain
    * pak.c (RvR_pak.c), public domain

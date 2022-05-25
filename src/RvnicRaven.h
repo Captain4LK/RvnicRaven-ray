@@ -193,6 +193,11 @@ typedef struct
    }as;
 }RvR_rw;
 
+typedef uint64_t RvR_rand_pcg[2];
+typedef uint32_t RvR_rand_well[17];
+typedef uint32_t RvR_rand_game[2];
+typedef uint64_t RvR_rand_xor[2];
+
 //RvnicRaven core types end
 //-------------------------------------
 
@@ -319,9 +324,21 @@ const RvR_color *RvR_palette();
 uint8_t         *RvR_shade_table(uint8_t light);
 uint8_t          RvR_blend(uint8_t c0, uint8_t c1);
 
-unsigned RvR_rand();
-int      RvR_rand_get_state();
-void     RvR_rand_set_state(unsigned state);
+void RvR_rand_pcg_seed(RvR_rand_pcg *pcg, uint32_t seed);
+uint32_t RvR_rand_pcg_next(RvR_rand_pcg *pcg);
+int32_t RvR_rand_pcg_next_range(RvR_rand_pcg *pcg, int32_t min, int32_t max);
+
+void RvR_rand_well_seed(RvR_rand_well *well, uint32_t seed);
+uint32_t RvR_rand_well_next(RvR_rand_well *well);
+int32_t RvR_rand_well_next_range(RvR_rand_well *well, int32_t min, int32_t max);
+
+void RvR_rand_game_seed(RvR_rand_game *game, uint32_t seed);
+uint32_t RvR_rand_game_next(RvR_rand_game *game);
+int32_t RvR_rand_game_next_range(RvR_rand_game *game, int32_t min, int32_t max);
+
+void RvR_rand_xor_seed(RvR_rand_xor *xor, uint64_t seed);
+uint64_t RvR_rand_xor_next(RvR_rand_xor *xor);
+int32_t RvR_rand_xor_next_range(RvR_rand_xor *xor, int32_t min, int32_t max);
 
 RvR_fix22 RvR_fix22_cos(RvR_fix22 a);
 RvR_fix22 RvR_fix22_sin(RvR_fix22 a);
