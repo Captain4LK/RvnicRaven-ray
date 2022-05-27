@@ -69,12 +69,12 @@ int RvR_port_sector_inside(int16_t sector, RvR_fix22 x, RvR_fix22 y)
          //If the integers have different signs, the line defined by the two points
          //intersects the y-axis. 
          //To know whether the line is to the left or to the right of the
-         //point we use the wedge product.
-         //if p1 is to the left of p2 the wedge product is negative,
-         //if p1 is to the right of p2 the wedge product is positive,
-         //if p1 and p2 are parallel the wedge product is zero
+         //point we use the perp dot product.
+         //if p1 is to the left of p2 the perp dot product is negative,
+         //if p1 is to the right of p2 the perp dot product is positive,
+         //if p1 and p2 are parallel the perp dot product is zero
          //For the line to be to the left of the point, the signs
-         //of the wedge product and y2 must be unequal. 
+         //of the perp dot product and y2 must be unequal. 
          //Draw it on a sheet of paper, it will become more
          //apparent why that's the case
          else
