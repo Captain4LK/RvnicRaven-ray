@@ -38,7 +38,7 @@ void RvR_rw_init_file(RvR_rw *rw, FILE *f)
    RvR_error_check(f!=NULL,"RvR_rw_init_file","argument 'f' must be non-NULL\n");
 
    rw->type = RVR_RW_STD_FILE;
-   rw->endian = RVR_ENDIAN;
+   rw->endian = RVR_LITTLE_ENDIAN;
    rw->as.fp = f;
 
 RvR_err:
@@ -52,7 +52,7 @@ void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode)
    RvR_error_check(mode!=NULL,"RvR_rw_init_path","argument 'mode' must be non-NULL\n");
 
    rw->type = RVR_RW_STD_FILE_PATH;
-   rw->endian = RVR_ENDIAN;
+   rw->endian = RVR_LITTLE_ENDIAN;
    rw->as.fp = fopen(path,mode);
    RvR_error_check(rw->as.fp!=NULL,"RvR_rw_init_path","failed to open '%s'\n",path);
 
@@ -66,7 +66,7 @@ void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len, size_t clen)
    RvR_error_check(mem!=NULL,"RvR_rw_init_mem","argument 'mem' must be non-NULL\n");
 
    rw->type = RVR_RW_MEM;
-   rw->endian = RVR_ENDIAN;
+   rw->endian = RVR_LITTLE_ENDIAN;
    rw->as.mem.mem = mem;
    rw->as.mem.size = len;
    rw->as.mem.pos = 0;
@@ -82,7 +82,7 @@ void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len)
    RvR_error_check(mem!=NULL,"RvR_rw_init_const_mem","argument 'mem' must be non-NULL\n");
 
    rw->type = RVR_RW_CONST_MEM;
-   rw->endian = RVR_ENDIAN;
+   rw->endian = RVR_LITTLE_ENDIAN;
    rw->as.cmem.mem = mem;
    rw->as.cmem.size = len;
    rw->as.cmem.pos = 0;
@@ -96,7 +96,7 @@ void RvR_rw_init_dyn_mem(RvR_rw *rw, size_t base_len, size_t min_grow)
    RvR_error_check(rw!=NULL,"RvR_rw_init_dyn_mem","argument 'rw' must be non-NULL\n");
 
    rw->type = RVR_RW_DYN_MEM;
-   rw->endian = RVR_ENDIAN;
+   rw->endian = RVR_LITTLE_ENDIAN;
    rw->as.dmem.mem = RvR_malloc(base_len);
    rw->as.dmem.size = base_len;
    rw->as.dmem.csize = 0;
@@ -377,19 +377,6 @@ RvR_err:
    return 0;
 }
 
-int8_t RvR_rw_read_i8(RvR_rw *rw)
-{
-   int8_t out = 0;
-
-   RvR_error_check(rw!=NULL,"RvR_rw_read_i8","argument 'rw' must be non-NULL\n");
-
-   if(RvR_rw_read(rw,&out,1,1)!=1)
-      RvR_log("RvR_rw_read_i8: read failed, end of file reached?\n");
-
-RvR_err:
-   return out;
-}
-
 uint8_t RvR_rw_read_u8(RvR_rw *rw)
 {
    uint8_t out = 0;
@@ -403,43 +390,22 @@ RvR_err:
    return out;
 }
 
-int16_t RvR_rw_read_i16(RvR_rw *rw)
-{
-   int16_t out = 0;
-
-   RvR_error_check(rw!=NULL,"RvR_rw_read_i16","argument 'rw' must be non-NULL\n");
-
-   if(RvR_rw_read(rw,&out,2,1)!=1)
-      RvR_log("RvR_rw_read_i16: read failed, end of file reached?\n");
-
-RvR_err:
-   return RvR_endian_swap16(out,rw->endian);
-}
-
 uint16_t RvR_rw_read_u16(RvR_rw *rw)
 {
    uint16_t out = 0;
 
    RvR_error_check(rw!=NULL,"RvR_rw_read_u16","argument 'rw' must be non-NULL\n");
 
-   if(RvR_rw_read(rw,&out,2,1)!=1)
-      RvR_log("RvR_rw_read_u16: read failed, end of file reached?\n");
+   uint16_t b0 = RvR_rw_read_u8(rw);;
+   uint16_t b1 = RvR_rw_read_u8(rw);;
+
+   if(rw->endian==RVR_LITTLE_ENDIAN)
+      return (b1<<8)|b0;
+   if(rw->endian==RVR_BIG_ENDIAN)
+      return (b0<<8)|b1;
 
 RvR_err:
-   return RvR_endian_swap16(out,rw->endian);
-}
-
-int32_t RvR_rw_read_i32(RvR_rw *rw)
-{
-   int32_t out = 0;
-
-   RvR_error_check(rw!=NULL,"RvR_rw_read_i32","argument 'rw' must be non-NULL\n");
-
-   if(RvR_rw_read(rw,&out,4,1)!=1)
-      RvR_log("RvR_rw_read_i32: read failed, end of file reached?\n");
-
-RvR_err:
-   return RvR_endian_swap32(out,rw->endian);
+   return 0;
 }
 
 uint32_t RvR_rw_read_u32(RvR_rw *rw)
@@ -448,24 +414,18 @@ uint32_t RvR_rw_read_u32(RvR_rw *rw)
 
    RvR_error_check(rw!=NULL,"RvR_rw_read_u32","argument 'rw' must be non-NULL\n");
 
-   if(RvR_rw_read(rw,&out,4,1)!=1)
-      RvR_log("RvR_rw_read_u32: read failed, end of file reached?\n");
+   uint32_t b0 = RvR_rw_read_u8(rw);;
+   uint32_t b1 = RvR_rw_read_u8(rw);;
+   uint32_t b2 = RvR_rw_read_u8(rw);;
+   uint32_t b3 = RvR_rw_read_u8(rw);;
+
+   if(rw->endian==RVR_LITTLE_ENDIAN)
+      return (b3<<24)|(b2<<16)|(b1<<8)|b0;
+   if(rw->endian==RVR_BIG_ENDIAN)
+      return (b0<<24)|(b1<<16)|(b2<<8)|b3;
 
 RvR_err:
-   return RvR_endian_swap32(out,rw->endian);
-}
-
-int64_t RvR_rw_read_i64(RvR_rw *rw)
-{
-   int64_t out = 0;
-
-   RvR_error_check(rw!=NULL,"RvR_rw_read_i64","argument 'rw' must be non-NULL\n");
-
-   if(RvR_rw_read(rw,&out,8,1)!=1)
-      RvR_log("RvR_rw_read_i64: read failed, end of file reached?\n");
-
-RvR_err:
-   return RvR_endian_swap64(out,rw->endian);
+   return 0;
 }
 
 uint64_t RvR_rw_read_u64(RvR_rw *rw)
@@ -474,22 +434,22 @@ uint64_t RvR_rw_read_u64(RvR_rw *rw)
 
    RvR_error_check(rw!=NULL,"RvR_rw_read_u64","argument 'rw' must be non-NULL\n");
 
-   if(RvR_rw_read(rw,&out,8,1)!=1)
-      RvR_log("RvR_rw_read_u64: read failed, end of file reached?\n");
+   uint64_t b0 = RvR_rw_read_u8(rw);;
+   uint64_t b1 = RvR_rw_read_u8(rw);;
+   uint64_t b2 = RvR_rw_read_u8(rw);;
+   uint64_t b3 = RvR_rw_read_u8(rw);;
+   uint64_t b4 = RvR_rw_read_u8(rw);;
+   uint64_t b5 = RvR_rw_read_u8(rw);;
+   uint64_t b6 = RvR_rw_read_u8(rw);;
+   uint64_t b7 = RvR_rw_read_u8(rw);;
+
+   if(rw->endian==RVR_LITTLE_ENDIAN)
+      return (b7<<56)|(b6<<48)|(b5<<40)|(b4<<32)|(b3<<24)|(b2<<16)|(b1<<8)|b0;
+   if(rw->endian==RVR_BIG_ENDIAN)
+      return (b0<<56)|(b1<<48)|(b2<<40)|(b3<<32)|(b4<<24)|(b5<<16)|(b6<<8)|(b7);
 
 RvR_err:
-   return RvR_endian_swap64(out,rw->endian);
-}
-
-void RvR_rw_write_i8 (RvR_rw *rw, int8_t val)
-{
-   RvR_error_check(rw!=NULL,"RvR_rw_write_i8","argument 'rw' must be non-NULL\n");
-
-   if(RvR_rw_write(rw,&val,1,1)!=1)
-      RvR_log("RvR_rw_write_i8: write failed, end of buffer reached/no more disk space?\n");
-
-RvR_err:
-   return;
+   return 0;
 }
 
 void RvR_rw_write_u8 (RvR_rw *rw, uint8_t val)
@@ -503,37 +463,20 @@ RvR_err:
    return;
 }
 
-void RvR_rw_write_i16(RvR_rw *rw, int16_t val)
-{
-   RvR_error_check(rw!=NULL,"RvR_rw_write_i16","argument 'rw' must be non-NULL\n");
-
-   int16_t v = RvR_endian_swap16(val,rw->endian);
-   if(RvR_rw_write(rw,&v,2,1)!=1)
-      RvR_log("RvR_rw_write_i16: write failed, end of buffer reached/no more disk space?\n");
-
-RvR_err:
-   return;
-}
-
 void RvR_rw_write_u16(RvR_rw *rw, uint16_t val)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_write_u16","argument 'rw' must be non-NULL\n");
 
-   uint16_t v = RvR_endian_swap16(val,rw->endian);
-   if(RvR_rw_write(rw,&v,2,1)!=1)
-      RvR_log("RvR_rw_write_u16: write failed, end of buffer reached/no more disk space?\n");
-
-RvR_err:
-   return;
-}
-
-void RvR_rw_write_i32(RvR_rw *rw, int32_t val)
-{
-   RvR_error_check(rw!=NULL,"RvR_rw_write_i32","argument 'rw' must be non-NULL\n");
-
-   int32_t v = RvR_endian_swap32(val,rw->endian);
-   if(RvR_rw_write(rw,&v,4,1)!=1)
-      RvR_log("RvR_rw_write_i32: write failed, end of buffer reached/no more disk space?\n");
+   if(rw->endian==RVR_LITTLE_ENDIAN)
+   {
+      RvR_rw_write_u8(rw,val&255);
+      RvR_rw_write_u8(rw,(val>>8)&255);
+   }
+   else if(rw->endian==RVR_BIG_ENDIAN)
+   {
+      RvR_rw_write_u8(rw,(val>>8)&255);
+      RvR_rw_write_u8(rw,val&255);
+   }
 
 RvR_err:
    return;
@@ -543,21 +486,20 @@ void RvR_rw_write_u32(RvR_rw *rw, uint32_t val)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_write_u32","argument 'rw' must be non-NULL\n");
 
-   uint32_t v = RvR_endian_swap32(val,rw->endian);
-   if(RvR_rw_write(rw,&v,4,1)!=1)
-      RvR_log("RvR_rw_write_u32: write failed, end of buffer reached/no more disk space?\n");
-
-RvR_err:
-   return;
-}
-
-void RvR_rw_write_i64(RvR_rw *rw, int64_t val)
-{
-   RvR_error_check(rw!=NULL,"RvR_rw_write_i64","argument 'rw' must be non-NULL\n");
-
-   int64_t v = RvR_endian_swap64(val,rw->endian);
-   if(RvR_rw_write(rw,&v,8,1)!=1)
-      RvR_log("RvR_rw_write_i64: write failed, end of buffer reached/no more disk space?\n");
+   if(rw->endian==RVR_LITTLE_ENDIAN)
+   {
+      RvR_rw_write_u8(rw,val&255);
+      RvR_rw_write_u8(rw,(val>>8)&255);
+      RvR_rw_write_u8(rw,(val>>16)&255);
+      RvR_rw_write_u8(rw,(val>>24)&255);
+   }
+   else if(rw->endian==RVR_BIG_ENDIAN)
+   {
+      RvR_rw_write_u8(rw,(val>>24)&255);
+      RvR_rw_write_u8(rw,(val>>16)&255);
+      RvR_rw_write_u8(rw,(val>>8)&255);
+      RvR_rw_write_u8(rw,val&255);
+   }
 
 RvR_err:
    return;
@@ -567,9 +509,28 @@ void RvR_rw_write_u64(RvR_rw *rw, uint64_t val)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_write_u64","argument 'rw' must be non-NULL\n");
 
-   uint64_t v = RvR_endian_swap64(val,rw->endian);
-   if(RvR_rw_write(rw,&v,8,1)!=1)
-      RvR_log("RvR_rw_write_u64: write failed, end of buffer reached/no more disk space?\n");
+   if(rw->endian==RVR_LITTLE_ENDIAN)
+   {
+      RvR_rw_write_u8(rw,val&255);
+      RvR_rw_write_u8(rw,(val>>8)&255);
+      RvR_rw_write_u8(rw,(val>>16)&255);
+      RvR_rw_write_u8(rw,(val>>24)&255);
+      RvR_rw_write_u8(rw,(val>>32)&255);
+      RvR_rw_write_u8(rw,(val>>40)&255);
+      RvR_rw_write_u8(rw,(val>>48)&255);
+      RvR_rw_write_u8(rw,(val>>56)&255);
+   }
+   else if(rw->endian==RVR_BIG_ENDIAN)
+   {
+      RvR_rw_write_u8(rw,(val>>56)&255);
+      RvR_rw_write_u8(rw,(val>>48)&255);
+      RvR_rw_write_u8(rw,(val>>40)&255);
+      RvR_rw_write_u8(rw,(val>>32)&255);
+      RvR_rw_write_u8(rw,(val>>24)&255);
+      RvR_rw_write_u8(rw,(val>>16)&255);
+      RvR_rw_write_u8(rw,(val>>8)&255);
+      RvR_rw_write_u8(rw,val&255);
+   }
 
 RvR_err:
    return;

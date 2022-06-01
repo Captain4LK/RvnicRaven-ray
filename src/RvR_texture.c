@@ -149,8 +149,8 @@ static void texture_load(uint16_t id)
    RvR_rw_init_const_mem(&rw,mem_decomp,size_out);
    RvR_rw_endian(&rw,endian);
 
-   int32_t width = RvR_rw_read_i32(&rw);
-   int32_t height = RvR_rw_read_i32(&rw);
+   int32_t width = RvR_rw_read_u32(&rw);
+   int32_t height = RvR_rw_read_u32(&rw);
    textures[id] = RvR_malloc(sizeof(*textures[id])+sizeof(*textures[id]->data)*width*height);
    textures[id]->width = width;
    textures[id]->height = height;

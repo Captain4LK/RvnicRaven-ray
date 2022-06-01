@@ -154,21 +154,21 @@ static void version_old(RvR_rw *rw)
    for(int32_t i = 0;i<tile_count;i++) map->wall_ctex[i] = RvR_rw_read_u16(rw);
    for(int32_t i = 0;i<tile_count;i++) map->floor_tex[i] = RvR_rw_read_u16(rw);
    for(int32_t i = 0;i<tile_count;i++) map->ceil_tex[i] = RvR_rw_read_u16(rw);
-   for(int32_t i = 0;i<tile_count;i++) map->floor[i] = RvR_rw_read_i8(rw)*128;
-   for(int32_t i = 0;i<tile_count;i++) map->ceiling[i] = RvR_rw_read_i8(rw)*128;
+   for(int32_t i = 0;i<tile_count;i++) map->floor[i] = RvR_rw_read_u8(rw)*128;
+   for(int32_t i = 0;i<tile_count;i++) map->ceiling[i] = RvR_rw_read_u8(rw)*128;
 
    //sprites
    for(unsigned i = 0;i<map->sprite_count;i++)
    {
       map->sprites[i].texture = RvR_rw_read_u16(rw);
-      map->sprites[i].pos.x = RvR_rw_read_i32(rw);
-      map->sprites[i].pos.y = RvR_rw_read_i32(rw);
-      map->sprites[i].pos.z = RvR_rw_read_i32(rw);
-      map->sprites[i].direction = RvR_rw_read_i32(rw);
-      map->sprites[i].extra0 = RvR_rw_read_i32(rw);
-      map->sprites[i].extra1 = RvR_rw_read_i32(rw);
-      map->sprites[i].extra2 = RvR_rw_read_i32(rw);
-      RvR_rw_read_i32(rw);
+      map->sprites[i].pos.x = RvR_rw_read_u32(rw);
+      map->sprites[i].pos.y = RvR_rw_read_u32(rw);
+      map->sprites[i].pos.z = RvR_rw_read_u32(rw);
+      map->sprites[i].direction = RvR_rw_read_u32(rw);
+      map->sprites[i].extra0 = RvR_rw_read_u32(rw);
+      map->sprites[i].extra1 = RvR_rw_read_u32(rw);
+      map->sprites[i].extra2 = RvR_rw_read_u32(rw);
+      RvR_rw_read_u32(rw);
       map->sprites[i].flags = 0;
    }
 }

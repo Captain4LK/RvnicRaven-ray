@@ -31,7 +31,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "RvR_rw.c"
 #include "RvR_core.c"
 #include "RvR_log.c"
-#include "RvR_endian.c"
 #include "RvR_rand.c"
 #include "RvR_hash.c"
 #include "RvR_math.c"

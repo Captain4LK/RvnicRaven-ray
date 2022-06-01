@@ -154,8 +154,8 @@ int main(int argc, char **argv)
    uint8_t *mem = RvR_malloc(len);
    RvR_rw rw;
    RvR_rw_init_mem(&rw,mem,len,len);
-   RvR_rw_write_i32(&rw,sp->width);
-   RvR_rw_write_i32(&rw,sp->height);
+   RvR_rw_write_u32(&rw,sp->width);
+   RvR_rw_write_u32(&rw,sp->height);
    for(int i = 0;i<sp->width*sp->height;i++)
       RvR_rw_write_u8(&rw,sp->data[i]);
    RvR_rw_close(&rw);

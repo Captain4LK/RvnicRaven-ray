@@ -158,10 +158,16 @@ typedef struct
    RvR_fix22 z;
 }RvR_vec3;
 
+typedef enum
+{
+   RVR_LITTLE_ENDIAN = 0,
+   RVR_BIG_ENDIAN = 1,
+}RvR_endian;
+
 typedef struct
 {
    RvR_rw_type type;
-   uint8_t endian;
+   RvR_endian endian;
 
    union
    {
@@ -240,27 +246,15 @@ int    RvR_rw_eof(RvR_rw *rw);
 size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count);
 size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count);
 
-int8_t   RvR_rw_read_i8 (RvR_rw *rw);
 uint8_t  RvR_rw_read_u8 (RvR_rw *rw);
-int16_t  RvR_rw_read_i16(RvR_rw *rw);
 uint16_t RvR_rw_read_u16(RvR_rw *rw);
-int32_t  RvR_rw_read_i32(RvR_rw *rw);
 uint32_t RvR_rw_read_u32(RvR_rw *rw);
-int64_t  RvR_rw_read_i64(RvR_rw *rw);
 uint64_t RvR_rw_read_u64(RvR_rw *rw);
 
-void RvR_rw_write_i8 (RvR_rw *rw, int8_t val);
 void RvR_rw_write_u8 (RvR_rw *rw, uint8_t val);
-void RvR_rw_write_i16(RvR_rw *rw, int16_t val);
 void RvR_rw_write_u16(RvR_rw *rw, uint16_t val);
-void RvR_rw_write_i32(RvR_rw *rw, int32_t val);
 void RvR_rw_write_u32(RvR_rw *rw, uint32_t val);
-void RvR_rw_write_i64(RvR_rw *rw, int64_t val);
 void RvR_rw_write_u64(RvR_rw *rw, uint64_t val);
-
-uint16_t RvR_endian_swap16(uint16_t n, uint8_t endian);
-uint32_t RvR_endian_swap32(uint32_t n, uint8_t endian);
-uint64_t RvR_endian_swap64(uint64_t n, uint8_t endian);
 
 void  RvR_compress(RvR_rw *in, RvR_rw *out, unsigned level);
 void *RvR_decompress(RvR_rw *in, int32_t *length, uint8_t *endian);

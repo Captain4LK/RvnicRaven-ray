@@ -182,8 +182,8 @@ void RvR_ray_map_load_rw(RvR_rw *rw)
    ray_map.floor = RvR_malloc(tile_count*sizeof(*ray_map.floor));
    ray_map.ceiling = RvR_malloc(tile_count*sizeof(*ray_map.ceiling));
 
-   for(int32_t i = 0;i<tile_count;i++) ray_map.floor[i] = RvR_rw_read_i32(rw);
-   for(int32_t i = 0;i<tile_count;i++) ray_map.ceiling[i] = RvR_rw_read_i32(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map.floor[i] = RvR_rw_read_u32(rw);
+   for(int32_t i = 0;i<tile_count;i++) ray_map.ceiling[i] = RvR_rw_read_u32(rw);
    for(int32_t i = 0;i<tile_count;i++) ray_map.floor_tex[i] = RvR_rw_read_u16(rw);
    for(int32_t i = 0;i<tile_count;i++) ray_map.ceil_tex[i] = RvR_rw_read_u16(rw);
    for(int32_t i = 0;i<tile_count;i++) ray_map.wall_ftex[i] = RvR_rw_read_u16(rw);
@@ -192,15 +192,15 @@ void RvR_ray_map_load_rw(RvR_rw *rw)
    //Read sprites
    for(unsigned i = 0;i<ray_map.sprite_count;i++)
    {
-      ray_map.sprites[i].pos.x = RvR_rw_read_i32(rw);
-      ray_map.sprites[i].pos.y = RvR_rw_read_i32(rw);
-      ray_map.sprites[i].pos.z = RvR_rw_read_i32(rw);
-      ray_map.sprites[i].direction = RvR_rw_read_i32(rw);
+      ray_map.sprites[i].pos.x = RvR_rw_read_u32(rw);
+      ray_map.sprites[i].pos.y = RvR_rw_read_u32(rw);
+      ray_map.sprites[i].pos.z = RvR_rw_read_u32(rw);
+      ray_map.sprites[i].direction = RvR_rw_read_u32(rw);
       ray_map.sprites[i].texture = RvR_rw_read_u16(rw);
       ray_map.sprites[i].flags = RvR_rw_read_u32(rw);
-      ray_map.sprites[i].extra0 = RvR_rw_read_i32(rw);
-      ray_map.sprites[i].extra1 = RvR_rw_read_i32(rw);
-      ray_map.sprites[i].extra2 = RvR_rw_read_i32(rw);
+      ray_map.sprites[i].extra0 = RvR_rw_read_u32(rw);
+      ray_map.sprites[i].extra1 = RvR_rw_read_u32(rw);
+      ray_map.sprites[i].extra2 = RvR_rw_read_u32(rw);
    }
 }
 
@@ -240,11 +240,11 @@ void RvR_ray_map_save(const char *path)
 
    //floor height
    for(int i = 0;i<ray_map.width*ray_map.height;i++)
-      RvR_rw_write_i32(&rw,ray_map.floor[i]);
+      RvR_rw_write_u32(&rw,ray_map.floor[i]);
 
    //ceiling height
    for(int i = 0;i<ray_map.width*ray_map.height;i++)
-      RvR_rw_write_i32(&rw,ray_map.ceiling[i]);
+      RvR_rw_write_u32(&rw,ray_map.ceiling[i]);
 
    //floor texture
    for(int i = 0;i<ray_map.width*ray_map.height;i++)
@@ -265,15 +265,15 @@ void RvR_ray_map_save(const char *path)
    //sprites
    for(unsigned i = 0;i<ray_map.sprite_count;i++)
    {
-      RvR_rw_write_i32(&rw,ray_map.sprites[i].pos.x);
-      RvR_rw_write_i32(&rw,ray_map.sprites[i].pos.y);
-      RvR_rw_write_i32(&rw,ray_map.sprites[i].pos.z);
-      RvR_rw_write_i32(&rw,ray_map.sprites[i].direction);
+      RvR_rw_write_u32(&rw,ray_map.sprites[i].pos.x);
+      RvR_rw_write_u32(&rw,ray_map.sprites[i].pos.y);
+      RvR_rw_write_u32(&rw,ray_map.sprites[i].pos.z);
+      RvR_rw_write_u32(&rw,ray_map.sprites[i].direction);
       RvR_rw_write_u16(&rw,ray_map.sprites[i].texture);
       RvR_rw_write_u32(&rw,ray_map.sprites[i].flags);
-      RvR_rw_write_i32(&rw,ray_map.sprites[i].extra0);
-      RvR_rw_write_i32(&rw,ray_map.sprites[i].extra1);
-      RvR_rw_write_i32(&rw,ray_map.sprites[i].extra2);
+      RvR_rw_write_u32(&rw,ray_map.sprites[i].extra0);
+      RvR_rw_write_u32(&rw,ray_map.sprites[i].extra1);
+      RvR_rw_write_u32(&rw,ray_map.sprites[i].extra2);
    }
 
    //Compress and write to disk

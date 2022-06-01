@@ -102,7 +102,7 @@ void RvR_compress(RvR_rw *in, RvR_rw *out, unsigned level)
    buffer_in[size] = 0;
 
    RvR_rw_seek(out,0,SEEK_END);
-   RvR_rw_write_i32(out,size);
+   RvR_rw_write_u32(out,size);
    RvR_rw_write_u8(out,endian);
    comp_crush_compress(buffer_in,size,out,level);
 
@@ -112,9 +112,9 @@ void RvR_compress(RvR_rw *in, RvR_rw *out, unsigned level)
 void *RvR_decompress(RvR_rw *in, int32_t *length, uint8_t *endian)
 {
    RvR_rw_seek(in,0,SEEK_SET);
-   *length = RvR_rw_read_i32(in);
+   *length = RvR_rw_read_u32(in);
    *endian = RvR_rw_read_u8(in);
-   *length = RvR_endian_swap32(*length,*endian);
+   //*length = RvR_endian_swap32(*length,*endian); //TODO either swap length and endian field, or get rid of endian field altogether!!
 
    uint8_t *buffer_out = RvR_malloc((*length)+1);
    comp_crush_decompress(in,buffer_out,*length);
