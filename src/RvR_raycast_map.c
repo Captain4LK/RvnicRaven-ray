@@ -111,15 +111,13 @@ RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index)
 void RvR_ray_map_load_path(const char *path)
 {
    int32_t size = 0;
-   uint8_t endian;
    RvR_rw rw_decomp;
    RvR_rw_init_path(&rw_decomp,path,"rb");
-   uint8_t *mem = RvR_decompress(&rw_decomp,&size,&endian);
+   uint8_t *mem = RvR_decompress(&rw_decomp,&size);
    RvR_rw_close(&rw_decomp);
 
    RvR_rw rw;
    RvR_rw_init_const_mem(&rw,mem,size);
-   RvR_rw_endian(&rw,endian);
    RvR_ray_map_load_rw(&rw);
 
    RvR_rw_close(&rw);
@@ -134,18 +132,16 @@ void RvR_ray_map_load(uint16_t id)
    unsigned size_in;
    int32_t size_out;
    uint8_t *mem_pak, *mem_decomp;
-   uint8_t endian;
    mem_pak = RvR_lump_get(tmp,&size_in);
    RvR_rw rw_decomp;
    RvR_rw_init_const_mem(&rw_decomp,mem_pak,size_in);
-   mem_decomp = RvR_decompress(&rw_decomp,&size_out,&endian);
+   mem_decomp = RvR_decompress(&rw_decomp,&size_out);
    RvR_rw_close(&rw_decomp);
 
    RvR_free(mem_pak);
 
    RvR_rw rw;
    RvR_rw_init_const_mem(&rw,mem_decomp,size_out);
-   RvR_rw_endian(&rw,endian);
    RvR_ray_map_load_rw(&rw);
 
    RvR_rw_close(&rw);

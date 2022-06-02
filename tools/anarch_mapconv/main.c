@@ -307,6 +307,9 @@ int main(int argc, char **argv)
             map->wall_ftex[y*64+x] = level.doorTextureIndex+3;
             map->floor_tex[y*64+x] = level.doorTextureIndex+3;
          }
+
+         map->floor[y*64+x]*=128;
+         map->ceiling[y*64+x]*=128;
       }
    }
 
@@ -322,7 +325,7 @@ int main(int argc, char **argv)
          int pos_y = level.elements[i].coords[1];
          map->sprites[index].pos.x = pos_x*1024+512;
          map->sprites[index].pos.y = pos_y*1024+512;
-         map->sprites[index].pos.z = map->floor[pos_y*64+pos_x]*128;
+         map->sprites[index].pos.z = map->floor[pos_y*64+pos_x];
 
          switch(level.elements[i].type)
          {
@@ -363,7 +366,7 @@ int main(int argc, char **argv)
    map->sprites[index].texture = 2048;
    map->sprites[index].pos.x = level.playerStart[0]*1024+512;
    map->sprites[index].pos.y = level.playerStart[1]*1024+512;
-   map->sprites[index].pos.z = map->floor[level.playerStart[1]*64+level.playerStart[0]]*128;
+   map->sprites[index].pos.z = map->floor[level.playerStart[1]*64+level.playerStart[0]];
    map->sprites[index].direction = (1024-level.playerStart[2]*4);
 
    RvR_ray_map_save(path_out);

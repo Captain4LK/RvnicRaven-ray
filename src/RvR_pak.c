@@ -692,7 +692,6 @@ static void pak_close(Pak *p)
       //patch header
       RvR_rw_seek(p->out,0L,SEEK_SET);
       RvR_rw_write(p->out,"PAK",1,3);
-      RvR_rw_write_u8(p->out,RVR_ENDIAN);
       RvR_rw_write_u32(p->out,dirpos);
       RvR_rw_write_u32(p->out,dirlen);
    }
@@ -775,6 +774,7 @@ static Pak *pak_open(const char *fname, const char *mode)
 
    rw = RvR_malloc(sizeof(*rw));
    RvR_rw_init_path(rw,fname,mode[0]=='w'?"wb":mode[0]=='r'?"rb":"rb+");
+   RvR_rw_endian(rw,RVR_LITTLE_ENDIAN);
 
    p = RvR_malloc(sizeof(*p));
    memset(p,0,sizeof(*p));
@@ -784,8 +784,6 @@ static Pak *pak_open(const char *fname, const char *mode)
       //Read header
       char ident[3];
       RvR_rw_read(rw,&ident,1,3);
-      uint8_t endian = RvR_rw_read_u8(rw);
-      RvR_rw_endian(rw,endian);
       uint32_t offset = RvR_rw_read_u32(rw);
       uint32_t size = RvR_rw_read_u32(rw);
 
@@ -820,7 +818,6 @@ static Pak *pak_open(const char *fname, const char *mode)
       RvR_rw_write_u8(rw,'P');
       RvR_rw_write_u8(rw,'A');
       RvR_rw_write_u8(rw,'K');
-      RvR_rw_write_u8(rw,RVR_ENDIAN);
       RvR_rw_write_u32(rw,0);
       RvR_rw_write_u32(rw,0);
 

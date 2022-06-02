@@ -77,13 +77,11 @@ int main(int argc, char **argv)
    RvR_rw rw_file = {0};
    RvR_rw_init_path(&rw_file,path_in,"rb");
    int size_out = 0;
-   uint8_t endian = 0;
    uint8_t *mem_map = NULL;
-   mem_map = RvR_decompress(&rw_file,&size_out,&endian);
+   mem_map = RvR_decompress(&rw_file,&size_out);
 
    RvR_rw rw_map = {0};
    RvR_rw_init_const_mem(&rw_map,mem_map,size_out);
-   RvR_rw_endian(&rw_map,endian);
    RvR_rw_close(&rw_file);
 
    if(old)

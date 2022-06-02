@@ -90,31 +90,28 @@ void RvR_compress(RvR_rw *in, RvR_rw *out, unsigned level)
 {
    uint8_t *buffer_in = NULL;
    int32_t size = 0;
-   uint8_t endian = RVR_ENDIAN;
 
+   RvR_rw_endian(in,RVR_LITTLE_ENDIAN);
    RvR_rw_seek(in,0,SEEK_END);
    size = RvR_rw_tell(in);
    RvR_rw_seek(in,0,SEEK_SET);
 
    buffer_in = RvR_malloc(size+1);
-
    RvR_rw_read(in,buffer_in,size,1);
    buffer_in[size] = 0;
 
    RvR_rw_seek(out,0,SEEK_END);
    RvR_rw_write_u32(out,size);
-   RvR_rw_write_u8(out,endian);
    comp_crush_compress(buffer_in,size,out,level);
 
    RvR_free(buffer_in);
 }
 
-void *RvR_decompress(RvR_rw *in, int32_t *length, uint8_t *endian)
+void *RvR_decompress(RvR_rw *in, int32_t *length)
 {
    RvR_rw_seek(in,0,SEEK_SET);
+   RvR_rw_endian(in,RVR_LITTLE_ENDIAN);
    *length = RvR_rw_read_u32(in);
-   *endian = RvR_rw_read_u8(in);
-   //*length = RvR_endian_swap32(*length,*endian); //TODO either swap length and endian field, or get rid of endian field altogether!!
 
    uint8_t *buffer_out = RvR_malloc((*length)+1);
    comp_crush_decompress(in,buffer_out,*length);
