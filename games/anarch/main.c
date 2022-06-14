@@ -59,9 +59,9 @@ int main(int argc, char **argv)
    RvR_core_init("Anarch",0);
    RvR_core_mouse_relative(1);
 
-   RvR_pak_create_from_csv("data_anarch/main.csv","test.pak");
-   RvR_pak_add("test.pak");
-   //RvR_pak_add("data_anarch/main.csv");
+   //RvR_pak_create_from_csv("data_anarch/main.csv","test.pak");
+   //RvR_pak_add("test.pak");
+   RvR_pak_add("data_anarch/main.csv");
 
    //User defined overwrites ('modding')
    for(int i = 1;i<argc;i++)

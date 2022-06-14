@@ -390,7 +390,6 @@ struct RvR_vm
 {
    uint8_t *code;
    void *mem_base;
-   void *stack;
 
    int32_t code_size;
    uint32_t pc_entry;

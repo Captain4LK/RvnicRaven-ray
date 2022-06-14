@@ -119,7 +119,6 @@ void RvR_vm_free(RvR_vm *vm)
       return;
 
    RvR_free(vm->code);
-   RvR_free(vm->stack);
 }
 
 void RvR_vm_stack_free()

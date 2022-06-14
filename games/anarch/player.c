@@ -198,7 +198,7 @@ void player_update()
    if(accel)
    {
       RvR_vec3 pos = RvR_ray_get_position();
-      pos.z+=RvR_fix22_sin((1024*(game_tick-move_start_tick))/30)/48;
+      pos.z+=RvR_fix22_sin((4096*(game_tick-move_start_tick))/30)/48;
       RvR_ray_set_position(pos);
    }
    else
