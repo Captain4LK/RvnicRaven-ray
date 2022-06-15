@@ -489,47 +489,6 @@ typedef void (*RvR_ray_column_function) (RvR_ray_hit_result *hits, int hits_len,
 void RvR_ray_cast_multi_hit(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16_t *hit_results_len);
 void RvR_rays_cast_multi_hit(RvR_ray_column_function column);
 
-void      RvR_ray_set_angle(RvR_fix22 angle);
-RvR_fix22 RvR_ray_get_angle();
-void      RvR_ray_set_shear(int16_t shear);
-int16_t   RvR_ray_get_shear();
-void      RvR_ray_set_position(RvR_vec3 position);
-RvR_vec3  RvR_ray_get_position();
-void      RvR_ray_set_fov(RvR_fix22 fov);
-RvR_fix22 RvR_ray_get_fov();
-
-void RvR_ray_map_create(uint16_t width, uint16_t height);
-void RvR_ray_map_load_path(const char *path);
-void RvR_ray_map_load(uint16_t id);
-void RvR_ray_map_load_rw(RvR_rw *rw);
-void RvR_ray_map_save(const char *path);
-int  RvR_ray_map_sprite_count();
-RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index);
-RvR_ray_map *RvR_ray_map_get();
-
-int       RvR_ray_map_inbounds(int16_t x, int16_t y);
-uint16_t  RvR_ray_map_sky_tex();
-uint16_t  RvR_ray_map_wall_ftex_at(int16_t x, int16_t y);
-uint16_t  RvR_ray_map_wall_ctex_at(int16_t x, int16_t y);
-uint16_t  RvR_ray_map_floor_tex_at(int16_t x, int16_t y);
-uint16_t  RvR_ray_map_ceil_tex_at(int16_t x, int16_t y);
-RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y);
-RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y);
-
-void RvR_ray_map_wall_ftex_set(int16_t x, int16_t y, uint16_t tex);
-void RvR_ray_map_wall_ctex_set(int16_t x, int16_t y, uint16_t tex);
-void RvR_ray_map_floor_tex_set(int16_t x, int16_t y, uint16_t tex);
-void RvR_ray_map_ceil_tex_set(int16_t x, int16_t y, uint16_t tex);
-void RvR_ray_map_floor_height_set(int16_t x, int16_t y, RvR_fix22 height);
-void RvR_ray_map_ceiling_height_set(int16_t x, int16_t y, RvR_fix22 height);
-
-uint16_t  RvR_ray_map_wall_ftex_at_us(int16_t x, int16_t y);
-uint16_t  RvR_ray_map_wall_ctex_at_us(int16_t x, int16_t y);
-uint16_t  RvR_ray_map_floor_tex_at_us(int16_t x, int16_t y);
-uint16_t  RvR_ray_map_ceil_tex_at_us(int16_t x, int16_t y);
-RvR_fix22 RvR_ray_map_floor_height_at_us(int16_t x, int16_t y);
-RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y);
-
 void                  RvR_ray_cast_multi_hit_draw(RvR_ray ray, RvR_ray_hit_result *hit_results, uint16_t *hit_results_len);
 void                  RvR_rays_cast_multi_hit_draw(RvR_ray_column_function column);
 void                  RvR_ray_draw_begin();
@@ -540,6 +499,49 @@ void                  RvR_ray_draw_sprite(RvR_vec3 pos, RvR_fix22 angle, uint16_
 void                  RvR_ray_draw_debug(uint8_t index);
 RvR_ray_depth_buffer *RvR_ray_draw_depth_buffer();
 RvR_ray_pixel_info    RvR_ray_map_to_screen(RvR_vec3 world_position);
+
+void      RvR_ray_set_angle(RvR_fix22 angle);
+RvR_fix22 RvR_ray_get_angle();
+void      RvR_ray_set_shear(int16_t shear);
+int16_t   RvR_ray_get_shear();
+void      RvR_ray_set_position(RvR_vec3 position);
+RvR_vec3  RvR_ray_get_position();
+void      RvR_ray_set_fov(RvR_fix22 fov);
+RvR_fix22 RvR_ray_get_fov();
+
+void RvR_ray_map_create(uint16_t width, uint16_t height);
+void RvR_ray_map_free();
+void RvR_ray_map_load(uint16_t id);
+void RvR_ray_map_load_path(const char *path);
+void RvR_ray_map_load_rw(RvR_rw *rw);
+void RvR_ray_map_save(const char *path);
+
+RvR_ray_map        *RvR_ray_map_get();
+uint16_t            RvR_ray_map_sky_tex();
+int                 RvR_ray_map_sprite_count();
+RvR_ray_map_sprite *RvR_ray_map_sprite_get(unsigned index);
+
+int       RvR_ray_map_inbounds(int16_t x, int16_t y);
+RvR_fix22 RvR_ray_map_floor_height_at(int16_t x, int16_t y);
+RvR_fix22 RvR_ray_map_ceiling_height_at(int16_t x, int16_t y);
+uint16_t  RvR_ray_map_floor_tex_at(int16_t x, int16_t y);
+uint16_t  RvR_ray_map_ceil_tex_at(int16_t x, int16_t y);
+uint16_t  RvR_ray_map_wall_ftex_at(int16_t x, int16_t y);
+uint16_t  RvR_ray_map_wall_ctex_at(int16_t x, int16_t y);
+
+RvR_fix22 RvR_ray_map_floor_height_at_us(int16_t x, int16_t y);
+RvR_fix22 RvR_ray_map_ceiling_height_at_us(int16_t x, int16_t y);
+uint16_t  RvR_ray_map_floor_tex_at_us(int16_t x, int16_t y);
+uint16_t  RvR_ray_map_ceil_tex_at_us(int16_t x, int16_t y);
+uint16_t  RvR_ray_map_wall_ftex_at_us(int16_t x, int16_t y);
+uint16_t  RvR_ray_map_wall_ctex_at_us(int16_t x, int16_t y);
+
+void RvR_ray_map_floor_height_set(int16_t x, int16_t y, RvR_fix22 height);
+void RvR_ray_map_ceiling_height_set(int16_t x, int16_t y, RvR_fix22 height);
+void RvR_ray_map_floor_tex_set(int16_t x, int16_t y, uint16_t tex);
+void RvR_ray_map_ceil_tex_set(int16_t x, int16_t y, uint16_t tex);
+void RvR_ray_map_wall_ftex_set(int16_t x, int16_t y, uint16_t tex);
+void RvR_ray_map_wall_ctex_set(int16_t x, int16_t y, uint16_t tex);
 
 //RvnicRaven raycast functions end
 //-------------------------------------
