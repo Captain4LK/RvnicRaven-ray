@@ -77,8 +77,6 @@ static RvR_fix22 ray_sin;
 static RvR_fix22 ray_cos;
 static RvR_fix22 ray_sin_fov;
 static RvR_fix22 ray_cos_fov;
-static RvR_vec2 ray_cam_dir0;
-static RvR_vec2 ray_cam_dir1;
 //-------------------------------------
 
 //Function prototypes
@@ -134,14 +132,6 @@ void RvR_ray_draw_begin()
    ray_start_floor_height = RvR_ray_map_floor_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
    ray_start_ceil_height = RvR_ray_map_ceiling_height_at(RvR_ray_get_position().x/1024,RvR_ray_get_position().y/1024)-RvR_ray_get_position().z;
 
-   ray_cam_dir0 = RvR_vec2_rot(RvR_ray_get_angle()-(RvR_ray_get_fov()/2));
-   ray_cam_dir1 = RvR_vec2_rot(RvR_ray_get_angle()+(RvR_ray_get_fov()/2));
-   RvR_fix22 cos = RvR_non_zero(RvR_fix22_cos(RvR_ray_get_fov()/2));
-   ray_cam_dir0.x = (ray_cam_dir0.x*1024)/cos;
-   ray_cam_dir0.y = (ray_cam_dir0.y*1024)/cos;
-   ray_cam_dir1.x = (ray_cam_dir1.x*1024)/cos;
-   ray_cam_dir1.y = (ray_cam_dir1.y*1024)/cos;
-
    ray_cos = RvR_fix22_cos(RvR_ray_get_angle());
    ray_sin = RvR_fix22_sin(RvR_ray_get_angle());
    ray_cos_fov = (ray_cos*ray_fov_factor_x)/1024;
@@ -187,7 +177,6 @@ void RvR_ray_draw_end()
       else
          ray_sprite_draw_billboard(&ray_sprite_stack.data[ray_sprite_stack.data_proxy[far]]);
 
-      //TODO: proxy through integer array
       ray_sprite_stack.data_used--;
       ray_sprite_stack.data_proxy[far] = ray_sprite_stack.data_proxy[ray_sprite_stack.data_used];
    }
@@ -902,16 +891,14 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
       return;
 
    //Calculate the depth of the row to be rendered
-   RvR_fix22 cam_height_screen_size = RvR_abs((RvR_ray_get_position().z-height)*RVR_YRES);
-   RvR_fix22 depth = (cam_height_screen_size)/RvR_non_zero((RvR_abs(y-ray_middle_row+1)*ray_fov_factor_y)/1024);
+   RvR_fix22 depth = (RvR_abs(RvR_ray_get_position().z-height)*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*RvR_abs(ray_middle_row-y))/1024);
 
    //Calculate texture mapping step size and starting coordinates
-   RvR_fix22 step_x = (depth*(ray_cam_dir1.x-ray_cam_dir0.x))/RVR_XRES;
-   RvR_fix22 step_y = (depth*(ray_cam_dir1.y-ray_cam_dir0.y))/RVR_XRES;
-   RvR_fix22 tx = ((RvR_ray_get_position().x)&1023)*1024+(depth*ray_cam_dir0.x)+x0*step_x;
-   RvR_fix22 ty = ((RvR_ray_get_position().y)&1023)*1024+(depth*ray_cam_dir0.y)+x0*step_y;
+   RvR_fix22 step_x = ((ray_sin*(RvR_ray_get_position().z-height)))/RvR_non_zero((ray_middle_row-y));
+   RvR_fix22 step_y = ((ray_cos*(RvR_ray_get_position().z-height)))/RvR_non_zero((ray_middle_row-y));
+   RvR_fix22 tx = (RvR_ray_get_position().x&1023)*1024+ray_cos*depth+((x0-RVR_XRES/2)*step_x);
+   RvR_fix22 ty = -(RvR_ray_get_position().y&1023)*1024-ray_sin*depth+((x0-RVR_XRES/2)*step_y);
 
-   //const and restrict don't seem to influence the generated assembly in this case
    uint8_t * restrict pix = &RvR_core_framebuffer()[y*RVR_XRES+x0];
    const uint8_t * restrict col = RvR_shade_table(RvR_min(63,(depth>>9)));
    const uint8_t * restrict tex = texture->data;
