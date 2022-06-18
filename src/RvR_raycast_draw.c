@@ -664,35 +664,32 @@ static void ray_draw_column(RvR_ray_hit_result *hits, int hits_len, uint16_t x, 
    RvR_ray_hit_result h = {0};
    p.position.x = x;
 
-   int limit_c = 0;
-   int limit_f = 0;
-
    //we'll be simulatenously drawing the floor and the ceiling now  
    for(RvR_fix22 j = 0;j<=hits_len;++j)
    {                    //^ = add extra iteration for horizon plane
       int8_t drawing_horizon = j==(hits_len);
+      int limit_c = 0;
+      int limit_f = 0;
 
-      RvR_ray_hit_result hit;
-      RvR_fix22 distance = 1;
+      RvR_fix22 distance = 0;
 
-      RvR_fix22 f_wall_height = 0, c_wall_height = 0;
       RvR_fix22 f_z2_world = 0,    c_z2_world = 0;
       RvR_fix22 f_z1_screen = 0,   c_z1_screen = 0;
       RvR_fix22 f_z2_screen = 0,   c_z2_screen = 0;
 
       if(!drawing_horizon)
       {
-         hit = hits[j];
+         RvR_ray_hit_result hit = hits[j];
          distance = RvR_non_zero(hit.distance); 
          h = hit;
 
-         f_wall_height = RvR_ray_map_floor_height_at(hit.square.x,hit.square.y);
-         f_z2_world = f_wall_height-RvR_ray_get_position().z;
+         RvR_fix22 wall_height = RvR_ray_map_floor_height_at(hit.square.x,hit.square.y);
+         f_z2_world = wall_height-RvR_ray_get_position().z;
          f_z1_screen = ray_middle_row-((f_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
          f_z2_screen = ray_middle_row-((f_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
 
-         c_wall_height = RvR_ray_map_ceiling_height_at(hit.square.x,hit.square.y);
-         c_z2_world = c_wall_height-RvR_ray_get_position().z;
+         wall_height = RvR_ray_map_ceiling_height_at(hit.square.x,hit.square.y);
+         c_z2_world = wall_height-RvR_ray_get_position().z;
          c_z1_screen = ray_middle_row-((c_z1_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
          c_z2_screen = ray_middle_row-((c_z2_world*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*distance)/1024));
       }
@@ -891,11 +888,15 @@ static void ray_span_draw_tex(int x0, int x1, int y, RvR_fix22 height, const RvR
       return;
 
    //Calculate the depth of the row to be rendered
-   RvR_fix22 depth = (RvR_abs(RvR_ray_get_position().z-height)*RVR_YRES)/RvR_non_zero((ray_fov_factor_y*RvR_abs(ray_middle_row-y))/1024);
+   RvR_fix22 dy = ray_middle_row-y;
+   RvR_fix22 depth = (RvR_abs(RvR_ray_get_position().z-height)*1024)/RvR_non_zero(ray_fov_factor_y);
+   depth = (depth*RVR_YRES)/RvR_non_zero(RvR_abs(dy));
 
    //Calculate texture mapping step size and starting coordinates
-   RvR_fix22 step_x = ((ray_sin*(RvR_ray_get_position().z-height)))/RvR_non_zero((ray_middle_row-y));
-   RvR_fix22 step_y = ((ray_cos*(RvR_ray_get_position().z-height)))/RvR_non_zero((ray_middle_row-y));
+   RvR_fix22 step_x = ((ray_sin*(RvR_ray_get_position().z-height)))/RvR_non_zero((dy));
+   RvR_fix22 step_y = ((ray_cos*(RvR_ray_get_position().z-height)))/RvR_non_zero((dy));
+   //RvR_fix22 step_x = ((ray_sin*(RvR_ray_get_position().z-height))+(dy)/2)/RvR_non_zero((dy));
+   //RvR_fix22 step_y = ((ray_cos*(RvR_ray_get_position().z-height))+(dy)/2)/RvR_non_zero((dy));
    RvR_fix22 tx = (RvR_ray_get_position().x&1023)*1024+ray_cos*depth+((x0-RVR_XRES/2)*step_x);
    RvR_fix22 ty = -(RvR_ray_get_position().y&1023)*1024-ray_sin*depth+((x0-RVR_XRES/2)*step_y);
 

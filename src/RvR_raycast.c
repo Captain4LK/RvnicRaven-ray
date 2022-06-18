@@ -212,7 +212,7 @@ void RvR_rays_cast_multi_hit(RvR_ray_column_function column)
    RvR_fix22 dy = dir1.y-dir0.y;
    RvR_fix22 current_dx = 0;
    RvR_fix22 current_dy = 0;
-
+   
    RvR_ray_hit_result hits[RVR_RAY_MAX_STEPS] = {0};
    uint16_t hit_count = 0;
 
@@ -443,8 +443,8 @@ void RvR_rays_cast_multi_hit_draw(RvR_ray_column_function column)
       //perpendicular distance).
       RvR_ray r;
       r.start = (RvR_vec2) {ray_cam_position.x,ray_cam_position.y};
-      r.direction.x = dir0.x+(current_dx/RVR_XRES);
-      r.direction.y = dir0.y+(current_dy/RVR_XRES);
+      r.direction.x = dir0.x+(current_dx/(RVR_XRES-1));
+      r.direction.y = dir0.y+(current_dy/(RVR_XRES-1));
       
       RvR_ray_cast_multi_hit_draw(r,hits,&hit_count);
 
