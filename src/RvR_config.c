@@ -86,7 +86,7 @@ void RvR_ini_read(RvR_config config, void *dst, RvR_config_type type, const char
          case RVR_CONFIG_KEY: *((RvR_key *)dst) = config_strtokey(iter); break;
          }
 
-         break;
+         return;
       }
 
       while(*iter++);
