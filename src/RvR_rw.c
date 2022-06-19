@@ -41,7 +41,10 @@ void RvR_rw_init_file(RvR_rw *rw, FILE *f)
    rw->endian = RVR_LITTLE_ENDIAN;
    rw->as.fp = f;
 
+   return;
+
 RvR_err:
+   rw->type = RVR_RW_INVALID;
    return;
 }
 
@@ -56,7 +59,10 @@ void RvR_rw_init_path(RvR_rw *rw, const char *path, const char *mode)
    rw->as.fp = fopen(path,mode);
    RvR_error_check(rw->as.fp!=NULL,"RvR_rw_init_path","failed to open '%s'\n",path);
 
+   return;
+
 RvR_err:
+   rw->type = RVR_RW_INVALID;
    return;
 }
 
@@ -72,7 +78,10 @@ void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len, size_t clen)
    rw->as.mem.pos = 0;
    rw->as.mem.csize = clen;
 
+   return;
+
 RvR_err:
+   rw->type = RVR_RW_INVALID;
    return;
 }
 
@@ -87,7 +96,10 @@ void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len)
    rw->as.cmem.size = len;
    rw->as.cmem.pos = 0;
 
+   return;
+
 RvR_err:
+   rw->type = RVR_RW_INVALID;
    return;
 }
 
@@ -103,13 +115,22 @@ void RvR_rw_init_dyn_mem(RvR_rw *rw, size_t base_len, size_t min_grow)
    rw->as.dmem.pos = 0;
    rw->as.dmem.min_grow = min_grow;
 
-RvR_err:
    return;
+
+RvR_err:
+   rw->type = RVR_RW_INVALID;
+   return;
+}
+
+int RvR_rw_valid(RvR_rw *rw)
+{
+   return rw->type!=RVR_RW_INVALID;
 }
 
 void RvR_rw_endian(RvR_rw *rw, uint8_t endian)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_endian","argument 'rw' must be non-NULL\n");
+   RvR_error_check(rw->type!=RVR_RW_INVALID,"RvR_rw_endian","rw instance is invalid\n");
 
    rw->endian = endian;
 
@@ -120,6 +141,7 @@ RvR_err:
 void RvR_rw_close(RvR_rw *rw)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_close","argument 'rw' must be non-NULL\n");
+   RvR_error_check(rw->type!=RVR_RW_INVALID,"RvR_rw_close","rw instance is invalid\n");
 
    if(rw->type==RVR_RW_STD_FILE_PATH)
       RvR_error_check(fclose(rw->as.fp)!=EOF,"RvR_rw_close","fclose() failed\n");
@@ -133,6 +155,7 @@ RvR_err:
 void RvR_rw_flush(RvR_rw *rw)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_flush","argument 'rw' must be non-NULL\n");
+   RvR_error_check(rw->type!=RVR_RW_INVALID,"RvR_rw_flush","rw instance is invalid\n");
 
    if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
       RvR_error_check(fflush(rw->as.fp)==0,"RvR_rw_flush","fflush() failed\n");;
@@ -144,6 +167,7 @@ RvR_err:
 int RvR_rw_seek(RvR_rw *rw, long offset, int origin)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_seek","argument 'rw' must be non-NULL\n");
+   RvR_error_check(rw->type!=RVR_RW_INVALID,"RvR_rw_seek","rw instance is invalid\n");
 
    if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
    {
@@ -209,6 +233,7 @@ RvR_err:
 long RvR_rw_tell(RvR_rw *rw)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_tell","argument 'rw' must be non-NULL\n");
+   RvR_error_check(rw->type!=RVR_RW_INVALID,"RvR_rw_tell","rw instance is invalid\n");
 
    if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
    {
@@ -238,6 +263,7 @@ RvR_err:
 int RvR_rw_eof(RvR_rw *rw)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_eof","argument 'rw' must be non-NULL\n");
+   RvR_error_check(rw->type!=RVR_RW_INVALID,"RvR_rw_eof","rw instance is invalid\n");
 
    if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
       return feof(rw->as.fp);
@@ -258,6 +284,7 @@ size_t RvR_rw_read(RvR_rw *rw, void *buffer, size_t size, size_t count)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_read","argument 'rw' must be non-NULL\n");
    RvR_error_check(buffer!=NULL,"RvR_rw_read","argument 'buffer' must be non-NULL\n");
+   RvR_error_check(rw->type!=RVR_RW_INVALID,"RvR_rw_read","rw instance is invalid\n");
 
    if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
    {
@@ -322,6 +349,7 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
 {
    RvR_error_check(rw!=NULL,"RvR_rw_write","argument 'rw' must be non-NULL\n");
    RvR_error_check(buffer!=NULL,"RvR_rw_write","argument 'buffer' must be non-NULL\n");
+   RvR_error_check(rw->type!=RVR_RW_INVALID,"RvR_rw_write","rw instance is invalid\n");
 
    if(rw->type==RVR_RW_STD_FILE||rw->type==RVR_RW_STD_FILE_PATH)
    {

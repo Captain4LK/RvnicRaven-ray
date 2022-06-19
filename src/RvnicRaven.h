@@ -115,11 +115,12 @@ typedef enum
 
 typedef enum
 {
-   RVR_RW_STD_FILE = 0,
-   RVR_RW_STD_FILE_PATH = 1,
-   RVR_RW_MEM = 2,
-   RVR_RW_CONST_MEM = 3,
-   RVR_RW_DYN_MEM = 4,
+   RVR_RW_INVALID = 0,
+   RVR_RW_STD_FILE = 1,
+   RVR_RW_STD_FILE_PATH = 2,
+   RVR_RW_MEM = 3,
+   RVR_RW_CONST_MEM = 4,
+   RVR_RW_DYN_MEM = 5,
 }RvR_rw_type;
 
 typedef enum
@@ -234,6 +235,7 @@ void RvR_rw_init_mem(RvR_rw *rw, void *mem, size_t len, size_t clen);
 void RvR_rw_init_const_mem(RvR_rw *rw, const void *mem, size_t len);
 void RvR_rw_init_dyn_mem(RvR_rw *rw, size_t base_len, size_t min_grow);
 
+int    RvR_rw_valid(RvR_rw *rw);
 void   RvR_rw_endian(RvR_rw *rw, uint8_t endian);
 void   RvR_rw_close(RvR_rw *rw);
 void   RvR_rw_flush(RvR_rw *rw);
