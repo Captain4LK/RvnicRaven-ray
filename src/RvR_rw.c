@@ -12,6 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdarg.h>
 //-------------------------------------
 
 //Internal includes
@@ -403,6 +404,28 @@ size_t RvR_rw_write(RvR_rw *rw, const void *buffer, size_t size, size_t count)
 
 RvR_err:
    return 0;
+}
+
+int RvR_rw_printf(RvR_rw *rw, const char *format, ...)
+{
+   int ret = -1;
+
+   RvR_error_check(rw!=NULL,"RvR_rw_printf","argument 'rw' must be non-NULL\n");
+   RvR_error_check(format!=NULL,"RvR_rw_printf","argument 'format' must be non-NULL\n");
+   RvR_error_check(rw->type!=RVR_RW_INVALID,"RvR_rw_write","rw instance is invalid\n");
+
+   //Limit of 1024 characters
+   char tmp[1024];
+
+   va_list args;
+   va_start(args,format);
+   ret = vsnprintf(tmp,1024,format,args);
+   va_end(args);
+
+   RvR_rw_write(rw,tmp,strlen(tmp),1);
+
+RvR_err:
+   return ret;
 }
 
 uint8_t RvR_rw_read_u8(RvR_rw *rw)
