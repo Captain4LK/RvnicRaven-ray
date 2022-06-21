@@ -192,7 +192,7 @@ void RvR_backend_init(const char *title, int scale)
    key_map[SDL_SCANCODE_ESCAPE] = RVR_KEY_ESCAPE;
    key_map[SDL_SCANCODE_TAB] = RVR_KEY_TAB;
    key_map[SDL_SCANCODE_DELETE] = RVR_KEY_DEL;
-   key_map[SDL_SCANCODE_LGUI] = RVR_KEY_HOME;
+   key_map[SDL_SCANCODE_HOME] = RVR_KEY_HOME;
    key_map[SDL_SCANCODE_END] = RVR_KEY_END;
    key_map[SDL_SCANCODE_PAGEUP] = RVR_KEY_PGUP;
    key_map[SDL_SCANCODE_PAGEDOWN] = RVR_KEY_PGDN;

@@ -175,7 +175,7 @@ static RvR_key config_strtokey(const char *s)
    RvR_error_check(s!=NULL,"RvR_ini_read","argument 's' must be non-NULL\n");
 
    uint32_t hash_key = RvR_fnv32a(s);
-   RvR_log("ikey: %s;%u\n",s,hash_key);
+   RvR_log("ikey: %s;0x%x\n",s,hash_key);
 
    switch(hash_key)
    {
@@ -205,6 +205,43 @@ static RvR_key config_strtokey(const char *s)
    case 0xfd0c5087: return RVR_KEY_X; //'x'
    case 0xfc0c4ef4: return RVR_KEY_Y; //'y'
    case 0xff0c53ad: return RVR_KEY_Z; //'z'
+
+   case 0x14226d78: return RVR_KEY_F1; //'f1'
+   case 0x17227231: return RVR_KEY_F2; //'f2'
+   case 0x1622709e: return RVR_KEY_F3; //'f3'
+   case 0x19227557: return RVR_KEY_F4; //'f4'
+   case 0x182273c4: return RVR_KEY_F5; //'f5'
+   case 0x1b22787d: return RVR_KEY_F6; //'f6'
+   case 0x1a2276ea: return RVR_KEY_F7; //'f7'
+   case  0xd226273: return RVR_KEY_F8; //'f8'
+   case  0xc2260e0: return RVR_KEY_F9; //'f9'
+   case 0xfa320858: return RVR_KEY_F10; //'f10'
+   case 0xfb3209eb: return RVR_KEY_F11; //'f11'
+   case 0xfc320b7e: return RVR_KEY_F12; //'f12'
+
+   case 0x3db9b915: return RVR_KEY_DOWN; //'down'
+   case 0x124aec70: return RVR_KEY_LEFT; //'left'
+   case 0x78e32de5: return RVR_KEY_RIGHT; //'right'
+   case 0x43430b20: return RVR_KEY_UP; //'up'
+   case 0x85ee37bf: return RVR_KEY_RETURN; //'return'
+
+   case 0x853c682c: return RVR_KEY_BACK; //'backspace'
+   case 0x9e212406: return RVR_KEY_ESCAPE; //'escape'
+   case 0x98f72e4c: return RVR_KEY_TAB; //'tab'
+   case 0x67c2444a: return RVR_KEY_DEL; //'delete'
+   case 0xd2c8c28e: return RVR_KEY_HOME; //'home'
+   case 0x6a8e75aa: return RVR_KEY_END; //'end'
+   case 0xe8d303a5: return RVR_KEY_PGUP; //'pgup'
+   case 0xf8f7edae: return RVR_KEY_PGDN; //'pgdn'
+   case 0xc6a39628: return RVR_KEY_INS; //'insert'
+   case 0x8da53719: return RVR_KEY_LSHIFT; //'lshift'
+   case 0x86294ef7: return RVR_KEY_RSHIFT; //'rshift'
+   case 0x7a59460a: return RVR_KEY_LCTRL; //'lctrl'
+   case 0xe3eedaf4: return RVR_KEY_RCTRL; //'rctrl'
+   case 0x61eea0e6: return RVR_KEY_LALT; //'lalt'
+   case 0x8d96f02c: return RVR_KEY_RALT; //'ralt'
+   case 0x3553e285: return RVR_KEY_SPACE; //'space'
+
    case 0x350ca8af: return RVR_KEY_0; //'0'
    case 0x340ca71c: return RVR_KEY_1; //'1'
    case 0x370cabd5: return RVR_KEY_2; //'2'
@@ -215,7 +252,16 @@ static RvR_key config_strtokey(const char *s)
    case 0x320ca3f6: return RVR_KEY_7; //'7'
    case 0x3d0cb547: return RVR_KEY_8; //'8'
    case 0x3c0cb3b4: return RVR_KEY_9; //'9'
-   case 0x3553e285: return RVR_KEY_SPACE; //'space'
+
+   case 0x290c95cb: return RVR_KEY_COMMA; //','
+   case 0x2b0c98f1: return RVR_KEY_PERIOD; //'.'
+
+   case 0xab553f90: return RVR_BUTTON_LEFT; //'mouse_1'
+   case 0xae554449: return RVR_BUTTON_RIGHT; //'mouse_2'
+   case 0xad5542b6: return RVR_BUTTON_MIDDLE; //'mouse_3'
+   case 0xb055476f: return RVR_BUTTON_X1; //'mouse_4'
+   case 0xaf5545dc: return RVR_BUTTON_X2; //'mouse_5'
+
    default: return RVR_KEY_NONE;
    }
 
