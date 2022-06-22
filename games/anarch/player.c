@@ -72,13 +72,13 @@ void player_update()
    int accel = 0;
 
    //Forward/Backward movement
-   if(RvR_core_key_down(RVR_KEY_W))
+   if(RvR_core_key_down(config_move_forward))
    {
       player.vel.x+=step*direction.x;
       player.vel.y+=step*direction.y;
       accel = 1;
    }
-   else if(RvR_core_key_down(RVR_KEY_S))
+   else if(RvR_core_key_down(config_move_backward))
    {
       player.vel.x-=step*direction.x;
       player.vel.y-=step*direction.y;
@@ -119,7 +119,7 @@ void player_update()
    
    //Mouse look: x-axis
    if(x!=0)
-      player.entity->direction+=(x*128)/128;
+      player.entity->direction+=(x*128)/32;
 
    //Shearing (fake looking up/down)
    //Drift back to 0

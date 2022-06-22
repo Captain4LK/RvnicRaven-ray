@@ -20,9 +20,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Internal includes
 #include "../../src/RvnicRaven.h"
+#include "config.h"
 #include "state.h"
 #include "sound.h"
-#include "config.h"
 //-------------------------------------
 
 //#defines
@@ -32,16 +32,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-int config_mouse_sensitivity = 128;
-int config_mouse_sensitivity_vertical = 128;
-RvR_key config_move_forward = RVR_KEY_W;
-RvR_key config_move_backward = RVR_KEY_S;
-RvR_key config_strafe_left = RVR_KEY_A;
-RvR_key config_strafe_right = RVR_KEY_D;
-RvR_key config_enable_freelook = RVR_KEY_F;
-RvR_key config_jump = RVR_KEY_SPACE;
-int config_camera_max_shear = 192;
-int config_camera_shear_step = 8;
 //-------------------------------------
 
 //Function prototypes
@@ -63,9 +53,11 @@ int main(int argc, char **argv)
    //RvR_pak_add("test.pak");
    RvR_pak_add("data_anarch/main.csv");
 
-   //User defined overwrites ('modding')
+   //User defined overwrites (used for modding)
    for(int i = 1;i<argc;i++)
       RvR_pak_add(argv[i]);
+
+   config_read("settings.ini");
 
    RvR_palette_load(0);
    RvR_draw_font_set(0xF000);

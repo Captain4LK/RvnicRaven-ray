@@ -13,6 +13,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #define _GAME_H_
 
 extern uint32_t game_tick;
+extern RvR_rand_game game_rand_state;
 
 void game_map_load(uint16_t id);
 void game_map_reset();

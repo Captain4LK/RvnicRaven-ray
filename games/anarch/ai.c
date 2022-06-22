@@ -287,7 +287,7 @@ void ai_damage(AI_ent *to, AI_index *source, int damage)
 
    if(target==NULL&&ai_index_try(*source)!=NULL&&ai_index_try(*source)->collider!=NULL&&to!=player.entity)
    {
-      int rnd = RvR_rand()%3;
+      int rnd = RvR_rand_game_next(&game_rand_state)%3;
       //Sound rnd_sounds[] = {SOUND_ALIEN_ALERT0,SOUND_ALIEN_ALERT1,SOUND_ALIEN_ALERT2};
       //sound_play(rnd_sounds[rnd],ai_index_get(to),255);
 

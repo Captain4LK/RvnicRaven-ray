@@ -34,4 +34,7 @@ extern int config_camera_shear_step;
 #define CAMERA_COLL_HEIGHT_ABOVE 200
 #define CAMERA_COLL_STEP_HEIGHT (1024/4)
 
+void config_read(const char *path);
+void config_write(const char *path);
+
 #endif

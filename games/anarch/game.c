@@ -11,6 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //External includes
 #include <stdio.h>
 #include <stdint.h>
+#include <time.h>
 //-------------------------------------
 
 //Internal includes
@@ -31,6 +32,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 //Variables
 uint32_t game_tick = 0;
+RvR_rand_game game_rand_state;
 
 static int map_current = 0;
 //-------------------------------------
@@ -42,6 +44,8 @@ static int map_current = 0;
 
 void game_map_load(uint16_t id)
 {
+   RvR_rand_game_seed(&game_rand_state,time(NULL));
+
    message_reset();
 
    map_current = id;
