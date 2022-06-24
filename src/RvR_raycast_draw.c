@@ -1233,12 +1233,18 @@ static void ray_sprite_draw_floor(ray_sprite *sp)
 {
 }
 
+//TODO: readd flipped sprites
 static void ray_sprite_draw_billboard(ray_sprite *sp)
 {
-   RvR_fix22 depth = sp->sp.z;
    RvR_texture *texture = RvR_texture_get(sp->texture);
    int mask = (1<<RvR_log2(texture->height))-1;
 
+   RvR_fix22 tpx = sp->p.x-RvR_ray_get_position().x;
+   RvR_fix22 tpy = sp->p.y-RvR_ray_get_position().y;
+   RvR_fix22 depth = (tpx*ray_cos+tpy*ray_sin)/1024;
+   tpx = (tpx*ray_sin-tpy*ray_cos)/1024;
+
+   //Dimensions
    RvR_fix22 top = ((sp->p.z-RvR_ray_get_position().z+texture->height*16)*1024)/RvR_non_zero((depth*ray_fov_factor_y)/1024);
    top = ray_middle_row*1024-top*RVR_YRES;
    int y0 = (top+1023)/1024;
@@ -1246,6 +1252,14 @@ static void ray_sprite_draw_billboard(ray_sprite *sp)
    RvR_fix22 bot = ((sp->p.z-RvR_ray_get_position().z)*1024)/RvR_non_zero((depth*ray_fov_factor_y)/1024);
    bot = ray_middle_row*1024-bot*RVR_YRES;
    int y1 = (bot-1)/1024;
+
+   RvR_fix22 left = ((tpx+texture->width*8)*1024)/RvR_non_zero((depth*ray_fov_factor_x)/1024);
+   left = RVR_XRES*512-left*(RVR_XRES/2);
+   int x0 = (left+1023)/1024;
+
+   RvR_fix22 right = ((tpx-texture->width*8)*1024)/RvR_non_zero((depth*ray_fov_factor_x)/1024);
+   right = RVR_XRES*512-right*(RVR_XRES/2);
+   int x1 = (right-1)/1024;
 
    //Floor and ceiling clip
    RvR_vec3 floor_wpos;
@@ -1262,36 +1276,22 @@ static void ray_sprite_draw_billboard(ray_sprite *sp)
    y1 = RvR_min(y1,clip_bottom);
    RvR_fix22 step_v = (4*ray_fov_factor_y*depth)/RVR_YRES;
 
-   //TODO: rework
-   RvR_fix22 size_horizontal  = (texture->width*1024*1024)/RvR_non_zero(depth);
-   size_horizontal = (size_horizontal*RVR_XRES/2*16)/RvR_non_zero(ray_fov_factor_x);
-   int sx = 0;
-   int ex = size_horizontal/1024;
-   int x = sp->sp.x-size_horizontal/2048;
-   RvR_fix22 step_u = (texture->width*1024*1024-1)/RvR_non_zero(size_horizontal);
-   RvR_fix22 u = 0;
-   if(x<0)
-      sx = -x;
-   if(x+ex>RVR_XRES)
-      ex = size_horizontal/1024+(RVR_XRES-x-ex);
-   x = x<0?0:x;
+   RvR_fix22 step_u = (8*ray_fov_factor_x*depth)/RVR_XRES;
+   RvR_fix22 u = (step_u*(x0*1024-left))/1024;
+   x1 = RvR_min(x1,RVR_XRES);
 
-   if(sp->flags&1)
-      u = (-sx+size_horizontal/1024)*step_u;
-   else
-      u = sx*step_u;
+   if(x0<0)
+   {
+      u = (-x0)*step_u;
+      x0 = 0;
+   }
 
    //Draw
    const uint8_t * restrict col = RvR_shade_table(RvR_min(63,depth>>9));
    uint8_t * restrict dst = NULL;
    const uint8_t * restrict tex = NULL;
-   for(int x1 = sx;x1<ex;x1++,x++)
+   for(int x = x0;x<x1;x++)
    {
-      if(sp->flags&1)
-         u-=step_u;
-      else
-         u+=step_u;
-
       //Clip against walls
       int ys = y0;
       int ye = y1;
@@ -1314,7 +1314,7 @@ static void ray_sprite_draw_billboard(ray_sprite *sp)
          clip = clip->next;
       }
 
-      tex = &texture->data[texture->height*(u>>10)];
+      tex = &texture->data[texture->height*(u>>16)];
       dst = &RvR_core_framebuffer()[ys*RVR_XRES+x];
       RvR_fix22 v = (sp->p.z-RvR_ray_get_position().z)*4096+(ys-ray_middle_row+1)*step_v;
 
@@ -1345,6 +1345,8 @@ static void ray_sprite_draw_billboard(ray_sprite *sp)
             v+=step_v;
          }
       }
+
+      u+=step_u;
    }
 }
 
