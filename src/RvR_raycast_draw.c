@@ -1233,7 +1233,7 @@ static void ray_sprite_draw_floor(ray_sprite *sp)
 {
 }
 
-//TODO: readd flipped sprites
+//TODO: reimplement flipped sprites
 static void ray_sprite_draw_billboard(ray_sprite *sp)
 {
    RvR_texture *texture = RvR_texture_get(sp->texture);
@@ -1262,27 +1262,24 @@ static void ray_sprite_draw_billboard(ray_sprite *sp)
    int x1 = (right-1)/1024;
 
    //Floor and ceiling clip
-   RvR_vec3 floor_wpos;
-   floor_wpos.x = sp->p.x;
-   floor_wpos.y = sp->p.y;
-   floor_wpos.z = RvR_ray_map_floor_height_at(sp->p.x/1024,sp->p.y/1024);
-   int clip_bottom = RvR_ray_map_to_screen(floor_wpos).position.y;
-   floor_wpos.z = RvR_ray_map_ceiling_height_at(sp->p.x/1024,sp->p.y/1024);
-   int clip_top = RvR_ray_map_to_screen(floor_wpos).position.y;
-   clip_bottom = clip_bottom>RVR_YRES?RVR_YRES:clip_bottom;
-   clip_top = clip_top<0?0:clip_top;
+   RvR_fix22 cy = ((RvR_ray_map_floor_height_at(sp->p.x/1024,sp->p.y/1024)-RvR_ray_get_position().z)*1024)/RvR_non_zero((depth*ray_fov_factor_y)/1024);
+   cy = ray_middle_row*1024-cy*RVR_YRES;
+   int clip_bottom = RvR_min(cy/1024,RVR_YRES);
+
+   cy = ((RvR_ray_map_ceiling_height_at(sp->p.x/1024,sp->p.y/1024)-RvR_ray_get_position().z)*1024)/RvR_non_zero((depth*ray_fov_factor_y)/1024);
+   cy = ray_middle_row*1024-cy*RVR_YRES;
+   int clip_top = RvR_max(cy/1024,0);
 
    y0 = RvR_max(y0,clip_top);
    y1 = RvR_min(y1,clip_bottom);
+   x1 = RvR_min(x1,RVR_XRES);
    RvR_fix22 step_v = (4*ray_fov_factor_y*depth)/RVR_YRES;
-
    RvR_fix22 step_u = (8*ray_fov_factor_x*depth)/RVR_XRES;
    RvR_fix22 u = (step_u*(x0*1024-left))/1024;
-   x1 = RvR_min(x1,RVR_XRES);
 
    if(x0<0)
    {
-      u = (-x0)*step_u;
+      u+=(-x0)*step_u;
       x0 = 0;
    }
 
