@@ -8,19 +8,39 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
 */
 
-#ifndef _DRAW_H_
+#ifndef _BURG_H_
 
-#define _DRAW_H_
+#define _BURG_H_
 
-void draw_buffer_set(uint8_t *buff, int width, int height);
-void draw_buffer_set_color(uint8_t c); //Black - 0, White - 1
-void draw_buffer_set_write(int m);
-void draw_buffer_set_flip(int f);
-void draw_buffer(int x, int y);
+typedef struct
+{
+   int width;
+   int kanonen[20]; //max 10
+   int trohn[4];
+   int fahne[4];
+   int geld[4];
+   int pulver[4];
+   int kugeln[4];
+   int geld_start;
+   int pulver_start;
+   int kugeln_start;
+   int volk_start;
+   
+   int shape_size;
+   int shape_used;
+   int *shape;
+}Burg;
 
-void draw_buffer_clear(void);
-void draw_buffer_shape(int x, int y, const int *shape);
-void draw_buffer_line(int x0, int y0, int x1, int y1, uint16_t pattern);
-void draw_buffer_rectangle(int x, int y, int width, int height);
+typedef struct
+{
+   unsigned data_size;
+   unsigned data_used;
+   Burg *data;
+}Burg_array;
+
+extern Burg_array burgen;
+
+void burgen_add(RvR_rw *rw);
+void burg_add(Burg b);
 
 #endif
