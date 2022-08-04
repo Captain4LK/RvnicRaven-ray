@@ -36,6 +36,14 @@ typedef struct
    int pulver;
    int kugeln;
    int volk;
+
+   struct
+   {
+      int x;
+      int y;
+      int winkel;
+      int pulver;
+   }kanonen[10];
 }Player;
 //-------------------------------------
 
@@ -76,6 +84,10 @@ int burg[] =
 //Function prototypes
 static void burg_init(int n);
 static void kanone_init(int n, int k, int xr);
+
+static void draw_geld(int n);
+static void draw_pulver(int n);
+static void draw_kugeln(int n);
 //-------------------------------------
 
 //Function implementations
@@ -178,14 +190,75 @@ static void burg_init(int n)
 
    for(int i = 0;i<10&&burgen.data[bg].kanonen[2*i+1]>-1;i++)
       kanone_init(n,i,xr);
+   draw_geld(n);
+   draw_pulver(n);
+   draw_kugeln(n);
 
    draw_buffer_set_flip(1);
 }
 
 static void kanone_init(int n, int k, int xr)
 {
-   int bg = players[n].burg;
    int f = n&1?-1:1;
-   draw_buffer_shape(xr+burgen.data[bg].kanonen[k*2]*f,players[n].burg_y-burgen.data[bg].kanonen[1+k*2],kanon);
+   int bg = players[n].burg;
+   int x = xr+burgen.data[bg].kanonen[k*2]*f;
+   int y = players[n].burg_y-burgen.data[bg].kanonen[1+k*2];
+   draw_buffer_shape(x,y,kanon);
+
+   players[n].kanonen[k].x = x;
+   players[n].kanonen[k].y = y;
+   players[n].kanonen[k].winkel = 45;
+   players[n].kanonen[k].pulver = 12;
+}
+
+static void draw_geld(int n)
+{
+   int f = n&1?-1:1;
+   int bg = players[n].burg;
+   int xr = (RVR_XRES-1)*n+f*burgen.data[bg].geld[0];
+   int yr = players[n].burg_y-burgen.data[bg].geld[1];
+   int i = (players[n].geld+149)/150;
+
+   draw_buffer_set_color(0);
+   draw_buffer_rectangle(xr-burgen.data[bg].geld[2]*n-!n,yr-burgen.data[bg].geld[3],burgen.data[bg].geld[2]+1,burgen.data[bg].geld[3]+1);
+   draw_buffer_set_color(1);
+
+   for(int y = 0,z = 0;i>0&&y<burgen.data[bg].geld[3];y+=10)
+      for(int x = 0;i>0&&x<burgen.data[bg].geld[2];x+=7,z++,i--)
+         draw_buffer_shape(xr+f*x,yr-y,sack);
+}
+
+static void draw_pulver(int n)
+{
+   int f = n&1?-1:1;
+   int bg = players[n].burg;
+   int xr = (RVR_XRES-1)*n+f*burgen.data[bg].pulver[0];
+   int yr = players[n].burg_y-burgen.data[bg].pulver[1];
+   int i = (players[n].pulver+29)/30;
+
+   draw_buffer_set_color(0);
+   draw_buffer_rectangle(xr-burgen.data[bg].pulver[2]*n-!n,yr-burgen.data[bg].pulver[3],burgen.data[bg].pulver[2]+1,burgen.data[bg].pulver[3]+1);
+   draw_buffer_set_color(1);
+
+   for(int y = 0,z = 0;i>0&&y<burgen.data[bg].pulver[3];y+=9)
+      for(int x = 0;i>0&&x<burgen.data[bg].pulver[2];x+=9,z++,i--)
+         draw_buffer_shape(xr+f*x,yr-y,fass);
+}
+
+static void draw_kugeln(int n)
+{
+   int f = n&1?-1:1;
+   int bg = players[n].burg;
+   int xr = (RVR_XRES-1)*n+f*burgen.data[bg].kugeln[0];
+   int yr = players[n].burg_y-burgen.data[bg].kugeln[1];
+   int i = players[n].kugeln;
+
+   draw_buffer_set_color(0);
+   draw_buffer_rectangle(xr-burgen.data[bg].kugeln[2]*n-!n,yr-burgen.data[bg].kugeln[3],burgen.data[bg].kugeln[2]+1,burgen.data[bg].kugeln[3]+1);
+   draw_buffer_set_color(1);
+
+   for(int y = 0,z = 0;i>0&&y<burgen.data[bg].kugeln[3];y+=6)
+      for(int x = 0;i>0&&x<burgen.data[bg].kugeln[2];x+=6,z++,i--)
+         draw_buffer_shape(xr+f*x,yr-y,kuge);
 }
 //-------------------------------------
