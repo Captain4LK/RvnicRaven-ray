@@ -8,11 +8,12 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
 */
 
-#ifndef _GAME_H_
+#ifndef _UI_H_
 
-#define _GAME_H_
+#define _UI_H_
 
-void game_new(void);
-int ein_zug(void);
+void menu_bar_update(Object *tree);
+void menu_bar_draw(Object *tree);
+void object_draw(Object *tree, int x, int y, int r);
 
 #endif

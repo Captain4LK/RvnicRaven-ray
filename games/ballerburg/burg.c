@@ -141,7 +141,7 @@ void burg_add(Burg b)
    {
       burgen.data_size = 8;
       burgen.data_used = 0;
-      burgen.data = malloc(sizeof(*burgen.data)*burgen.data_size);
+      burgen.data = RvR_malloc(sizeof(*burgen.data)*burgen.data_size);
    }
 
    burgen.data[burgen.data_used++] = b;
@@ -149,7 +149,7 @@ void burg_add(Burg b)
    if(burgen.data_used==burgen.data_size)
    {
       burgen.data_size*=2;
-      burgen.data = realloc(burgen.data,sizeof(*burgen.data)*burgen.data_size);
+      burgen.data = RvR_realloc(burgen.data,sizeof(*burgen.data)*burgen.data_size);
    }
 }
 
@@ -188,7 +188,7 @@ static void shape_insert(Burg *b, int n)
    {
       b->shape_size = 16;
       b->shape_used = 0;
-      b->shape = malloc(sizeof(*b->shape)*b->shape_size);
+      b->shape = RvR_malloc(sizeof(*b->shape)*b->shape_size);
    }
 
    b->shape[b->shape_used++] = n;
@@ -196,7 +196,7 @@ static void shape_insert(Burg *b, int n)
    if(b->shape_used==b->shape_size)
    {
       b->shape_size*=2;
-      b->shape = realloc(b->shape,sizeof(*b->shape)*b->shape_size);
+      b->shape = RvR_realloc(b->shape,sizeof(*b->shape)*b->shape_size);
    }
 }
 //-------------------------------------

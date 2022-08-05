@@ -16,11 +16,13 @@ void draw_buffer_set(uint8_t *buff, int width, int height);
 void draw_buffer_set_color(uint8_t c); //Black - 0, White - 1
 void draw_buffer_set_write(int m);
 void draw_buffer_set_flip(int f);
+void draw_buffer_set_pattern(int pattern);
 void draw_buffer(int x, int y);
 
 void draw_buffer_clear(void);
 void draw_buffer_shape(int x, int y, const int *shape);
 void draw_buffer_line(int x0, int y0, int x1, int y1, uint16_t pattern);
 void draw_buffer_rectangle(int x, int y, int width, int height);
+void draw_buffer_text(int x, int y, const char *str);
 
 #endif

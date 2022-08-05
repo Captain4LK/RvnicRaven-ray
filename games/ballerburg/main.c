@@ -21,6 +21,9 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "color.h"
 #include "burg.h"
 #include "game.h"
+#include "object.h"
+#include "ressource.h"
+#include "ui.h"
 //-------------------------------------
 
 //#defines
@@ -47,7 +50,6 @@ int main(int argc, char **argv)
 
    //Init RvnicRaven core
    RvR_core_init("RvnicRaven - ballerburg",0);
-   RvR_core_mouse_relative(1);
 
    //RvR_pak_create_from_csv("data_anarch/main.csv","test.pak");
    //RvR_pak_add("test.pak");
@@ -68,6 +70,9 @@ int main(int argc, char **argv)
    RvR_rw_init_path(&rw,"BALLER.DAT","rb");
    burgen_add(&rw);
    RvR_rw_close(&rw);
+
+   ressource_load("BALLER.RSC");
+   objects_get();
 
    printf("%d Burgen\n",burgen.data_used);
 
@@ -121,6 +126,8 @@ static void loop()
    }*/
 
    draw_buffer(0,0);
+   object_draw(a_sch,0,20,0);
+   //menu_bar_draw(a_men);
 
    /*static int burg = 0;
    if(RvR_core_key_pressed(RVR_KEY_RIGHT))
