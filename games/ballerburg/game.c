@@ -234,6 +234,7 @@ static void burg_init(int n)
       burgen.data[bg].trohn[2],
       burgen.data[bg].trohn[3],
    };
+   draw_buffer_set_pattern(0);
    draw_buffer_rectangle(xr+f*dim[0]-n*dim[2],players[n].burg_y-dim[1]-dim[3],dim[2],dim[3]);
    draw_buffer_set_color(1);
    draw_buffer_shape(xr+f*dim[0],players[n].burg_y-dim[1],trohn);
@@ -270,6 +271,7 @@ static void draw_geld(int n)
    int i = (players[n].geld+149)/150;
 
    draw_buffer_set_color(0);
+   draw_buffer_set_pattern(0);
    draw_buffer_rectangle(xr-burgen.data[bg].geld[2]*n-!n,yr-burgen.data[bg].geld[3],burgen.data[bg].geld[2]+1,burgen.data[bg].geld[3]+1);
    draw_buffer_set_color(1);
 
@@ -291,6 +293,7 @@ static void draw_pulver(int n)
    int i = (players[n].pulver+29)/30;
 
    draw_buffer_set_color(0);
+   draw_buffer_set_pattern(0);
    draw_buffer_rectangle(xr-burgen.data[bg].pulver[2]*n-!n,yr-burgen.data[bg].pulver[3],burgen.data[bg].pulver[2]+1,burgen.data[bg].pulver[3]+1);
    draw_buffer_set_color(1);
 
@@ -312,6 +315,7 @@ static void draw_kugeln(int n)
    int i = players[n].kugeln;
 
    draw_buffer_set_color(0);
+   draw_buffer_set_pattern(0);
    draw_buffer_rectangle(xr-burgen.data[bg].kugeln[2]*n-!n,yr-burgen.data[bg].kugeln[3],burgen.data[bg].kugeln[2]+1,burgen.data[bg].kugeln[3]+1);
    draw_buffer_set_color(1);
 

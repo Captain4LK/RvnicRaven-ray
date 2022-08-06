@@ -14,6 +14,8 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 void draw_buffer_set(uint8_t *buff, int width, int height);
 void draw_buffer_set_color(uint8_t c); //Black - 0, White - 1
+void draw_buffer_set_text_color(uint8_t c);
+void draw_buffer_set_text_write(int m);
 void draw_buffer_set_write(int m);
 void draw_buffer_set_flip(int f);
 void draw_buffer_set_pattern(int pattern);

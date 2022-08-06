@@ -39,6 +39,8 @@ static int draw_style;
 static int draw_write = 1;
 static int draw_flip = 1;
 static uint8_t draw_color = 1;
+static uint8_t text_color = 1;
+static int text_write = 1;
 
 static uint16_t pattern_line;
 
@@ -52,10 +54,9 @@ static const Pattern pattern_pattern[25] =
    {.planes = 4, .pattern = {0x1111,0x0000,0x4444,0x0000}}, 
    {.planes = 2, .pattern = {0x5555,0x0000}},
    {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
+   {.planes = 2, .pattern = {0x5555,0xaaaa}},
    {.planes = 2, .pattern = {0x5555,0x0000}},
-   //{.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
+   {.planes = 2, .pattern = {0x5555,0xffff}},
    {.planes = 1, .pattern = {0x0000}},
    {.planes = 1, .pattern = {0x0000}},
    {.planes = 8, .pattern = {0xffff,0x1010,0x1010,0x1010,0xffff,0x0101,0x0101,0x0101}},
@@ -135,6 +136,16 @@ void draw_buffer_set_color(uint8_t c)
    draw_color = c;
 }
 
+void draw_buffer_set_text_color(uint8_t c)
+{
+   text_color = c;
+}
+
+void draw_buffer_set_text_write(int m)
+{
+   text_write = m;
+}
+
 void draw_buffer_set_write(int m)
 {
    draw_write = RvR_min(4,RvR_max(1,m));
@@ -149,8 +160,8 @@ void draw_buffer_set_pattern(int pattern)
 {
    draw_interior = 2;
    draw_style = pattern;
-   if(pattern==0)
-      draw_interior = 0;
+   if(pattern<=0)
+      draw_interior = 1;
 }
 
 void draw_buffer_shape(int x, int y, const int *shape)
@@ -236,7 +247,10 @@ void draw_buffer_line(int x0, int y0, int x1, int y1, uint16_t pattern)
 
 void draw_buffer_rectangle(int x, int y, int width, int height)
 {
-   //Clip src rect
+   for(int iy = y;iy<y+height;iy++)
+      for(int ix = x;ix<x+width;ix++)
+         draw(ix,iy,1);
+   /*//Clip src rect
    int draw_start_y = 0;
    int draw_start_x = 0;
    int draw_end_x = width;
@@ -260,11 +274,13 @@ void draw_buffer_rectangle(int x, int y, int width, int height)
     
    for(int y1 = draw_start_y;y1<draw_end_y;y1++,dst+=dst_step)
       for(int x1 = draw_start_x;x1<draw_end_x;x1++,dst++)
-         *dst = draw_color?color_black:color_white;
+         *dst = draw_color?color_black:color_white;*/
 }
 
 void draw_buffer_text(int x, int y, const char *str)
 {
+   int write = draw_write;
+   draw_write = text_write;
    y-=13;
    uint8_t color = draw_color;
    int len = strlen(str);
@@ -281,9 +297,9 @@ void draw_buffer_text(int x, int y, const char *str)
          for(int ix = x;ix<x+8;ix++)
          {
             if(byte&(1<<(ix-x)))
-               draw_color = color;
+               draw_color = text_color;
             else
-               draw_color = !color;
+               draw_color = !text_color;
             draw(ix,iy,0);
          }
       }
@@ -291,6 +307,7 @@ void draw_buffer_text(int x, int y, const char *str)
    }
 
    draw_color = color;
+   draw_write = write;
 }
 
 static void draw(int x, int y, int mode)

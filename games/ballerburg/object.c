@@ -155,6 +155,14 @@ void objects_get(void)
    a_brg = ressource_get(0,BURG);
    a_nam = ressource_get(0,NAMEN);
    a_dra = ressource_get(0,DRAN);
+   a_sta = ressource_get(0,STATUS);
+   a_sie = ressource_get(0,SIEGER);
+   a_com = ressource_get(0,COMPUTER);
+   a_re1 = ressource_get(0,REGEL1);
+   a_re2 = ressource_get(0,REGEL2);
+   a_re3 = ressource_get(0,REGEL3);
+   a_opt = ressource_get(0,OPTION);
+   a_ein = ressource_get(0,EINTRAG);
 }
 
 void object_print(Object *o)

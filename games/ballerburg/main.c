@@ -72,6 +72,7 @@ int main(int argc, char **argv)
    RvR_rw_close(&rw);
 
    ressource_load("BALLER.RSC");
+   //ressource_load("DOODLE.RSC");
    objects_get();
 
    printf("%d Burgen\n",burgen.data_used);
@@ -126,8 +127,9 @@ static void loop()
    }*/
 
    draw_buffer(0,0);
-   object_draw(a_sch,0,20,0);
-   //menu_bar_draw(a_men);
+   //object_draw(objects,0,20,0);
+   object_draw(a_sie,0,20,0);
+   //menu_bar_draw(a_dra);
 
    /*static int burg = 0;
    if(RvR_core_key_pressed(RVR_KEY_RIGHT))

@@ -80,7 +80,7 @@ int ressource_load(const char *path)
       o.x = RvR_rw_read_u16(&rw);
       o.y = RvR_rw_read_u16(&rw);
       o.width = RvR_rw_read_u16(&rw);
-      o.height= RvR_rw_read_u16(&rw);
+      o.height = RvR_rw_read_u16(&rw);
       objects[i] = o;
 
       /*printf("Object %d:\n",i);
@@ -109,10 +109,17 @@ int ressource_load(const char *path)
       //printf("Tree %d: %d\n",i,trees[i]);
    }
 
-   //Post process objects --> read spec fields
+   //Post process objects --> read spec fields and fix x,y,width,height
    for(int i = 0;i<num_objects;i++)
    {
       Object *o = &objects[i];
+
+      //Fix pos
+      o->x = (o->x&255)*8+(int8_t)(o->x>>8);
+      o->y = (o->y&255)*16+(int8_t)(o->y>>8);
+      o->width = o->width==80?RVR_XRES:(o->width&255)*8+(int8_t)(o->width>>8);
+      o->height = (o->height&255)*16+(int8_t)(o->height>>8);
+
       RvR_rw_seek(&rw,o->spec,SEEK_SET);
       switch(o->type)
       {
@@ -123,7 +130,7 @@ int ressource_load(const char *path)
             uint16_t spec = RvR_rw_read_u16(&rw);
             o->as.box.color_inside = spec&15;
             o->as.box.pattern = (spec>>4)&7;
-            o->as.box.writing_mode = (spec>>7)&1;
+            o->as.box.writing_mode = ((spec>>7)&1)?1:2;
             o->as.box.color_text = (spec>>8)&15;
             o->as.box.color_border = (spec>>12)&15;
          }
@@ -145,7 +152,12 @@ int ressource_load(const char *path)
             o->as.text.font = RvR_rw_read_u16(&rw);
             o->as.text.font_id = RvR_rw_read_u16(&rw);
             o->as.text.justify = RvR_rw_read_u16(&rw);
-            o->as.text.color = RvR_rw_read_u16(&rw);
+            uint16_t spec = RvR_rw_read_u16(&rw);
+            o->as.text.color_inside = spec&15;
+            o->as.text.pattern = (spec>>4)&7;
+            o->as.text.writing_mode = ((spec>>7)&1)?1:2;
+            o->as.text.color_text = (spec>>8)&15;
+            o->as.text.color_border = (spec>>12)&15;
             o->as.text.font_size = RvR_rw_read_u16(&rw);
             o->as.text.thickness = RvR_rw_read_u16(&rw);
             o->as.text.str_len = RvR_rw_read_u16(&rw);

@@ -20,7 +20,7 @@ typedef struct
    uint16_t type;
    uint16_t flags;
    uint16_t state;
-   uint32_t spec;
+   uint16_t spec; //was uint32_t
    int16_t x;
    int16_t y;
    int16_t width;
@@ -45,7 +45,12 @@ typedef struct
          int16_t font;
          int16_t font_id;
          int16_t justify;
-         int16_t color;
+         //int16_t color;
+         uint8_t color_border;
+         uint8_t color_text;
+         uint8_t color_inside;
+         uint8_t writing_mode;
+         uint8_t pattern;
          int16_t font_size;
          int16_t thickness;
          int16_t str_len;
