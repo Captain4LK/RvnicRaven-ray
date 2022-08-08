@@ -8,13 +8,12 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
 */
 
-#ifndef _GAME_H_
+#ifndef _TURN_H_
 
-#define _GAME_H_
+#define _TURN_H_
 
-void game_new(void);
-void game_update(void);
-void game_draw(void);
-int ein_zug(void);
+void turn_init(void);
+void turn_update(void);
+void turn_draw(void);
 
 #endif

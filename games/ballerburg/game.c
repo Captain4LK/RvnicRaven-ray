@@ -21,6 +21,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "game.h"
 #include "burg.h"
 #include "draw.h"
+#include "state.h"
 //-------------------------------------
 
 //#defines
@@ -53,7 +54,15 @@ typedef struct
       int x;
       int y;
    }forderturme[5];
+
+   char name[64];
 }Player;
+
+typedef enum
+{
+   GAME_TURN,
+   GAME_SIMULATE,
+}Game_state;
 //-------------------------------------
 
 //Variables
@@ -61,6 +70,7 @@ static int prices[6];
 static int wind;
 static int zug = 0;
 static int ende = 0;
+static Game_state game_state;
 
 static Player players[2];
 
@@ -177,6 +187,7 @@ void game_new(void)
    }
 
    zug = ende = 0;
+   state_set(STATE_TURN);
 
    /*static short pr[6]={ 200,500,400,150,50,50 };
    short j;
@@ -192,6 +203,22 @@ void game_new(void)
       for( f=0;f<5; ) ft[n][f++].x=-1;
    }
    zug=n=end=0; f=1;*/
+}
+
+void game_update(void)
+{
+   switch(game_state)
+   {
+   case GAME_TURN:
+      break;
+   case GAME_SIMULATE:
+      break;
+   }
+}
+
+void game_draw(void)
+{
+   draw_buffer(0,0);
 }
 
 int ein_zug(void)

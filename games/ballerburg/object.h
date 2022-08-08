@@ -20,7 +20,7 @@ typedef struct
    uint16_t type;
    uint16_t flags;
    uint16_t state;
-   uint16_t spec; //was uint32_t
+   uint32_t spec; //was uint32_t
    int16_t x;
    int16_t y;
    int16_t width;
@@ -35,6 +35,8 @@ typedef struct
          uint8_t color_inside;
          uint8_t writing_mode;
          uint8_t pattern;
+         int8_t border_width;
+         char ch;
       }box;
       char *str;
       struct

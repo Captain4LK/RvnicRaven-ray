@@ -24,6 +24,7 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 #include "object.h"
 #include "ressource.h"
 #include "ui.h"
+#include "state.h"
 //-------------------------------------
 
 //#defines
@@ -33,7 +34,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-
 static uint8_t buffer_game[RVR_XRES*RVR_YRES];
 //-------------------------------------
 
@@ -126,10 +126,15 @@ static void loop()
       RvR_draw_line(points[i*4]+RVR_XRES/2,points[i*4+1]+RVR_YRES/2,points[i*4+2]+RVR_XRES/2,points[i*4+3]+RVR_YRES/2,color_black);
    }*/
 
-   draw_buffer(0,0);
+   state_update();
+   state_draw();
+   //game_update();
+   //game_draw();
+   //draw_buffer(0,0);
    //object_draw(objects,0,20,0);
-   object_draw(a_sie,0,20,0);
-   //menu_bar_draw(a_dra);
+   //object_draw(a_dra,0,20,0);
+   //menu_bar_draw(a_men);
+   //object_draw(a_inf,0,40,0);
 
    /*static int burg = 0;
    if(RvR_core_key_pressed(RVR_KEY_RIGHT))

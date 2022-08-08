@@ -48,33 +48,20 @@ static uint8_t *buffer;
 static int buffer_width;
 static int buffer_height;
 
-static const Pattern pattern_pattern[25] = 
+static const uint16_t pattern_pattern[25][8] = 
 {
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 4, .pattern = {0x1111,0x0000,0x4444,0x0000}}, 
-   {.planes = 2, .pattern = {0x5555,0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 2, .pattern = {0x5555,0xaaaa}},
-   {.planes = 2, .pattern = {0x5555,0x0000}},
-   {.planes = 2, .pattern = {0x5555,0xffff}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 8, .pattern = {0xffff,0x1010,0x1010,0x1010,0xffff,0x0101,0x0101,0x0101}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 8, .pattern = {0x0a0a,0x0000,0x0000,0x4040,0xa0a0,0x0000,0x0000,0x0404}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
-   {.planes = 1, .pattern = {0x0000}},
+   {0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000},
+   {0x1111,0x0000,0x4444,0x0000,0x1111,0x0000,0x4444,0x0000},
+   {0x5555,0x0000,0x5555,0x0000,0x5555,0x0000,0x5555,0x0000},
+   {0xaaaa,0x1111,0xaaaa,0x4444,0xaaaa,0x1111,0xaaaa,0x4444},
+   {0x5555,0xaaaa,0x5555,0xaaaa,0x5555,0xaaaa,0x5555,0xaaaa},
+   {0xaaaa,0x7777,0xaaaa,0xdddd,0xaaaa,0x7777,0xaaaa,0xdddd},
+   {0xaaaa,0xffff,0xaaaa,0xffff,0xaaaa,0xffff,0xaaaa,0xffff},
+   {0x1111,0xffff,0x4444,0xffff,0x1111,0xffff,0x4444,0xffff},
+   {0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff},
+   {0xffff,0x1010,0x1010,0x1010,0xffff,0x0101,0x0101,0x0101},
+   {0x0000},
+   {0x0a0a,0x0000,0x0000,0x4040,0xa0a0,0x0000,0x0000,0x0404},
 };
 
 static const uint64_t font[] = {
@@ -161,7 +148,7 @@ void draw_buffer_set_pattern(int pattern)
    draw_interior = 2;
    draw_style = pattern;
    if(pattern<=0)
-      draw_interior = 1;
+      draw_interior = 0;
 }
 
 void draw_buffer_shape(int x, int y, const int *shape)
@@ -245,6 +232,20 @@ void draw_buffer_line(int x0, int y0, int x1, int y1, uint16_t pattern)
    draw_line(x0,y0,x1,y1,2);
 }
 
+void draw_buffer_hline(int x0, int y0, int x1, uint16_t pattern)
+{
+   pattern_line = pattern;
+   for(int x = x0;x<x1;x++)
+      draw(x,y0,2);
+}
+
+void draw_buffer_vline(int x0, int y0, int y1, uint16_t pattern)
+{
+   pattern_line = pattern;
+   for(int y = y0;y<y1;y++)
+      draw(x0,y,2);
+}
+
 void draw_buffer_rectangle(int x, int y, int width, int height)
 {
    for(int iy = y;iy<y+height;iy++)
@@ -275,6 +276,33 @@ void draw_buffer_rectangle(int x, int y, int width, int height)
    for(int y1 = draw_start_y;y1<draw_end_y;y1++,dst+=dst_step)
       for(int x1 = draw_start_x;x1<draw_end_x;x1++,dst++)
          *dst = draw_color?color_black:color_white;*/
+}
+
+void draw_buffer_rectangle_line(int x, int y, int width, int height, int border_width)
+{
+   if(border_width==0)
+      return;
+
+   if(border_width>0)
+   {
+      for(int i = 0;i<border_width;i++)
+      {
+         draw_buffer_hline(x+i,y+i,x+width-i,0xffff);
+         draw_buffer_hline(x+i,y+height-i-1,x+width-i,0xffff);
+         draw_buffer_vline(x+i,y+i,y+height-i,0xffff);
+         draw_buffer_vline(x+width-i-1,y+i,y+height-i,0xffff);
+      }
+   }
+   else
+   {
+      for(int i = -1;i>=border_width;i--)
+      {
+         draw_buffer_hline(x+i,y+i,x+width-i,0xffff);
+         draw_buffer_hline(x+i,y+height-i-1,x+width-i,0xffff);
+         draw_buffer_vline(x+i,y+i,y+height-i,0xffff);
+         draw_buffer_vline(x+width-i-1,y+i,y+height-i,0xffff);
+      }
+   }
 }
 
 void draw_buffer_text(int x, int y, const char *str)
@@ -323,11 +351,12 @@ static void draw(int x, int y, int mode)
       switch(draw_interior)
       {
       case 0: //blank
-         return;
+         col = 0;
+         break;
       case 1: //solid
          break;
       case 2: //pattern
-         if(!(pattern_pattern[draw_style].pattern[y%pattern_pattern[draw_style].planes]&(1<<(x&15))))
+         if(!(pattern_pattern[draw_style][y&7]&(1<<(x&15))))
             col = !col;
          break;
       default:

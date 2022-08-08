@@ -127,12 +127,14 @@ int ressource_load(const char *path)
       case 25: //IBOX
       case 27: //BOXCHAR
          {
-            uint16_t spec = RvR_rw_read_u16(&rw);
+            uint32_t spec = o->spec;
             o->as.box.color_inside = spec&15;
             o->as.box.pattern = (spec>>4)&7;
             o->as.box.writing_mode = ((spec>>7)&1)?1:2;
             o->as.box.color_text = (spec>>8)&15;
             o->as.box.color_border = (spec>>12)&15;
+            o->as.box.border_width = (int8_t)((spec>>16)&255);
+            o->as.box.ch = (spec>>24)&255;
          }
          break;
       case 26: //BUTTON
