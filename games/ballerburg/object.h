@@ -63,6 +63,8 @@ typedef struct
 
 void objects_get(void);
 void object_print(Object *o);
+void object_offset(const Object *tree, const Object *o, int *x, int *y);
+const Object *object_parent(const Object *tree, const Object *o);
 
 extern Object *a_opt, *a_ein, * a_men, *a_inf, *a_sch, *a_brg, *a_nam, *a_dra, *a_sta, *a_sie, *a_com, *a_re1, *a_re2, *a_re3;
 

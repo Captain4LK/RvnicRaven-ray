@@ -34,7 +34,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Variables
-static uint8_t buffer_game[RVR_XRES*RVR_YRES];
 //-------------------------------------
 
 //Function prototypes

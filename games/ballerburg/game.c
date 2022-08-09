@@ -28,36 +28,6 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 //-------------------------------------
 
 //Typedefs
-typedef struct
-{
-   int burg;
-   int burg_y;
-
-   int geld;
-   int pulver;
-   int kugeln;
-   int volk;
-   int konig;
-   int steuern;
-
-   struct
-   {
-      int x;
-      int y;
-      int winkel;
-      int pulver;
-   }kanonen[10];
-
-   int fahne[2];
-   struct
-   {
-      int x;
-      int y;
-   }forderturme[5];
-
-   char name[64];
-}Player;
-
 typedef enum
 {
    GAME_TURN,
@@ -67,12 +37,13 @@ typedef enum
 
 //Variables
 static int prices[6];
-static int wind;
-static int zug = 0;
 static int ende = 0;
 static Game_state game_state;
 
-static Player players[2];
+int wind;
+int zug = 0;
+uint8_t buffer_game[RVR_XRES*RVR_YRES];
+Player players[2];
 
 int trohn[]={ -2,2,2, 8,3,5,12,8,12,12,16,12,17,14,15,
    15,15,17,17,17,16,21,11,24,11,21,3,-9, -4, 3,0,5,2,24,2,26,0,-9,

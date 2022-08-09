@@ -103,7 +103,6 @@ static const uint64_t font[] = {
 //Function prototypes
 static void draw(int x, int y, int mode);
 static void draw_line(int x0, int y0, int x1, int y1, int mode);
-static void draw_lines(int count, int *pos);
 static void fill_lines(int count, int *pos);
 
 static int point_on_line(int x0, int y0, int x1, int y1, int x, int y);
@@ -185,7 +184,7 @@ void draw_buffer_shape(int x, int y, const int *shape)
          if(fill)
             fill_lines(pos_count/2,pos);
          else
-            draw_lines(pos_count/2-1,pos);
+            draw_buffer_lines(pos_count/2-1,pos);
       }
 
       shape++;
@@ -451,7 +450,7 @@ void draw_line(int x0, int y0, int x1, int y1, int mode)
    }
 }
 
-static void draw_lines(int count, int *pos)
+void draw_buffer_lines(int count, int *pos)
 {
    for(int i = 0;i<count-1;i++)
    {

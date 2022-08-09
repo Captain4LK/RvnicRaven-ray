@@ -23,6 +23,7 @@ void draw_buffer(int x, int y);
 
 void draw_buffer_clear(void);
 void draw_buffer_shape(int x, int y, const int *shape);
+void draw_buffer_lines(int count, int *pos);
 void draw_buffer_line(int x0, int y0, int x1, int y1, uint16_t pattern);
 void draw_buffer_hline(int x0, int y0, int x1, uint16_t pattern);
 void draw_buffer_vline(int x0, int y0, int y1, uint16_t pattern);
