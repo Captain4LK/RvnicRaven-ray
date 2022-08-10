@@ -50,8 +50,6 @@ int main(int argc, char **argv)
    //Init RvnicRaven core
    RvR_core_init("RvnicRaven - ballerburg",0);
 
-   //RvR_pak_create_from_csv("data_anarch/main.csv","test.pak");
-   //RvR_pak_add("test.pak");
    RvR_pak_add("data_baller/main.csv");
 
    //User defined overwrites (used for modding)
@@ -71,7 +69,6 @@ int main(int argc, char **argv)
    RvR_rw_close(&rw);
 
    ressource_load("BALLER.RSC");
-   //ressource_load("DOODLE.RSC");
    objects_get();
 
    printf("%d Burgen\n",burgen.data_used);
@@ -83,21 +80,6 @@ int main(int argc, char **argv)
    draw_buffer_clear();
    draw_buffer_set_color(1);
 
-   //draw_buffer_set_write(4);
-   //draw_buffer_shape(0,320,burgen.data[0].shape);
-   //draw_buffer_set_write(1);
-
-   /*draw_buffer_shape(64,64,trohn);
-   draw_buffer_shape(128,64,kanon);
-   draw_buffer_shape(192,64,sack);
-   draw_buffer_shape(256,64,fass);
-   draw_buffer_shape(320,64,kuge);
-   draw_buffer_shape(384,64,turm);*/
-
-   //draw_buffer_set_write(4);
-   //draw_buffer_shape(0,320,burg);
-   //draw_buffer_set_write(1);
-   
    game_new();
 
    #ifdef __EMSCRIPTEN__
@@ -116,37 +98,8 @@ static void loop()
 {
    RvR_core_update();
 
-   /*int points[64] = {-91,60,-91,30,-91,30,-86,5,-86,5,-61,5,-61,5,-81,15,-81,15,-81,30,-81,30,-61,30,-61,30,-16,-5,-16,-5,-11,0,-11,0,-21,10,-21,10,-21,25,-21,25,-1,25,-1,25,9,15,9,15,9,0,9,0,39,0,39,0,39,60,39,60,-91,60};
-   RvR_draw_clear(color_white);
-   RvR_draw_line(0,RVR_YRES/2,RVR_XRES,RVR_YRES/2,0);
-   RvR_draw_line(RVR_XRES/2,0,RVR_XRES/2,RVR_YRES,0);
-   for(int i = 0;i<16;i++)
-   {
-      RvR_draw_line(points[i*4]+RVR_XRES/2,points[i*4+1]+RVR_YRES/2,points[i*4+2]+RVR_XRES/2,points[i*4+3]+RVR_YRES/2,color_black);
-   }*/
-
    state_update();
    state_draw();
-   //game_update();
-   //game_draw();
-   //draw_buffer(0,0);
-   //object_draw(objects,0,20,0);
-   //object_draw(a_dra,0,20,0);
-   //menu_bar_draw(a_men);
-   //object_draw(a_inf,0,40,0);
-
-   /*static int burg = 0;
-   if(RvR_core_key_pressed(RVR_KEY_RIGHT))
-   {
-      burg = (burg+1)%burgen.data_used;
-
-      draw_buffer_clear();
-      draw_buffer_set_write(4);
-      draw_buffer_shape(0,320,burgen.data[burg].shape);
-      draw_buffer_set_write(1);
-   }*/
-
-   //state_update();
 
    RvR_core_render_present();
 }

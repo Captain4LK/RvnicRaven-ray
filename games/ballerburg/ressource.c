@@ -62,7 +62,7 @@ int ressource_load(const char *path)
    RvR_rw_read_u16(&rw);
    RvR_rw_read_u16(&rw);
    RvR_rw_read_u16(&rw);
-   uint16_t file_size = RvR_rw_read_u16(&rw);
+   RvR_rw_read_u16(&rw);
 
    //Read objects
    RvR_rw_seek(&rw,object_offset,SEEK_SET);
@@ -82,20 +82,6 @@ int ressource_load(const char *path)
       o.width = RvR_rw_read_u16(&rw);
       o.height = RvR_rw_read_u16(&rw);
       objects[i] = o;
-
-      /*printf("Object %d:\n",i);
-      printf("Next %d\n",o.next);
-      printf("First child %d\n",o.head);
-      printf("Last child %d\n",o.tail);
-      printf("Type %d\n",o.type);
-      printf("Flags %d\n",o.flags);
-      printf("state %d\n",o.state);
-      printf("spec %d\n",o.spec);
-      printf("x %d\n",o.x);
-      printf("y %d\n",o.y);
-      printf("width %d\n",o.width);
-      printf("height %d\n",o.height);
-      puts("--------------------------");*/
    }
 
    //Read trees
@@ -105,8 +91,6 @@ int ressource_load(const char *path)
    {
       trees[i] = RvR_rw_read_u32(&rw);
       trees[i] = (trees[i]-object_offset)/24;
-
-      //printf("Tree %d: %d\n",i,trees[i]);
    }
 
    //Post process objects --> read spec fields and fix x,y,width,height
@@ -167,8 +151,6 @@ int ressource_load(const char *path)
             o->as.text.str = read_string(&rw,str_pos);
             o->as.text.template = read_string(&rw,template_pos);
             o->as.text.validate = read_string(&rw,validate_pos);
-
-            //printf("%d %d %d %d %d %d %d %d\n",o->as.text.font,o->as.text.font_id,o->as.text.justify,o->as.text.color,o->as.text.font_size,o->as.text.thickness,o->as.text.str_len,o->as.text.template_len);
          }
          break;
       default:

@@ -43,10 +43,9 @@ typedef struct
 }Player;
 
 void game_new(void);
-void game_update(void);
-void game_draw(void);
-int ein_zug(void);
 
+extern int prices[6];
+extern int ende;
 extern int zug;
 extern int wind;
 extern Player players[2];

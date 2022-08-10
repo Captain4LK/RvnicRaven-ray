@@ -56,21 +56,6 @@ void objects_get(void)
    a_ein = ressource_get(0,EINTRAG);
 }
 
-void object_print(Object *o)
-{
-   printf("next %d\n",o->next);
-   printf("first child %d\n",o->head);
-   printf("last child %d\n",o->tail);
-   printf("type %d\n",o->type);
-   printf("flags %d\n",o->flags);
-   printf("state %d\n",o->state);
-   printf("spec %d\n",o->spec);
-   printf("x %d\n",o->x);
-   printf("y %d\n",o->y);
-   printf("width %d\n",o->width);
-   printf("height %d\n",o->height);
-}
-
 void object_offset(const Object *tree, const Object *o, int *x, int *y)
 {
    *x = 0;
@@ -97,7 +82,6 @@ const Object *object_parent(const Object *tree, const Object *o)
       o = tree+next;
    }
 
-   //Unreachable
    return next<0?NULL:tree+next;
 }
 //-------------------------------------

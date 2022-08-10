@@ -20,7 +20,7 @@ typedef struct
    uint16_t type;
    uint16_t flags;
    uint16_t state;
-   uint32_t spec; //was uint32_t
+   uint32_t spec;
    int16_t x;
    int16_t y;
    int16_t width;
@@ -47,7 +47,6 @@ typedef struct
          int16_t font;
          int16_t font_id;
          int16_t justify;
-         //int16_t color;
          uint8_t color_border;
          uint8_t color_text;
          uint8_t color_inside;
@@ -62,7 +61,6 @@ typedef struct
 }Object;
 
 void objects_get(void);
-void object_print(Object *o);
 void object_offset(const Object *tree, const Object *o, int *x, int *y);
 const Object *object_parent(const Object *tree, const Object *o);
 
