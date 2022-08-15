@@ -21,22 +21,23 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define CUTE_PATH_IMPLEMENTATION
 #include "../../external/cute_path.h"
+
+#define OPTPARSE_IMPLEMENTATION
+#define OPTPARSE_API static
+#include "../../external/optparse.h"
 //-------------------------------------
 
 //Internal includes
 //-------------------------------------
 
 //#defines
-#define READ_ARG(I) \
-   ((++(I))<argc?argv[(I)]:NULL)
-
 #define MIN(a,b) ((a)<(b)?(a):(b))
 //-------------------------------------
 
 //Typedefs
 typedef enum
 {
-   SPRITE_NONE,
+   SPRITE_NONE = 0,
    SPRITE_WALL = 1,
    SPRITE_SPRITE = 2,
 }Sprite_flag;
@@ -68,7 +69,6 @@ typedef struct
 //-------------------------------------
 
 //Variables
-static uint64_t flag = SPRITE_NONE;
 //-------------------------------------
 
 //Function prototypes
@@ -91,27 +91,52 @@ static void sprite_pal_destroy(Sprite_pal *s);
 
 int main(int argc, char **argv)
 {
+   struct optparse_long longopts[] = 
+   {
+      {"in",'i',OPTPARSE_REQUIRED},
+      {"out",'o',OPTPARSE_REQUIRED},
+      {"pal",'p',OPTPARSE_REQUIRED},
+      {"wall",'w',OPTPARSE_NONE},
+      {"sprite",'s',OPTPARSE_NONE},
+      {"help",'h',OPTPARSE_NONE},
+      {0},
+   };
+
    const char *path_in = NULL;
    const char *path_out = NULL;
    const char *path_pal = NULL;
+   uint64_t flags = SPRITE_NONE;
 
-   for(int i = 1;i<argc;i++)
+   int option;
+   struct optparse options;
+   optparse_init(&options,argv);
+   while((option = optparse_long(&options,longopts,NULL))!=-1)
    {
-      if(strcmp(argv[i],"--help")==0||
-         strcmp(argv[i],"-help")==0||
-         strcmp(argv[i],"-h")==0||
-         strcmp(argv[i],"?")==0)
-      { print_help(argv); return 0; }
-      else if(strcmp(argv[i],"-fin")==0)
-         path_in = READ_ARG(i);
-      else if(strcmp(argv[i],"-fout")==0)
-         path_out = READ_ARG(i);
-      else if(strcmp(argv[i],"-pal")==0)
-         path_pal = READ_ARG(i);
-      else if(strcmp(argv[i],"-wall")==0)
-         flag|=SPRITE_WALL;
-      else if(strcmp(argv[i],"-sprite")==0)
-         flag|=SPRITE_SPRITE;
+      switch(option)
+      {
+      case 'w':
+         flags|=SPRITE_WALL;
+         break;
+      case 's':
+         flags|=SPRITE_SPRITE;
+         break;
+      case 'h':
+         print_help(argv);
+         exit(EXIT_SUCCESS);
+      case 'i':
+         path_in = options.optarg;
+         break;
+      case 'o':
+         path_out = options.optarg;
+         break;
+      case 'p':
+         path_pal = options.optarg;
+         break;
+      case '?':
+         fprintf(stderr,"%s: %s\n",argv[0],options.errmsg);
+         exit(EXIT_FAILURE);
+         break;
+      }
    }
    
    if(path_in==NULL)
@@ -124,10 +149,15 @@ int main(int argc, char **argv)
       RvR_log("output texture not specified, try %s -h for more info\n",argv[0]);
       return 0;
    }
+   if(path_pal==NULL)
+   {
+      RvR_log("palette not specified, try %s -h for more info\n",argv[0]);
+      return 0;
+   }
 
    Sprite_pal *sp = texture_load(path_in,path_pal);
 
-   if(flag&SPRITE_WALL)
+   if(flags&SPRITE_WALL)
    {
       Sprite_pal *csp = sprite_pal_create(sp->width,sp->height);
       memcpy(csp->data,sp->data,sizeof(*sp->data)*sp->width*sp->height);
@@ -138,7 +168,7 @@ int main(int argc, char **argv)
 
       sprite_pal_destroy(csp);
    }
-   if(flag&SPRITE_SPRITE)
+   else if(flags&SPRITE_SPRITE)
    {
       Sprite_pal *csp = sprite_pal_create(sp->width,sp->height);
       memcpy(csp->data,sp->data,sizeof(*sp->data)*sp->width*sp->height);
@@ -150,19 +180,16 @@ int main(int argc, char **argv)
       sprite_pal_destroy(csp);
    }
 
-   int len = sizeof(uint8_t)*sp->width*sp->height+2*sizeof(int32_t);
-   uint8_t *mem = RvR_malloc(len);
-   RvR_rw rw;
-   RvR_rw_init_mem(&rw,mem,len,len);
-   RvR_rw_write_u32(&rw,sp->width);
-   RvR_rw_write_u32(&rw,sp->height);
-   for(int i = 0;i<sp->width*sp->height;i++)
-      RvR_rw_write_u8(&rw,sp->data[i]);
-   RvR_rw_close(&rw);
-
+   //Compress and write to file
    RvR_rw cin;
    RvR_rw cout;
-   RvR_rw_init_const_mem(&cin,mem,len);
+   int len = sizeof(uint8_t)*sp->width*sp->height+2*sizeof(int32_t);
+   uint8_t *mem = RvR_malloc(len);
+   RvR_rw_init_mem(&cin,mem,len,len);
+   RvR_rw_write_u32(&cin,sp->width);
+   RvR_rw_write_u32(&cin,sp->height);
+   for(int i = 0;i<sp->width*sp->height;i++)
+      RvR_rw_write_u8(&cin,sp->data[i]);
    RvR_rw_init_path(&cout,path_out,"wb");
    RvR_compress(&cin,&cout,10);
    RvR_rw_close(&cin);
@@ -177,12 +204,12 @@ int main(int argc, char **argv)
 static void print_help(char **argv)
 {
    RvR_log("%s usage:\n"
-          "%s -fin filename -fout filename ]\n"
-          "   -fin        input texture path\n"
-          "   -fout       output texture path\n"
-          "   -pal        palette to use for assigning indices (.pal,.png,.hex,.gpl\n"
-          "   -wall       flag sprite as wall texture\n"
-          "   -sprite     flag sprite as sprite texture\n",
+          "%s --in filename --out filename --pal palette [OPTIONS]\n"
+          "   -i, --in          input texture path\n"
+          "   -o, --out         output texture path\n"
+          "   -p, --pal         palette to use for assigning indices (.pal,.png,.hex,.gpl\n"
+          "   -w, --wall        flag sprite as wall texture\n"
+          "   -s, --sprite      flag sprite as sprite texture\n",
          argv[0],argv[0]);
 }
 
@@ -190,12 +217,6 @@ static Sprite_pal *texture_load(const char *path, const char *path_pal)
 {
    char ext[33] = {0};
    path_pop_ext(path,NULL,ext);
-   
-   if(path_pal==NULL)
-   {
-      RvR_log("No palette specified but needed for converting textures\n");
-      exit(-1);
-   }
 
    path_pop_ext(path_pal,NULL,ext);
    Palette *pal = NULL;
@@ -215,7 +236,7 @@ static Sprite_pal *texture_load(const char *path, const char *path_pal)
 
    if(pal==NULL)
    {
-      RvR_log("Failed to load palette\n");
+      RvR_log_line("texture_load","failed to load palette '%s'",path_pal);
       exit(-1);
    }
 
@@ -342,7 +363,7 @@ static Sprite_rgb *image_load(FILE *f)
    data = stbi_load_from_file(f,&width,&height,NULL,4);
    if(data==NULL)
    {
-      RvR_log("Failed to load imgage\n");
+      RvR_log("Failed to load image\n");
       return sprite_rgb_create(1,1);
    }
 
@@ -372,6 +393,7 @@ static Sprite_rgb *sprite_rgb_create(int width, int height)
    s->width = width;
    s->height = height;
    s->data = RvR_malloc(sizeof(*s->data)*s->width*s->height);
+
    return s;
 }
 
@@ -381,6 +403,7 @@ static Sprite_pal *sprite_pal_create(int width, int height)
    s->width = width;
    s->height = height;
    s->data = RvR_malloc(sizeof(*s->data)*s->width*s->height);
+
    return s;
 }
 
@@ -388,6 +411,7 @@ static void sprite_rgb_destroy(Sprite_rgb *s)
 {
    if(s==NULL)
       return;
+
    if(s->data!=NULL)
       RvR_free(s->data);
    RvR_free(s);
@@ -397,6 +421,7 @@ static void sprite_pal_destroy(Sprite_pal *s)
 {
    if(s==NULL)
       return;
+
    if(s->data!=NULL)
       RvR_free(s->data);
    RvR_free(s);
