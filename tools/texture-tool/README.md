@@ -5,12 +5,12 @@ Command line utility for converting images to the format used by RvnicRaven
 ## How to use
 
 ```text
-texture-tool -fin filename -fout filename ]
-   -fin        input texture path
-   -fout       output texture path
-   -pal        palette to use for assigning indices (.pal,.png,.hex,.gpl
-   -wall       flag sprite as wall texture
-   -sprite     flag sprite as sprite texture
+texture-tool --in filename --out filename --pal filename [OPTIONS]
+   -i, --in          input texture path
+   -o, --out         output texture path
+   -p, --pal         palette to use for assigning indices (.pal,.png,.hex,.gpl
+   -w, --wall        flag sprite as wall texture
+   -s, --sprite      flag sprite as sprite texture
 ```
 
 ## External Dependencies (included in repository)
@@ -99,4 +99,33 @@ texture-tool -fin filename -fout filename ]
    ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    ------------------------------------------------------------------------------
+```
+
+* [optparse](https://github.com/skeeto/optparse):
+
+```text
+   This is free and unencumbered software released into the public domain.
+
+   Anyone is free to copy, modify, publish, use, compile, sell, or
+   distribute this software, either in source code form or as a compiled
+   binary, for any purpose, commercial or non-commercial, and by any
+   means.
+
+   In jurisdictions that recognize copyright laws, the author or authors
+   of this software dedicate any and all copyright interest in the
+   software to the public domain. We make this dedication for the benefit
+   of the public at large and to the detriment of our heirs and
+   successors. We intend this dedication to be an overt act of
+   relinquishment in perpetuity of all present and future rights to this
+   software under copyright law.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+   OTHER DEALINGS IN THE SOFTWARE.
+
+   For more information, please refer to <http://unlicense.org/>
 ```

@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 static void print_help(char **argv)
 {
    RvR_log("%s usage:\n"
-          "%s --in filename --out filename --pal palette [OPTIONS]\n"
+          "%s --in filename --out filename --pal filename [OPTIONS]\n"
           "   -i, --in          input texture path\n"
           "   -o, --out         output texture path\n"
           "   -p, --pal         palette to use for assigning indices (.pal,.png,.hex,.gpl\n"
