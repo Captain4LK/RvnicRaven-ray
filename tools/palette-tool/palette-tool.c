@@ -21,15 +21,16 @@ You should have received a copy of the CC0 Public Domain Dedication along with t
 
 #define CUTE_PATH_IMPLEMENTATION
 #include "../../external/cute_path.h"
+
+#define OPTPARSE_IMPLEMENTATION
+#define OPTPARSE_API static
+#include "../../external/optparse.h"
 //-------------------------------------
 
 //Internal includes
 //-------------------------------------
 
 //#defines
-#define READ_ARG(I) \
-   ((++(I))<argc?argv[(I)]:NULL)
-
 #define MIN(a,b) ((a)<(b)?(a):(b))
 //-------------------------------------
 
@@ -73,20 +74,38 @@ static void sprite_rgb_destroy(Sprite_rgb *s);
 
 int main(int argc, char **argv)
 {
+   struct optparse_long longopts[] = 
+   {
+      {"in",'i',OPTPARSE_REQUIRED},
+      {"out",'o',OPTPARSE_REQUIRED},
+      {"help",'h',OPTPARSE_NONE},
+      {0},
+   };
+
    const char *path_in = NULL;
    const char *path_out = NULL;
 
-   for(int i = 1;i<argc;i++)
+   int option;
+   struct optparse options;
+   optparse_init(&options,argv);
+   while((option = optparse_long(&options,longopts,NULL))!=-1)
    {
-      if(strcmp(argv[i],"--help")==0||
-         strcmp(argv[i],"-help")==0||
-         strcmp(argv[i],"-h")==0||
-         strcmp(argv[i],"?")==0)
-      { print_help(argv); return 0; }
-      else if(strcmp(argv[i],"-fin")==0)
-         path_in = READ_ARG(i);
-      else if(strcmp(argv[i],"-fout")==0)
-         path_out = READ_ARG(i);
+      switch(option)
+      {
+      case 'h':
+         print_help(argv);
+         exit(EXIT_SUCCESS);
+      case 'i':
+         path_in = options.optarg;
+         break;
+      case 'o':
+         path_out = options.optarg;
+         break;
+      case '?':
+         fprintf(stderr,"%s: %s\n",argv[0],options.errmsg);
+         exit(EXIT_FAILURE);
+         break;
+      }
    }
    
    if(path_in==NULL)
@@ -135,9 +154,9 @@ int main(int argc, char **argv)
 static void print_help(char **argv)
 {
    RvR_log("%s usage:\n"
-          "%s -fin filename -fout filename ]\n"
-          "   -fin        input palette path\n"
-          "   -fout       output palette path\n",
+          "%s --in filename --out filename ]\n"
+          "   -i, --in        input palette path\n"
+          "   -o, --out       output palette path\n",
          argv[0],argv[0]);
 }
 

@@ -1,16 +1,13 @@
-# Texture-tool
+# Palette-tool
 
-Command line utility for converting images to the format used by RvnicRaven
+Command line utility for converting palettes to the format used by RvnicRaven
 
 ## How to use
 
 ```text
-texture-tool --in filename --out filename --pal filename [OPTIONS]
-   -i, --in          input texture path
-   -o, --out         output texture path
-   -p, --pal         palette to use for assigning indices (.pal,.png,.hex,.gpl
-   -w, --wall        flag sprite as wall texture
-   -s, --sprite      flag sprite as sprite texture
+palette-tool --in filename --out filename ]
+   -i, --in        input palette path
+   -o, --out       output palette path
 ```
 
 ## External Dependencies (included in repository)
